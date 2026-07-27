@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookieverklaring — PrevX</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="index.html" class="site-logo"><img src="Logo-PrevX.png" alt="PrevX"></a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html">Home</a>
+      <a href="diensten.html">Diensten</a>
+      <a href="over-ons.html">Over ons</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="https://portaal.prevx.be" class="btn-portaal">Klantenportaal</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero" style="padding:56px 24px;">
+  <h1 style="font-size:30px;">Cookieverklaring</h1>
+</div>
+
+<main>
+  <section class="section">
+    <div class="content-block">
+      <p>Deze website gebruikt uitsluitend functionele cookies. Deze cookies zijn noodzakelijk om de site correct te laten werken en hebben geen impact op uw privacy. PrevX gebruikt zelf geen trackingcookies, marketingcookies, analytische cookies of cookies van derden.</p>
+
+      <h2>Wat zijn cookies?</h2>
+      <p>Cookies zijn kleine tekstbestanden die door websites op uw apparaat worden opgeslagen. Ze helpen de website functioneren of onthouden bepaalde instellingen.</p>
+
+      <h2>Welke cookies gebruikt deze website?</h2>
+      <p><strong>Functionele cookies (noodzakelijk)</strong></p>
+      <p>Deze cookies zorgen ervoor dat de website werkt zoals bedoeld. Voorbeelden:</p>
+      <ul style="color:var(--gray-700);padding-left:20px;margin-bottom:14px">
+        <li>het onthouden van taalinstellingen</li>
+        <li>het correct laden van pagina's</li>
+        <li>basisbeveiliging en stabiliteit</li>
+      </ul>
+      <p>Deze cookies verzamelen geen persoonlijke gegevens en kunnen niet worden gebruikt om u te identificeren.</p>
+
+      <h2>Geen tracking- of marketingcookies</h2>
+      <p>PrevX gebruikt geen:</p>
+      <ul style="color:var(--gray-700);padding-left:20px;margin-bottom:14px">
+        <li>Google Analytics</li>
+        <li>Facebook Pixel</li>
+        <li>Advertentiecookies</li>
+        <li>Gedragsanalyse</li>
+        <li>Profielopbouw</li>
+        <li>Cookies van externe platformen</li>
+      </ul>
+      <p>Er wordt dus geen gebruikersgedrag opgeslagen of doorgegeven aan derden.</p>
+
+      <h2>Hoe kunt u cookies beheren?</h2>
+      <p>Hoewel deze website enkel noodzakelijke cookies gebruikt, kunnen bezoekers hun browserinstellingen aanpassen om cookies te beheren, blokkeren of verwijderen. Meer info per browser:</p>
+      <ul style="color:var(--gray-700);padding-left:20px;margin-bottom:14px">
+        <li>Chrome: <a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">support.google.com/chrome/answer/95647</a></li>
+        <li>Firefox: <a href="https://support.mozilla.org/nl/kb/cookies-verwijderen-gegevens-wissen" target="_blank" rel="noopener">support.mozilla.org</a></li>
+        <li>Safari: <a href="https://support.apple.com/nl-be/guide/safari/sfri11471/mac" target="_blank" rel="noopener">support.apple.com</a></li>
+        <li>Edge: <a href="https://support.microsoft.com/nl-nl/microsoft-edge/verwijder-cookies" target="_blank" rel="noopener">support.microsoft.com</a></li>
+      </ul>
+
+      <h2>Wijzigingen aan deze verklaring</h2>
+      <p>Deze cookieverklaring kan worden aangepast wanneer functionaliteiten wijzigen. De meest recente versie is steeds beschikbaar op deze pagina.</p>
+      <p style="color:var(--gray-500);font-size:13px">Versie v1.0</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  &copy; <span id="jaar"></span> PrevX. Alle rechten voorbehouden. &middot; <a href="contact.html">Contact</a> &middot; <a href="privacyverklaring.html">Privacyverklaring</a> &middot; <a href="cookieverklaring.html">Cookieverklaring</a> &middot; <a href="algemene-voorwaarden.html">Algemene voorwaarden</a>
+</footer>
+
+<script src="script.js"></script>
+<script>document.getElementById('jaar').textContent = new Date().getFullYear();</script>
+</body>
+</html>

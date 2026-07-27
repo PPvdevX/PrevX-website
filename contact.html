@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact — PrevX</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="index.html" class="site-logo"><img src="Logo-PrevX.png" alt="PrevX"></a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html">Home</a>
+      <a href="diensten.html">Diensten</a>
+      <a href="over-ons.html">Over ons</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html" class="active">Contact</a>
+      <a href="https://portaal.prevx.be" class="btn-portaal">Klantenportaal</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero" style="padding:56px 24px;">
+  <h1 style="font-size:30px;">Contact</h1>
+  <p>Vragen, een vrijblijvend gesprek aanvragen, of gewoon eens sparren? We horen graag van u.</p>
+</div>
+
+<main>
+  <section class="section">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div>
+          <div class="label">PrevX</div>
+          <span>Polderstraat 109, app. 0203<br>8450 Bredene</span>
+        </div>
+        <div>
+          <div class="label">E-mail</div>
+          <a href="mailto:peter@prevx.be">peter@prevx.be</a>
+        </div>
+        <div>
+          <div class="label">Telefoon</div>
+          <a href="tel:+32491342975">+32 491 34 29 75</a>
+        </div>
+      </div>
+      <form id="contactForm">
+        <div class="form-group">
+          <label class="form-label">Voornaam</label>
+          <input type="text" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Achternaam</label>
+          <input type="text" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bedrijfsnaam</label>
+          <input type="text" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mailadres</label>
+          <input type="email" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefoon/GSM</label>
+          <input type="tel" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Uw vraag</label>
+          <textarea class="form-textarea" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-cta" style="border:none;cursor:pointer">Verzenden</button>
+        <p style="font-size:12px;color:var(--gray-500);margin-top:10px">Dit formulier is nog niet actief gekoppeld — het versturen wordt aangesloten zodra de e-mailinfrastructuur (zelfde als voor de app-rapporten) klaar is.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  &copy; <span id="jaar"></span> PrevX. Alle rechten voorbehouden. &middot; <a href="contact.html">Contact</a> &middot; <a href="privacyverklaring.html">Privacyverklaring</a> &middot; <a href="cookieverklaring.html">Cookieverklaring</a> &middot; <a href="algemene-voorwaarden.html">Algemene voorwaarden</a>
+</footer>
+
+<script src="script.js"></script>
+<script>
+document.getElementById('jaar').textContent = new Date().getFullYear();
+document.getElementById('contactForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  alert('Bedankt! Dit formulier is nog niet gekoppeld aan een echte verzendfunctie — gebruik voorlopig peter@prevx.be.');
+});
+</script>
+</body>
+</html>

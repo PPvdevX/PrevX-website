@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — PrevX</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.faq-item { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+.faq-q { padding: 18px 22px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.faq-q .arrow { transition: transform 0.2s; color: var(--gray-400); flex-shrink: 0; }
+.faq-item.open .faq-q .arrow { transform: rotate(180deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; padding: 0 22px; color: var(--gray-700); font-size: 14px; }
+.faq-item.open .faq-a { max-height: 400px; padding-bottom: 18px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="index.html" class="site-logo"><img src="Logo-PrevX.png" alt="PrevX"></a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="index.html">Home</a>
+      <a href="diensten.html">Diensten</a>
+      <a href="over-ons.html">Over ons</a>
+      <a href="faq.html" class="active">FAQ</a>
+      <a href="contact.html">Contact</a>
+      <a href="https://portaal.prevx.be" class="btn-portaal">Klantenportaal</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero" style="padding:56px 24px;">
+  <h1 style="font-size:30px;">Veelgestelde vragen</h1>
+</div>
+
+<main>
+  <section class="section" style="max-width:760px;margin:0 auto">
+
+    <div class="faq-item open">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Voor welke bedrijven werkt PrevX? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>PrevX richt zich voornamelijk op KMO's en industriële bedrijven binnen sectoren zoals recycling, logistiek, bouw, productie en opslag. De dienstverlening is bedoeld voor organisaties die veiligheid serieus nemen, maar nood hebben aan praktische ondersteuning, extra expertise of tijdelijke versterking. PrevX werkt uitsluitend voor professionele klanten.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Welke diensten biedt PrevX precies aan? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a">
+        <p>PrevX ondersteunt bedrijven op drie manieren:</p>
+        <p><strong>Analyse en advies</strong> — praktische risicoanalyses, brandrisico's, werkpostanalyses, evaluaties en gericht veiligheidsadvies.</p>
+        <p><strong>Begeleiding en ondersteuning</strong> — tijdelijke versterking van preventiediensten, opmaak van procedures, actieplannen en verslaggeving.</p>
+        <p><strong>Vorming en toolboxen</strong> — korte, duidelijke opleidingen en toolboxen die afgestemd zijn op de realiteit van de werkvloer.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Biedt PrevX ook langdurige ondersteuning aan? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>Ja. Bedrijven kunnen PrevX inschakelen voor tijdelijke of structurele ondersteuning, bijvoorbeeld wanneer er geen interne preventieadviseur beschikbaar is, tijdens drukke periodes, bij projecten of bij herstructurering van veiligheidsdocumentatie. De samenwerking kan kortlopend zijn of over langere termijn worden ingepland.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Hoe verloopt een samenwerking? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>Elke samenwerking start met een vrijblijvend gesprek waarin de behoefte wordt besproken. Daarna volgt een helder voorstel op maat, met duidelijke afspraken over doelstellingen, aanpak en timing. PrevX werkt transparant, zonder verrassingen, en streeft steeds naar werkbare oplossingen die passen bij de werking van het bedrijf.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Kan PrevX helpen bij brandpreventie? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>Ja. Brandrisico's vormen een van de grootste uitdagingen in industriële omgevingen. PrevX ondersteunt met realistische brandrisicoanalyses, praktische maatregelen, evaluaties op locatie en duidelijke instructies voor medewerkers. Steeds met aandacht voor werkbaarheid en continuïteit van het proces.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Geeft PrevX ook opleidingen? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>PrevX biedt vormingen en toolboxen op maat. Deze zijn kort, helder en gericht op veilig gedrag op de werkvloer. Geen theoretische opleidingen van urenlang, maar sessies die focus houden op wat medewerkers écht moeten weten.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Hoe worden tarieven bepaald? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>PrevX werkt met transparante tarieven die afgestemd zijn op de aard, duur en complexiteit van de opdracht. Voor duidelijk afgebakende opdrachten is een vaste prijs mogelijk. Bij langere trajecten wordt gewerkt met dagprijzen of uurtarieven. Vooraf wordt altijd een duidelijke prijsafspraak gemaakt.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Werkt PrevX uitsluitend in West-Vlaanderen? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>PrevX is actief op het volledige Vlaamse grondgebied.</p></div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Hoe kan ik een vrijblijvende kennismaking aanvragen? <span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><p>Via de <a href="contact.html">contactpagina</a> kan eenvoudig een bericht worden gestuurd. Daarnaast is PrevX bereikbaar via telefoon of e-mail voor een kort overleg of een eerste kennismaking.</p></div>
+    </div>
+
+  </section>
+
+  <div class="cta-band">
+    <h2>Staat uw vraag er niet bij?</h2>
+    <p>Neem gerust rechtstreeks contact op.</p>
+    <a href="contact.html" class="btn btn-cta">Neem contact op</a>
+  </div>
+</main>
+
+<footer class="site-footer">
+  &copy; <span id="jaar"></span> PrevX. Alle rechten voorbehouden. &middot; <a href="contact.html">Contact</a> &middot; <a href="privacyverklaring.html">Privacyverklaring</a> &middot; <a href="cookieverklaring.html">Cookieverklaring</a> &middot; <a href="algemene-voorwaarden.html">Algemene voorwaarden</a>
+</footer>
+
+<script src="script.js"></script>
+<script>document.getElementById('jaar').textContent = new Date().getFullYear();</script>
+</body>
+</html>
