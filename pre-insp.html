@@ -273,6 +273,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+window.addEventListener('load', function () { herstelVoortgangIndienMogelijk(); });
+
 var gebruiker = null;
 var voertuig = null;
 var secties = [];
@@ -282,6 +284,78 @@ var sigCtx = null;
 var sigDrawing = false;
 var sigHasSig = false;
 var pin = '';
+
+// Foto's nemen via <input capture="environment"> opent de native camera-app,
+// wat de mobiele browser-tab op de achtergrond zet -- Android/iOS kunnen die
+// tab dan uit het geheugen gooien en herladen zodra je terugkeert, waardoor
+// alle in-memory voortgang (gebruiker/voertuig/resultaten) verloren ging en
+// het leek alsof "de app herstartte". Oplossing: voortgang doorlopend in
+// localStorage bewaren en bij het laden automatisch herstellen i.p.v. enkel
+// inloggen te tonen.
+var VOORTGANG_KEY = 'prevx_inspectie_voortgang';
+
+function slaVoortgangOp() {
+  if (!gebruiker || !voertuig) return;
+  try {
+    localStorage.setItem(VOORTGANG_KEY, JSON.stringify({
+      gebruiker: gebruiker,
+      voertuig: voertuig,
+      resultaten: resultaten,
+      opgeslagenOp: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function wisVoortgang() {
+  try { localStorage.removeItem(VOORTGANG_KEY); } catch (e) {}
+}
+
+function herstelVoortgangIndienMogelijk() {
+  var ruw;
+  try { ruw = localStorage.getItem(VOORTGANG_KEY); } catch (e) { return; }
+  if (!ruw) return;
+  var opgeslagen;
+  try { opgeslagen = JSON.parse(ruw); } catch (e) { wisVoortgang(); return; }
+  // Enkel hetzelfde etmaal herstellen -- een weken oude, vergeten sessie
+  // moet niet plots weer opduiken.
+  if (!opgeslagen || !opgeslagen.opgeslagenOp || Date.now() - opgeslagen.opgeslagenOp > 12 * 60 * 60 * 1000) {
+    wisVoortgang();
+    return;
+  }
+  gebruiker = opgeslagen.gebruiker;
+  voertuig = opgeslagen.voertuig;
+  showScreen('inspectie');
+  document.getElementById('headerUser2').innerHTML = '<strong>' + voertuig.nummerplaat + '</strong>' + gebruiker.naam;
+  document.getElementById('btnTerug').onclick = stapTerug;
+  document.getElementById('btnVolgende').style.display = '';
+
+  sb.rpc('rpc_checklist', { p_gebruiker_id: gebruiker.id, p_voertuig_id: voertuig.id })
+    .then(function(result) {
+      var rijen = result.data || [];
+      if (!rijen.length) { wisVoortgang(); showScreen('login'); return; }
+      var bySectie = {};
+      var volgorde = [];
+      rijen.forEach(function(r) {
+        if (!bySectie[r.sectie_id]) {
+          bySectie[r.sectie_id] = { id: r.sectie_id, naam: r.sectie_naam, icon: r.sectie_icon, volgorde: r.sectie_volgorde, inspectie_punten: [] };
+          volgorde.push(r.sectie_id);
+        }
+        bySectie[r.sectie_id].inspectie_punten.push({ id: r.punt_id, omschrijving: r.punt_omschrijving, volgorde: r.punt_volgorde, niveau: r.punt_niveau });
+      });
+      secties = volgorde.map(function(id) { return bySectie[id]; });
+      var hersteld = opgeslagen.resultaten || {};
+      resultaten = {};
+      secties.forEach(function(s) {
+        s.inspectie_punten.forEach(function(p) {
+          resultaten[p.id] = hersteld[p.id] || { status: null, opmerking: '', fotos: [], niveau: p.niveau };
+        });
+      });
+      bouwTabs();
+      toonSectie(0);
+      showToast('Vorige inspectie hersteld na herstart.');
+    })
+    .catch(function() { wisVoortgang(); showScreen('login'); });
+}
 
 var VOERTUIG_ICONS = {
   'Vrachtwagen': '&#x1F69B;',
@@ -499,6 +573,7 @@ function kiesVoertuig(v) {
           resultaten[p.id] = { status: null, opmerking: '', fotos: [], niveau: p.niveau };
         });
       });
+      slaVoortgangOp();
       bouwTabs();
       toonSectie(0);
     });
@@ -566,7 +641,7 @@ function bouwCheckItem(p, i) {
   div.querySelector('#btn-ok-' + pid).onclick = function() { setStatus(pid, 'ok'); };
   div.querySelector('#btn-nok-' + pid).onclick = function() { setStatus(pid, 'nok'); };
   div.querySelector('#btn-na-' + pid).onclick = function() { setStatus(pid, 'na'); };
-  div.querySelector('#opm-' + pid).oninput = function() { resultaten[pid].opmerking = this.value; };
+  div.querySelector('#opm-' + pid).oninput = function() { resultaten[pid].opmerking = this.value; slaVoortgangOp(); };
   div.querySelector('#foto-input-' + pid).onchange = function() { addFoto(pid, this); };
 
   renderFotos(pid);
@@ -585,6 +660,7 @@ function setStatus(pid, status) {
   if (selBtn) selBtn.classList.add('sel');
   document.getElementById('ex-' + pid).classList.add('show');
   updateProgress();
+  slaVoortgangOp();
 }
 
 var fotoUploadsBezig = 0;
@@ -609,6 +685,7 @@ function addFoto(pid, input) {
     }
     resultaten[pid].fotos.push(res.body.url);
     renderFotos(pid);
+    slaVoortgangOp();
   }).catch(function(e) {
     fotoUploadsBezig--;
     placeholder.remove();
@@ -639,6 +716,7 @@ function renderFotos(pid) {
 function delFoto(pid, i) {
   resultaten[pid].fotos.splice(i, 1);
   renderFotos(pid);
+  slaVoortgangOp();
 }
 
 function updateProgress() {
@@ -835,6 +913,7 @@ function verzendRapport() {
     });
   }).then(function(result) {
     if (result.error) throw result.error;
+    wisVoortgang();
     showToast('Rapport verzonden!');
     btn.textContent = 'Verzonden';
     document.getElementById('btnNieuw').style.display = '';
@@ -848,6 +927,7 @@ function verzendRapport() {
 }
 
 function nieuweInspectie() {
+  wisVoortgang();
   pin = '';
   updatePinDisplay();
   gebruiker = null;
