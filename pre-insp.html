@@ -748,6 +748,16 @@ function stapVolgende() {
 }
 
 function bouwRapport() {
+  // Herstel de verzendknop naar zijn standaardtoestand -- na een geslaagde
+  // verzending eerder in dezelfde sessie bleef hij anders verborgen/uitgevinkt
+  // staan bij een volgende inspectie ("Nieuwe inspectie" start geen nieuwe
+  // paginalading, dus de knop-state uit de vorige ronde bleef gewoon hangen).
+  var btnVerzend = document.getElementById('btnVerzend');
+  btnVerzend.style.display = '';
+  btnVerzend.disabled = false;
+  btnVerzend.textContent = 'Verzenden';
+  document.getElementById('btnNieuw').style.display = 'none';
+
   document.getElementById('headerUser3').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + voertuig.nummerplaat;
   var ok = 0, nok = 0, open = 0, nokKritisch = 0, nokInformatief = 0;
   Object.keys(resultaten).forEach(function(k) {
