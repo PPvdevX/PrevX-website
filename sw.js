@@ -4,7 +4,7 @@
 // marketingsite) of op Supabase-aanroepen: alles buiten APP_SHELL loopt
 // gewoon rechtstreeks over het netwerk, ongecached.
 
-var CACHE_NAME = 'prevx-inspectie-v1';
+var CACHE_NAME = 'prevx-inspectie-v2';
 var APP_SHELL = ['/pre-insp', '/pre-insp.html', '/manifest.json', '/Logo-PrevX.png'];
 
 self.addEventListener('install', function (event) {
@@ -30,15 +30,15 @@ self.addEventListener('fetch', function (event) {
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || APP_SHELL.indexOf(url.pathname) === -1) {
     return;
   }
+  // Netwerk-eerst, cache enkel als offline-terugval -- anders blijft een
+  // geïnstalleerde PWA na elke update van pre-insp.html de oude versie tonen
+  // tot een tweede herlaad (precies de bug die dit moest oplossen).
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
-      var netwerk = fetch(event.request)
-        .then(function (resp) {
-          caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, resp.clone()); });
-          return resp;
-        })
-        .catch(function () { return cached; });
-      return cached || netwerk;
-    })
+    fetch(event.request)
+      .then(function (resp) {
+        caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, resp.clone()); });
+        return resp;
+      })
+      .catch(function () { return caches.match(event.request); })
   );
 });
