@@ -2,7 +2,7 @@
   "name": "PrevX Pre-inspectie",
   "short_name": "PrevX Inspectie",
   "description": "Pre-inspectie rijdend materieel",
-  "start_url": "/pre-insp.html",
+  "start_url": "/pre-insp",
   "scope": "/",
   "display": "standalone",
   "background_color": "#003366",

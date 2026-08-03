@@ -5,7 +5,7 @@
 // gewoon rechtstreeks over het netwerk, ongecached.
 
 var CACHE_NAME = 'prevx-inspectie-v1';
-var APP_SHELL = ['/pre-insp.html', '/manifest.json', '/Logo-PrevX.png'];
+var APP_SHELL = ['/pre-insp', '/pre-insp.html', '/manifest.json', '/Logo-PrevX.png'];
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
