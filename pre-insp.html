@@ -351,8 +351,16 @@ function herstelVoortgangIndienMogelijk() {
         });
       });
       bouwTabs();
-      toonSectie(0);
-      showToast('Vorige inspectie hersteld na herstart.');
+      // Spring naar de eerste sectie met nog een onbeantwoorde vraag, i.p.v.
+      // altijd terug bij sectie 1 te beginnen -- anders moet je na elk
+      // ongewenst herstart weer helemaal naar beneden scrollen naar waar je was.
+      var hervatIdx = secties.length - 1;
+      for (var i = 0; i < secties.length; i++) {
+        var onvolledig = secties[i].inspectie_punten.some(function(p) { return !resultaten[p.id].status; });
+        if (onvolledig) { hervatIdx = i; break; }
+      }
+      toonSectie(hervatIdx);
+      showToast('Vorige inspectie hersteld — verdergegaan waar je was.');
     })
     .catch(function() { wisVoortgang(); showScreen('login'); });
 }
