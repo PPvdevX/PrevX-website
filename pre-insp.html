@@ -35,7 +35,7 @@
   --gray-700: #334155;
   --gray-900: #0f172a;
   --radius: 10px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.10);
+  --radius-lg: 16px;
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.15);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -43,7 +43,7 @@ body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--g
 h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .screen { display: none; min-height: 100vh; }
 .screen.active { display: flex; flex-direction: column; }
-.app-header { background: var(--navy); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+.app-header { background: var(--navy); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .app-header-logo { display: flex; align-items: center; gap: 10px; }
 .logo-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--on-navy); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
 .header-user { font-size: 12px; color: var(--gray-400); text-align: right; }
@@ -69,9 +69,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .screen-content { flex: 1; padding: 20px 16px 100px; max-width: 700px; margin: 0 auto; width: 100%; }
 .screen-title { font-size: 20px; color: var(--navy-text); margin-bottom: 16px; }
 .voertuig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.voertuig-card { background: #fff; border-radius: var(--radius); padding: 20px 16px; border: 2px solid var(--gray-200); cursor: pointer; transition: all 0.2s; text-align: center; box-shadow: var(--shadow); }
-.voertuig-card:hover { border-color: var(--navy); transform: translateY(-2px); }
-.voertuig-icon { font-size: 36px; margin-bottom: 8px; }
+.voertuig-card { background: #fff; border-radius: var(--radius-lg); padding: 20px 16px; border: 1px solid var(--gray-300); cursor: pointer; transition: all 0.2s; text-align: center; }
+.voertuig-card:hover { border-color: var(--navy); }
+.voertuig-icon { width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 28px; }
 .voertuig-foto { width: 100%; height: 70px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
 .voertuig-plaat { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 700; color: var(--navy-text); }
 .voertuig-type { font-size: 12px; color: var(--gray-500); margin-top: 3px; }
@@ -81,9 +81,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .stap-tab { flex: 0 0 auto; padding: 8px 14px; border-radius: 8px 8px 0 0; background: var(--gray-200); border: none; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: var(--gray-500); transition: all 0.2s; white-space: nowrap; }
 .stap-tab.active { background: #fff; color: var(--navy-text); }
 .stap-tab.done { background: var(--green-bg); color: var(--green); }
-.inspectie-card { background: #fff; border-radius: 0 var(--radius) var(--radius) var(--radius); margin: 0 16px; box-shadow: var(--shadow); overflow: hidden; }
-.sectie-header { background: var(--navy); padding: 14px 18px; display: flex; align-items: center; gap: 10px; }
-.sectie-icon { font-size: 22px; }
+.inspectie-card { background: #fff; border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg); margin: 0 16px; border: 1px solid var(--gray-300); overflow: hidden; }
+.sectie-header { background: var(--navy); padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+.sectie-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 20px; }
 .sectie-naam { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700; color: var(--on-navy); }
 .sectie-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
 .check-list { padding: 4px 0; }
@@ -125,8 +125,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .stat.nok .stat-n { color: var(--red); }
 .stat.open .stat-n { color: var(--gray-500); }
 .stat-l { font-size: 10px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; margin-top: 3px; }
-.rapport-sectie { background: #fff; margin: 0 16px 12px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-.rapport-sectie-header { background: var(--navy); padding: 10px 16px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; color: var(--on-navy); text-transform: uppercase; }
+.rapport-sectie { background: #fff; margin: 0 16px 12px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--gray-300); }
+.rapport-sectie-header { background: var(--navy); padding: 10px 16px; display: flex; align-items: center; gap: 10px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; color: var(--on-navy); text-transform: uppercase; }
+.rapport-sectie-icon { width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 13px; text-transform: none; }
 .rapport-rij { display: flex; gap: 10px; align-items: flex-start; padding: 10px 16px; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
 .rapport-rij:last-child { border-bottom: none; }
 .rapport-badge { min-width: 40px; padding: 3px 5px; border-radius: 5px; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 700; }
@@ -136,7 +137,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .rapport-badge.open { background: var(--gray-200); color: var(--gray-700); }
 .rapport-tekst { flex: 1; color: var(--gray-700); line-height: 1.4; }
 .rapport-note { font-size: 11px; color: var(--gray-500); font-style: italic; margin-top: 2px; }
-.sig-wrap { margin: 0 16px 16px; background: #fff; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.sig-wrap { margin: 0 16px 16px; background: #fff; border-radius: var(--radius-lg); padding: 16px; border: 1px solid var(--gray-300); }
 .sig-title { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; color: var(--navy-text); margin-bottom: 10px; }
 .sig-canvas-wrap { position: relative; border: 2px solid var(--gray-200); border-radius: 8px; overflow: hidden; background: #fff; }
 #sigCanvas { display: block; width: 100%; height: 150px; touch-action: none; cursor: crosshair; }
@@ -417,32 +418,9 @@ function doPinLogin() {
     });
 }
 
-function kleurLuminantie(hex) {
-  var h = (hex || '').replace('#', '');
-  if (h.length !== 6) return null;
-  var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-}
-
-function contrastKleur(hex) {
-  var l = kleurLuminantie(hex);
-  if (l === null) return '#fff';
-  return l > 0.6 ? '#0f172a' : '#fff';
-}
-
-function leesbareKleur(hex) {
-  var l = kleurLuminantie(hex);
-  if (l === null) return hex;
-  return l > 0.6 ? '#0f172a' : hex;
-}
-
 function pasBrandingToe(bedrijf) {
-  var root = document.documentElement.style;
-  var navy = bedrijf.kleur_primair || '#003366';
-  root.setProperty('--navy', navy);
-  root.setProperty('--accent', bedrijf.kleur_accent || '#40668C');
-  root.setProperty('--on-navy', contrastKleur(navy));
-  root.setProperty('--navy-text', leesbareKleur(navy));
+  // Kleuren zijn vast (zelfde standaardstijl als het portaal) -- enkel het
+  // logo blijft per bedrijf instelbaar, zie de bijhorende beslissing daar.
   var logoSrc = bedrijf.logo_url || 'Logo-PrevX.png';
   document.querySelectorAll('.app-logo-img').forEach(function(img) {
     img.src = logoSrc;
@@ -800,7 +778,7 @@ function bouwRapport() {
     sec.className = 'rapport-sectie';
     var header = document.createElement('div');
     header.className = 'rapport-sectie-header';
-    header.textContent = s.icon + ' ' + s.naam;
+    header.innerHTML = '<span class="rapport-sectie-icon">' + (s.icon || '') + '</span><span>' + s.naam + '</span>';
     sec.appendChild(header);
     s.inspectie_punten.forEach(function(p) {
       var r = resultaten[p.id];
