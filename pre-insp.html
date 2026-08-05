@@ -81,12 +81,12 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .stap-tab { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 6px 14px 6px 6px; border-radius: 8px 8px 0 0; background: var(--gray-200); border: none; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: var(--gray-500); transition: all 0.2s; white-space: nowrap; }
 .stap-tab.active { background: #fff; color: var(--navy-text); }
 .stap-tab.done { background: var(--green-bg); color: var(--green); }
-.stap-tab-icon { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; background: rgba(0,51,102,.1); display: flex; align-items: center; justify-content: center; font-size: 12px; }
-.stap-tab.active .stap-tab-icon { background: var(--navy); }
+.stap-tab-icon { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; background: rgba(0,51,102,.1); display: flex; align-items: center; justify-content: center; }
+.stap-tab.active .stap-tab-icon { background: var(--navy); color: #fff; }
 .stap-tab.done .stap-tab-icon { background: rgba(63,191,63,.18); }
 .inspectie-card { background: #fff; border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg); margin: 0 16px; border: 1px solid var(--gray-300); overflow: hidden; }
 .sectie-header { background: var(--navy); padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
-.sectie-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.sectie-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; color: var(--on-navy); }
 .sectie-naam { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700; color: var(--on-navy); }
 .sectie-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
 .check-list { padding: 4px 0; }
@@ -271,6 +271,56 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 var SUPABASE_URL = 'https://axziicyfcghanhvtmgsm.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_qsdWjzGQnXxt9iH0B_qAjw_wIYGXR2p';
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Vaste set lijniconen voor checklist-secties, in dezelfde SVG-stijl als de
+// sidebar-iconen van het portaal (stroke=currentColor, geen fill). Moet in
+// sync blijven met dezelfde constanten in portaal.html.
+var ICOON_PATHS = {
+  algemeen: '<path d="M9 3h6a1 1 0 0 1 1 1v1h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1V4a1 1 0 0 1 1-1z"/><path d="m9 12 1.5 1.5L13 10.5"/><path d="M9 16h6"/>',
+  verlichting: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.45 1 1.15 1 1.9v.2h5v-.2c0-.75.4-1.45 1-1.9A6 6 0 0 0 12 3z"/>',
+  banden: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 4v2.5M12 17.5V20M4 12h2.5M17.5 12H20M6.3 6.3l1.8 1.8M15.9 15.9l1.8 1.8M6.3 17.7l1.8-1.8M15.9 8.1l1.8-1.8"/>',
+  remmen: '<path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z"/><path d="M9 12h6"/>',
+  motor: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  vloeistoffen: '<path d="M12 3s6 7.5 6 11.5a6 6 0 0 1-12 0C6 10.5 12 3 12 3z"/>',
+  veiligheid: '<path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  documenten: '<path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 16.5h6"/>',
+  spiegels: '<ellipse cx="12" cy="9" rx="6" ry="7"/><path d="M12 16v5"/>',
+  carrosserie: '<path d="M4 16V11l2-4.5A2 2 0 0 1 7.8 5h8.4a2 2 0 0 1 1.8 1.5L20 11v5"/><path d="M4 16h16v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="16" r="1.5"/><circle cx="16.5" cy="16" r="1.5"/>',
+  interieur: '<path d="M7 4v9a2 2 0 0 0 2 2h4"/><path d="M9 15v3a2 2 0 0 0 2 2h6v-4a2 2 0 0 0-2-2h-2"/><path d="M7 4h3"/>',
+  ruitenwissers: '<path d="M5 13a7 7 0 0 1 14 0"/><path d="M8 17l1 3M12 17l1 3M16 17l1 3"/>',
+  signalisatie: '<path d="M12 4 2 20h20z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".5" fill="currentColor"/>',
+  lading: '<path d="M3 8l9-4 9 4-9 4-9-4z"/><path d="M3 8v9l9 4 9-4V8"/><path d="M12 12v9"/>',
+  batterij: '<rect x="2" y="9" width="18" height="7" rx="1.5"/><path d="M20 11.5h2v2h-2z"/><path d="M6 9v7M10 9v7"/>',
+  gereedschap: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2z"/>'
+};
+var ICOON_LABELS = {
+  algemeen: 'Algemeen', verlichting: 'Verlichting', banden: 'Banden', remmen: 'Remmen',
+  motor: 'Motor', vloeistoffen: 'Vloeistoffen', veiligheid: 'Veiligheid', documenten: 'Documenten',
+  spiegels: 'Spiegels', carrosserie: 'Carrosserie', interieur: 'Interieur', ruitenwissers: 'Ruitenwissers',
+  signalisatie: 'Signalisatie', lading: 'Lading', batterij: 'Batterij', gereedschap: 'Gereedschap'
+};
+// Oude, vrij getypte emoji's (vóór de omschakeling naar de vaste iconenset)
+// worden hier naar het dichtstbijzijnde nieuwe icoon gemapt, zodat bestaande
+// secties in de database niet hoeven aangepast te worden.
+var ICOON_EMOJI_MAP = {
+  '💡': 'verlichting', '🔦': 'verlichting', '🛞': 'banden', '🚗': 'carrosserie', '🚛': 'carrosserie',
+  '🚐': 'carrosserie', '🛑': 'remmen', '⛔': 'remmen', '⚙️': 'motor', '⚙': 'motor', '🔧': 'gereedschap',
+  '🛠': 'gereedschap', '🛠️': 'gereedschap', '💧': 'vloeistoffen', '🛢': 'vloeistoffen', '🛢️': 'vloeistoffen',
+  '🦺': 'veiligheid', '🧯': 'veiligheid', '⛑': 'veiligheid', '📄': 'documenten', '📁': 'documenten',
+  '📋': 'algemeen', '🔍': 'algemeen', '🪞': 'spiegels', '🪑': 'interieur', '🌧': 'ruitenwissers',
+  '🌧️': 'ruitenwissers', '⚠️': 'signalisatie', '⚠': 'signalisatie', '📦': 'lading', '🔋': 'batterij'
+};
+function resolveIcoonKey(ruw) {
+  if (!ruw) return 'algemeen';
+  if (ICOON_PATHS[ruw]) return ruw;
+  if (ICOON_EMOJI_MAP[ruw]) return ICOON_EMOJI_MAP[ruw];
+  return 'algemeen';
+}
+function renderIcoon(sleutel, size) {
+  var s = size || 20;
+  return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    (ICOON_PATHS[sleutel] || ICOON_PATHS.algemeen) + '</svg>';
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
@@ -576,7 +626,7 @@ function bouwTabs() {
     var btn = document.createElement('button');
     btn.className = 'stap-tab' + (i === 0 ? ' active' : '');
     btn.id = 'tab-' + i;
-    btn.innerHTML = '<span class="stap-tab-icon">' + (s.icon || '&#128203;') + '</span>' + s.naam;
+    btn.innerHTML = '<span class="stap-tab-icon">' + renderIcoon(resolveIcoonKey(s.icon), 13) + '</span>' + s.naam;
     btn.onclick = (function(idx) {
       return function() { huidigeSectieIdx = idx; toonSectie(idx); };
     })(i);
@@ -591,7 +641,7 @@ function toonSectie(idx) {
   updateProgress();
 
   var card = document.getElementById('inspectieCard');
-  card.innerHTML = '<div class="sectie-header"><div class="sectie-icon">' + (s.icon || '&#128203;') + '</div>' +
+  card.innerHTML = '<div class="sectie-header"><div class="sectie-icon">' + renderIcoon(resolveIcoonKey(s.icon), 20) + '</div>' +
     '<div><div class="sectie-naam">' + s.naam + '</div>' +
     '<div class="sectie-sub">' + s.inspectie_punten.length + ' punten</div></div></div>' +
     '<div class="check-list" id="checkList-' + s.id + '"></div>';
@@ -782,7 +832,7 @@ function bouwRapport() {
     sec.className = 'rapport-sectie';
     var header = document.createElement('div');
     header.className = 'rapport-sectie-header';
-    header.innerHTML = '<span class="rapport-sectie-icon">' + (s.icon || '&#128203;') + '</span><span>' + s.naam + '</span>';
+    header.innerHTML = '<span class="rapport-sectie-icon">' + renderIcoon(resolveIcoonKey(s.icon), 14) + '</span><span>' + s.naam + '</span>';
     sec.appendChild(header);
     s.inspectie_punten.forEach(function(p) {
       var r = resultaten[p.id];
