@@ -32,6 +32,9 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .btn-login:hover{background:#fff;color:var(--navy)}
 .btn-login:disabled{opacity:.6;cursor:not-allowed}
 .login-error{background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none}
+.login-melding{background:rgba(255,255,255,.12);color:#fff;padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none;line-height:1.5}
+.login-link{display:block;width:100%;margin-top:12px;background:none;border:none;color:rgba(255,255,255,.7);font-family:'Poppins',sans-serif;font-size:12px;text-decoration:underline;cursor:pointer}
+.login-link:hover{color:#fff}
 #screen-dashboard{flex-direction:row!important}
 .sidebar{width:240px;background:var(--sidebar-bg);flex-shrink:0;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0}
 .sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:flex-start;gap:10px}
@@ -258,7 +261,29 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       <input type="password" class="form-input" id="loginPass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password">
     </div>
     <button class="btn-login" id="btnLogin" onclick="doLogin()">Inloggen</button>
+    <button class="login-link" onclick="wachtwoordVergeten()">Wachtwoord vergeten?</button>
     <div class="login-error" id="loginError">Ongeldig e-mailadres of wachtwoord.</div>
+    <div class="login-melding" id="loginMelding"></div>
+  </div>
+</div>
+
+<div id="screen-nieuwwachtwoord" class="screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" onerror="this.style.display='none'">
+      <h1>Nieuw wachtwoord</h1>
+      <p>Kies een wachtwoord voor uw account</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nieuw wachtwoord</label>
+      <input type="password" class="form-input" id="nieuwWachtwoord" autocomplete="new-password" placeholder="Minstens 8 tekens">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Herhaal wachtwoord</label>
+      <input type="password" class="form-input" id="nieuwWachtwoord2" autocomplete="new-password">
+    </div>
+    <button class="btn-login" id="btnNieuwWachtwoord" onclick="bewaarNieuwWachtwoord()">Wachtwoord instellen</button>
+    <div class="login-error" id="nieuwWachtwoordError"></div>
   </div>
 </div>
 
@@ -1031,7 +1056,69 @@ function doLogout(){
   });
 }
 
-sb.auth.getSession().then(function(r){if(r.data&&r.data.session)laadDashboard(r.data.session.user);});
+// Wachtwoordherstel loopt via de ingebouwde flow van Supabase Auth. Bewust géén
+// eigen mechanisme zoals bij de chauffeurs-pincodes: daar moest het wel (die
+// hebben geen Auth-account), maar zelf wachtwoordherstel bouwen bovenop een
+// systeem dat het al heeft, is een klassieke plek om een lek te introduceren.
+function wachtwoordVergeten(){
+  var email=document.getElementById('loginEmail').value.trim();
+  var err=document.getElementById('loginError');
+  var melding=document.getElementById('loginMelding');
+  err.style.display='none';
+  if(!email){
+    err.textContent='Vul eerst uw e-mailadres in, dan sturen we een herstellink.';
+    err.style.display='block';
+    return;
+  }
+  sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/mijn'}).then(function(r){
+    // Bewust altijd dezelfde bevestiging, ook als het adres niet bestaat --
+    // anders is dit formulier een manier om uit te zoeken wie een account heeft.
+    melding.textContent='Als dit adres bij ons bekend is, staat er een herstellink in de mailbox. Kijk ook in ongewenste mail.';
+    melding.style.display='block';
+    if(r.error)console.error('resetPasswordForEmail:',r.error);
+  });
+}
+
+function bewaarNieuwWachtwoord(){
+  var a=document.getElementById('nieuwWachtwoord').value;
+  var b=document.getElementById('nieuwWachtwoord2').value;
+  var err=document.getElementById('nieuwWachtwoordError');
+  var btn=document.getElementById('btnNieuwWachtwoord');
+  function fout(t){err.textContent=t;err.style.display='block';btn.disabled=false;btn.textContent='Wachtwoord instellen';}
+  err.style.display='none';
+  if(a.length<8)return fout('Kies een wachtwoord van minstens 8 tekens.');
+  if(a!==b)return fout('De twee wachtwoorden komen niet overeen.');
+
+  btn.disabled=true;btn.textContent='Bezig...';
+  sb.auth.updateUser({password:a}).then(function(r){
+    if(r.error)return fout('Kon het wachtwoord niet instellen: '+r.error.message);
+    showToast('Wachtwoord ingesteld');
+    herstelModus=false;
+    // Het herstelteken uit de URL halen, anders vraagt een herlaad opnieuw om
+    // een nieuw wachtwoord.
+    if(history.replaceState)history.replaceState(null,'',location.pathname+location.search);
+    laadDashboard(r.data.user);
+  });
+}
+
+// De herstellink van Supabase komt binnen als #...&type=recovery. Dat lezen we
+// meteen uit de URL i.p.v. te wachten op de PASSWORD_RECOVERY-melding: die komt
+// asynchroon, en als getSession() eerder klaar is belandt iemand op het
+// dashboard zonder ooit een nieuw wachtwoord te kiezen.
+var herstelModus=/[#&]type=recovery/.test(location.hash);
+if(herstelModus)showScreen('nieuwwachtwoord');
+
+sb.auth.onAuthStateChange(function(event){
+  if(event==='PASSWORD_RECOVERY'){
+    herstelModus=true;
+    showScreen('nieuwwachtwoord');
+  }
+});
+
+sb.auth.getSession().then(function(r){
+  if(herstelModus)return;
+  if(r.data&&r.data.session)laadDashboard(r.data.session.user);
+});
 
 function laadDashboard(user){
   document.getElementById('sidebarEmail').textContent=user.email;
