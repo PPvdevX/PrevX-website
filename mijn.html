@@ -17,17 +17,26 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .screen.active{display:flex;flex-direction:column}
 /* Zelfde vormtaal als de chauffeurs-app: volvlak navy, geen witte kaart,
    omlijnde velden op een doorzichtige achtergrond. */
-#screen-login{background:var(--navy);align-items:center;justify-content:flex-start;padding:40px 20px;overflow-y:auto}
+#screen-login,#screen-nieuwwachtwoord,#screen-geenkoppeling{background:var(--navy);align-items:center;justify-content:flex-start;padding:40px 20px;overflow-y:auto}
 .login-box{background:transparent;padding:0;width:100%;max-width:340px}
 .login-logo{text-align:center;margin-bottom:32px}
 .login-logo img{height:64px;object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px}
 .login-logo h1{font-size:22px;color:#fff;margin-top:12px}
 .login-logo p{font-size:15px;font-weight:500;color:rgba(255,255,255,.9);margin-top:8px;letter-spacing:.2px}
 .form-group{margin-bottom:16px}
-.form-label{display:block;font-size:12px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.form-input{width:100%;padding:13px 14px;border:1.5px solid rgba(255,255,255,.35);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:15px;color:#fff;background:transparent;transition:border-color .2s}
-.form-input::placeholder{color:rgba(255,255,255,.45)}
-.form-input:focus{outline:none;border-color:#fff}
+/* Standaard: donkere tekst op wit, want deze klasse wordt vooral in het
+   dashboard gebruikt (Documenten, Kennisbank, Huisstijl). De navy variant
+   hieronder geldt enkel op de twee inlogschermen -- die uitzondering hoort
+   gescopet te zijn, niet de regel. */
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--gray-500);margin-bottom:6px}
+.form-input{width:100%;padding:10px 13px;border:1px solid var(--gray-300);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:14px;color:var(--gray-900);background:#fff;transition:border-color .2s}
+.form-input::placeholder{color:var(--gray-400)}
+.form-input:focus{outline:none;border-color:var(--navy)}
+
+#screen-login .form-label,#screen-nieuwwachtwoord .form-label{color:#fff;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+#screen-login .form-input,#screen-nieuwwachtwoord .form-input{padding:13px 14px;border:1.5px solid rgba(255,255,255,.35);font-size:15px;color:#fff;background:transparent}
+#screen-login .form-input::placeholder,#screen-nieuwwachtwoord .form-input::placeholder{color:rgba(255,255,255,.45)}
+#screen-login .form-input:focus,#screen-nieuwwachtwoord .form-input:focus{border-color:#fff}
 .btn-login{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:10px}
 .btn-login:hover{background:#fff;color:var(--navy)}
 .btn-login:disabled{opacity:.6;cursor:not-allowed}
@@ -288,6 +297,21 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     <button class="login-link" onclick="wachtwoordVergeten()">Wachtwoord vergeten?</button>
     <div class="login-error" id="loginError">Ongeldig e-mailadres of wachtwoord.</div>
     <div class="login-melding" id="loginMelding"></div>
+  </div>
+</div>
+
+<div id="screen-geenkoppeling" class="screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" onerror="this.style.display='none'">
+      <h1>Nog geen dossier</h1>
+    </div>
+    <p style="font-size:14px;color:rgba(255,255,255,.9);line-height:1.6;margin-bottom:20px">
+      U bent aangemeld als <strong id="geenKoppelingEmail"></strong>, maar dit account is nog niet aan een klantdossier gekoppeld.
+      Neem contact op met uw preventieadviseur om dat in orde te brengen.
+    </p>
+    <a class="btn-login" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px" href="mailto:peter@prevx.be?subject=Account%20nog%20niet%20gekoppeld">Contacteer uw adviseur</a>
+    <button class="btn-login" style="background:transparent;border:1.5px solid rgba(255,255,255,.35)" onclick="doLogout()">Afmelden</button>
   </div>
 </div>
 
@@ -1206,7 +1230,11 @@ function laadDashboard(user){
   sb.from('gebruikers').select('*').eq('auth_user_id',user.id).eq('actief',true).maybeSingle().then(function(r){
     var gevonden=r.data;
     if(gevonden){document.getElementById('sidebarNaam').textContent=gevonden.naam;huidigeBedrijfId=gevonden.bedrijf_id;eigenBedrijfId=gevonden.bedrijf_id;}
-    else{document.getElementById('sidebarNaam').textContent=user.email;showToast('Dit account is niet gekoppeld aan een bedrijf.');}
+    else{
+      document.getElementById('geenKoppelingEmail').textContent=user.email;
+      showScreen('geenkoppeling');
+      return;
+    }
     showScreen('dashboard');
     toonTab('overzicht');
     if(huidigeBedrijfId){laadEnPasBrandingToe();laadModuleToegang();}
