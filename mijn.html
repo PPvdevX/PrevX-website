@@ -204,6 +204,12 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 }
 .enkel-printen{display:none}
 .rapport-print-kop{font-size:13px;color:var(--gray-700);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--gray-300)}
+.escalatie-kaart{background:#fff;border:1px solid var(--red);border-left:4px solid var(--red);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
+.escalatie-kop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--red)}
+.escalatie-uitleg{padding:0 20px 12px;font-size:12px;color:var(--gray-500);line-height:1.55}
+.escalatie-rij{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px;border-top:1px solid var(--gray-100)}
+.escalatie-nummer{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--navy-text)}
+.escalatie-mist{font-size:12px;color:var(--red);margin-top:3px}
 .detail-meta{display:grid;grid-template-columns:1fr;gap:8px;padding:16px 22px}
 .detail-meta-rij{display:flex;gap:12px;align-items:baseline}
 .detail-meta-rij>div:first-child{flex:0 0 150px}
@@ -713,6 +719,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
         <div class="page-subtitle">Aangevraagde en afgehandelde vuurvergunningen</div>
       </div>
       <div class="content-area">
+        <div id="vgEscalaties" style="display:none"></div>
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-num" id="vgStatLopend">-</div><div class="stat-label">Lopend</div></div>
           <div class="stat-card"><div class="stat-num" id="vgStatWacht">-</div><div class="stat-label">Wacht op beslissing</div></div>
@@ -3108,7 +3115,49 @@ function laadVergunningenBeheer(){
     vgNamen={}; (r[1].data||[]).forEach(function(g){vgNamen[g.id]=g.naam;});
     vgWerktypes={}; (r[2].data||[]).forEach(function(w){vgWerktypes[w.id]=w.naam;});
     updateVergunningStats();
+    renderEscalaties();
     filterVergunningen();
+  });
+}
+
+// Escalaties staan bovenaan en niet in een eigen tabblad: het is een
+// uitzondering die je moet zien zonder ernaar te zoeken. Verschijnt enkel als
+// er iets openstaat.
+function renderEscalaties(){
+  var el=document.getElementById('vgEscalaties');
+  var open=alleVergunningen.filter(function(v){return v.escalatie_vereist;});
+  if(!open.length){el.style.display='none';el.innerHTML='';return;}
+
+  el.style.display='';
+  el.innerHTML='<div class="escalatie-kaart">'+
+    '<div class="escalatie-kop">'+
+      '<span>Nazorg niet bevestigd</span>'+
+      '<span class="table-count">'+open.length+'</span>'+
+    '</div>'+
+    '<div class="escalatie-uitleg">Bij deze vergunningen is het werk beëindigd, maar is de controle na 2 of 24 uur niet bevestigd. Nagloeiend materiaal veroorzaakt brand die pas uren later ontstaat — ga na wat er gebeurd is en leg het vast.</div>'+
+    open.map(function(v){
+      var mist=[];
+      if(!v.nazorg_2u_bevestigd_op)mist.push('2 uur');
+      if(!v.nazorg_24u_bevestigd_op)mist.push('24 uur');
+      return '<div class="escalatie-rij">'+
+        '<div><div class="escalatie-nummer">'+v.vergunningsnummer+'</div>'+
+        '<div class="vv-regel">'+(vgWerktypes[v.werktype_id]||'')+' &middot; '+v.locatie_omschrijving+
+        ' &middot; werk beëindigd '+formatDatumTijd(v.werk_beeindigd_op)+'</div>'+
+        '<div class="escalatie-mist">Ontbreekt: controle na '+mist.join(' en ')+'</div></div>'+
+        '<button class="btn-add-sm" onclick="handelEscalatieAf(\''+v.id+'\',\''+v.vergunningsnummer+'\')">Afhandelen</button>'+
+        '</div>';
+    }).join('')+
+  '</div>';
+}
+
+function handelEscalatieAf(id,nummer){
+  var toelichting=prompt('Vergunning '+nummer+' afhandelen.\n\nWat is er vastgesteld? Bijvoorbeeld: "controle wel uitgevoerd door X om 17u, niet geregistreerd" of "geen nacontrole gebeurd, werkplek achteraf nagekeken zonder bevindingen".');
+  if(!toelichting||!toelichting.trim())return;
+  var incident=confirm('Was er een incident (brand, rookontwikkeling, schade)?\n\nOK = ja, markeer als incident.\nAnnuleren = nee, gewone afhandeling.');
+  sb.rpc('rpc_escalatie_afhandelen',{p_vergunning_id:id,p_toelichting:toelichting.trim(),p_als_incident:incident}).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    showToast(incident?'Afgehandeld en gemarkeerd als incident.':'Afgehandeld.');
+    laadVergunningenBeheer();
   });
 }
 
@@ -3208,6 +3257,29 @@ function renderVergunningDetail(v,antwoorden){
     }[v.handtekening_methode]||v.handtekening_methode);
     h+=regel('Toelichting',v.beslissing_toelichting);
     h+=regel('Voorwaarden bevestigd op',formatDatumTijd(v.voorwaarden_bevestigd_op));
+    h+='</div></div>';
+  }
+
+  if(v.werk_beeindigd_op){
+    h+='<div class="vv-blok"><div class="detail-sectie-titel">Nazorg</div><div class="detail-meta">';
+    h+=regel('Werk be&euml;indigd',formatDatumTijd(v.werk_beeindigd_op));
+    h+=regel('Controle na 2 uur',v.nazorg_2u_bevestigd_op
+      ? formatDatumTijd(v.nazorg_2u_bevestigd_op)+' door '+(vgNamen[v.nazorg_2u_door_id]||'onbekend')
+      : '<span style="color:var(--red)">niet bevestigd</span>');
+    h+=regel('Controle na 24 uur',v.nazorg_24u_bevestigd_op
+      ? formatDatumTijd(v.nazorg_24u_bevestigd_op)+' door '+(vgNamen[v.nazorg_24u_door_id]||'onbekend')
+      : '<span style="color:var(--red)">niet bevestigd</span>');
+    h+='</div></div>';
+  }
+
+  // Een dossier dat via een escalatie is afgesloten moet dat zelf vertellen --
+  // anders leest het alsof de controles gewoon gebeurd zijn.
+  if(v.escalatie_afgehandeld_op){
+    h+='<div class="vv-blok"><div class="detail-sectie-titel">Afgesloten na escalatie</div><div class="detail-meta">';
+    h+=regel('Door',vgNamen[v.escalatie_afgehandeld_door_id]||'onbekend');
+    h+=regel('Op',formatDatumTijd(v.escalatie_afgehandeld_op));
+    h+=regel('Vaststelling',v.escalatie_toelichting);
+    if(v.is_incident)h+=regel('Incident','<span class="badge niet_rijklaar">ja</span>');
     h+='</div></div>';
   }
 
