@@ -372,6 +372,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
       </div>
 
       <div id="vvStapFormulier" style="display:none">
+        <div id="vvFormulierKop">
         <div class="vv-veld">
           <label class="vv-label">Werkplek</label>
           <input type="text" id="vvLocatie" class="vv-input" placeholder="Bv. hal 2, dak magazijn" list="vvLocatieLijst">
@@ -392,6 +393,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
         <div class="vv-veld">
           <label class="vv-label">Brandwacht</label>
           <select id="vvBewaker" class="vv-input"></select>
+        </div>
         </div>
         <div id="vvVragen"></div>
       </div>
@@ -776,6 +778,7 @@ var vvWerktype = null;
 var vvVragenLijst = [];
 var vvAntwoorden = {};
 var vvHuidigeVergunning = null;
+var vvFase = 'voor';
 var vvPolling = null;
 
 var VV_STATUS_TEKST = {
@@ -829,7 +832,10 @@ function laadVergunningen() {
 }
 
 function startNieuweVergunning() {
-  vvWerktype = null; vvVragenLijst = []; vvAntwoorden = {};
+  vvWerktype = null; vvVragenLijst = []; vvAntwoorden = {}; vvFase = 'voor';
+  document.getElementById('vvFormulierKop').style.display = '';
+  document.getElementById('vvVragen').dataset.titel = '';
+  document.getElementById('btnVvIndienen').textContent = 'Aanvragen';
   showScreen('vergunning-nieuw');
   document.getElementById('vvStapWerktype').style.display = '';
   document.getElementById('vvStapFormulier').style.display = 'none';
@@ -859,7 +865,9 @@ function startNieuweVergunning() {
 }
 
 function terugVanVergunning() {
-  // Vanuit het formulier terug naar de werktypekeuze, anders naar de lijst.
+  // Tijdens- of na-registratie hoort terug naar de vergunning zelf, niet naar
+  // de werktypekeuze van een nieuwe aanvraag.
+  if (vvFase !== 'voor') { toonVergunning(vvHuidigeVergunning); return; }
   if (document.getElementById('vvStapFormulier').style.display !== 'none') {
     startNieuweVergunning();
   } else {
@@ -927,9 +935,10 @@ var VV_KEUZES = {
   ja_nee: [['ok', 'JA'], ['nok', 'NEE']]
 };
 
-function bouwVergunningVragen() {
+function bouwVergunningVragen(titel) {
   var houder = document.getElementById('vvVragen');
-  houder.innerHTML = '<div class="vv-sectiekop">Controle vóór aanvang</div>';
+  if (titel) houder.dataset.titel = titel;
+  houder.innerHTML = '<div class="vv-sectiekop">' + (houder.dataset.titel || 'Controle vóór aanvang') + '</div>';
 
   vvVragenLijst.forEach(function (v, i) {
     var a = vvAntwoorden[v.vraag_id];
@@ -972,7 +981,7 @@ function bouwVergunningVragen() {
       btn.onclick = function () {
         var vid = btn.getAttribute('data-vraag');
         vvAntwoorden[vid].antwoord = btn.getAttribute('data-waarde');
-        bouwVergunningVragen();
+        bouwVergunningVragen(houder.dataset.titel);
       };
     });
     var mt = div.querySelector('#vvm-' + v.vraag_id);
@@ -1021,8 +1030,12 @@ function tekenVergunningDetail() {
       (v.ben_aanvrager
         ? '<strong>Wacht op goedkeuring.</strong><br>U mag nog niet beginnen. Zodra iemand met goedkeuringsrecht getekend heeft, verschijnt dat hier vanzelf.'
         : '<strong>Deze aanvraag wacht op een beslissing.</strong>') + '</div>';
-  } else if (v.status === 'actief') {
-    html += '<div class="vv-melding goed"><strong>Goedgekeurd.</strong><br>Het werk mag starten binnen de opgegeven geldigheidsduur.</div>';
+  } else if (v.status === 'actief' && !v.werk_beeindigd_op) {
+    html += '<div class="vv-melding goed"><strong>Goedgekeurd.</strong><br>Het werk mag starten binnen de opgegeven geldigheidsduur.</div>' +
+      '<button class="btn-primair" onclick="startTijdensControle()">Tussentijdse controle registreren</button>' +
+      '<button class="btn-primair" style="background:var(--orange);margin-top:8px" onclick="startWerkBeeindigen()">Werk be&euml;indigen</button>';
+  } else if (v.status === 'actief' && v.werk_beeindigd_op) {
+    html += tekenNazorgBlok(v);
   } else if (v.status === 'voorbehoud') {
     html += '<div class="vv-melding wacht"><strong>Goedgekeurd onder voorwaarden.</strong><br>' +
       (v.beslissing_toelichting || '') +
@@ -1053,6 +1066,98 @@ function tekenVergunningDetail() {
   el.innerHTML = html;
 
   if (document.getElementById('vvBeslisBlok')) tekenBeslisBlok();
+}
+
+// Na het beëindigen van het werk telt enkel nog de nazorg. Beide controles
+// moeten bevestigd worden vóór de vergunning afgesloten raakt; de 24-uurscontrole
+// kan pas na de eerste, anders vink je ze in één keer af en is de tussentijdse
+// controle papier.
+function tekenNazorgBlok(v) {
+  var beeindigd = new Date(v.werk_beeindigd_op);
+  var tweeUur = new Date(beeindigd.getTime() + 2 * 3600 * 1000);
+  var vierentwintig = new Date(beeindigd.getTime() + 24 * 3600 * 1000);
+  var nu = new Date();
+
+  function tijd(d) {
+    return d.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' }) +
+      (d.toDateString() === nu.toDateString() ? '' : ' op ' + d.toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit' }));
+  }
+
+  var h = '<div class="vv-melding wacht"><strong>Werk be&euml;indigd om ' + tijd(beeindigd) + '.</strong><br>' +
+    'De vergunning blijft openstaan tot beide nazorgcontroles bevestigd zijn.</div>';
+
+  // Controle na 2 uur
+  if (v.nazorg_2u_bevestigd_op) {
+    h += '<div class="vv-melding goed">Controle na 2 uur bevestigd om ' + tijd(new Date(v.nazorg_2u_bevestigd_op)) + '.</div>';
+  } else if (nu >= tweeUur) {
+    h += '<div class="vv-melding fout"><strong>Controle na 2 uur staat open.</strong><br>' +
+      'Ga de werkplek en de aangrenzende, verborgen en technische ruimten na.</div>' +
+      '<button class="btn-primair" onclick="bevestigNazorg(\'controle_2u\')">Controle na 2 uur bevestigen</button>';
+  } else {
+    h += '<div class="vv-melding wacht">Controle na 2 uur is te doen vanaf ' + tijd(tweeUur) + '.</div>';
+  }
+
+  // Controle na 24 uur
+  if (v.nazorg_24u_bevestigd_op) {
+    h += '<div class="vv-melding goed">Controle na 24 uur bevestigd.</div>';
+  } else if (v.nazorg_2u_bevestigd_op && nu >= vierentwintig) {
+    h += '<div class="vv-melding fout"><strong>Opvolgcontrole na 24 uur staat open.</strong></div>' +
+      '<button class="btn-primair" style="margin-top:8px" onclick="bevestigNazorg(\'controle_24u\')">Controle na 24 uur bevestigen</button>';
+  } else if (v.nazorg_2u_bevestigd_op) {
+    h += '<div class="vv-melding wacht">Opvolgcontrole na 24 uur is te doen vanaf ' + tijd(vierentwintig) + '.</div>';
+  }
+
+  return h;
+}
+
+function bevestigNazorg(type) {
+  sb.rpc('rpc_nazorg_bevestigen', {
+    p_vergunning_id: vvHuidigeVergunning.id,
+    p_gebruiker_id: gebruiker.id,
+    p_type: type
+  }).then(function (r) {
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    if (r.data === 'afgesloten') {
+      showToast('Nazorg volledig — de vergunning is afgesloten.');
+      laadVergunningen();
+      return;
+    }
+    showToast('Controle bevestigd.');
+    laadVergunningen();
+  });
+}
+
+// De tijdens- en na-vragen gebruiken hetzelfde formulier als de aanvraag, met
+// een andere fase en een andere knop eronder.
+function startTijdensControle() { opentVergunningFase('tijdens'); }
+function startWerkBeeindigen() { opentVergunningFase('na'); }
+
+function opentVergunningFase(fase) {
+  var v = vvHuidigeVergunning;
+  vvFase = fase;
+  showScreen('vergunning-nieuw');
+  document.getElementById('vvStapWerktype').style.display = 'none';
+  document.getElementById('vvStapFormulier').style.display = '';
+  document.getElementById('vvFormulierKop').style.display = 'none';
+  document.getElementById('btnVvIndienen').style.display = '';
+  document.getElementById('btnVvIndienen').textContent = fase === 'na' ? 'Werk beëindigen' : 'Registreren';
+  var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
+  document.getElementById('headerUserVvNieuw').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+
+  var houder = document.getElementById('vvVragen');
+  houder.innerHTML = '<div class="loading"><div class="spinner"></div>Vragen laden...</div>';
+  sb.rpc('rpc_vergunning_vragen', { p_gebruiker_id: gebruiker.id, p_werktype_id: v.werktype_id, p_fase: fase })
+    .then(function (r) {
+      if (r.error) { houder.innerHTML = '<p class="vv-regel">Kon de vragen niet laden: ' + r.error.message + '</p>'; return; }
+      vvVragenLijst = r.data || [];
+      vvAntwoorden = {};
+      vvVragenLijst.forEach(function (q) { vvAntwoorden[q.vraag_id] = { antwoord: null, motivering: '', foto_url: null }; });
+      if (!vvVragenLijst.length) {
+        houder.innerHTML = '<p class="vv-regel">Er zijn geen vragen ingesteld voor deze fase.</p>';
+        return;
+      }
+      bouwVergunningVragen(fase === 'na' ? 'Controle na de werken' : 'Tussentijdse controle');
+    });
 }
 
 function tekenBeslisBlok() {
@@ -1144,6 +1249,61 @@ function trekVergunningIn() {
   });
 }
 
+// Tijdens- en na-registratie delen hetzelfde formulier als de aanvraag, maar
+// gaan naar een andere RPC. De blokkerende-vraag-controle geldt hier niet: het
+// werk is al bezig, tegenhouden heeft geen zin meer -- een NEE hoort hier
+// gewoon in het dossier te staan.
+function verstuurFaseAntwoorden() {
+  var btn = document.getElementById('btnVvIndienen');
+  var ontbreekt = vvVragenLijst.filter(function (v) {
+    return v.verplicht && !vvAntwoorden[v.vraag_id].antwoord;
+  });
+  if (ontbreekt.length) { showToast('Nog ' + ontbreekt.length + ' verplichte vraag(en) open.'); return; }
+  var zonderMotivering = vvVragenLijst.filter(function (v) {
+    return vvAntwoorden[v.vraag_id].antwoord === 'afwijking' && !String(vvAntwoorden[v.vraag_id].motivering || '').trim();
+  });
+  if (zonderMotivering.length) { showToast('Geef een motivering bij elke afwijking.'); return; }
+
+  var antwoorden = vvVragenLijst.map(function (v) {
+    var a = vvAntwoorden[v.vraag_id];
+    return { vraag_id: v.vraag_id, antwoord: a.antwoord, motivering: a.motivering || null, foto_url: a.foto_url || null };
+  });
+
+  var oudeTekst = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Bezig...';
+
+  if (vvFase === 'tijdens') {
+    sb.rpc('rpc_vergunning_tijdens_registreren', {
+      p_vergunning_id: vvHuidigeVergunning.id,
+      p_gebruiker_id: gebruiker.id,
+      p_antwoorden: antwoorden
+    }).then(function (r) {
+      btn.disabled = false; btn.textContent = oudeTekst;
+      if (r.error) { showToast('Fout: ' + r.error.message); return; }
+      showToast('Controle geregistreerd.');
+      laadVergunningen();
+    });
+    return;
+  }
+
+  if (!confirm('Het werk als beëindigd registreren?\n\nDaarna start de nazorgbewaking: je moet de werkplek na 2 uur en opnieuw na 24 uur controleren en dat bevestigen.')) {
+    btn.disabled = false; btn.textContent = oudeTekst;
+    return;
+  }
+
+  sb.rpc('rpc_vergunning_werk_beeindigen', {
+    p_vergunning_id: vvHuidigeVergunning.id,
+    p_gebruiker_id: gebruiker.id,
+    p_antwoorden: antwoorden,
+    p_handtekening: null
+  }).then(function (r) {
+    btn.disabled = false; btn.textContent = oudeTekst;
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    showToast('Werk beëindigd. De nazorgcontroles staan ingepland.');
+    laadVergunningen();
+  });
+}
+
 function vergunningFoto(vraagId, input) {
   var f = input.files && input.files[0];
   if (!f) return;
@@ -1158,6 +1318,8 @@ function vergunningFoto(vraagId, input) {
 }
 
 function dienVergunningIn() {
+  if (vvFase !== 'voor') { verstuurFaseAntwoorden(); return; }
+
   var btn = document.getElementById('btnVvIndienen');
   var locatie = document.getElementById('vvLocatie').value.trim();
   if (!locatie) { showToast('Vul de werkplek in.'); return; }
