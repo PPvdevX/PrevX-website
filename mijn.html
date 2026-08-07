@@ -204,6 +204,16 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 }
 .enkel-printen{display:none}
 .rapport-print-kop{font-size:13px;color:var(--gray-700);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--gray-300)}
+.detail-meta{display:grid;grid-template-columns:1fr;gap:8px;padding:16px 22px}
+.detail-meta-rij{display:flex;gap:12px;align-items:baseline}
+.detail-meta-rij>div:first-child{flex:0 0 150px}
+.vv-blok{border-top:1px solid var(--gray-200)}
+.detail-sectie-titel{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--navy-text);padding:16px 22px 0}
+.detail-punt{display:flex;gap:12px;align-items:flex-start;padding:10px 22px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-700)}
+.detail-punt:last-child{border-bottom:none}
+.detail-punt .badge{flex:0 0 auto;min-width:64px;text-align:center}
+.detail-motivering{font-size:12px;color:var(--gray-500);font-style:italic;margin-top:3px}
+.detail-foto{max-width:160px;border-radius:8px;margin-top:8px;cursor:pointer;display:block}
 .vraag-kaart{background:#fff;border:1px solid var(--gray-300);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
 .vraag-kaart.gearchiveerd{opacity:.55}
 .vraag-tekst{width:100%;border:1px solid var(--gray-300);border-radius:6px;padding:7px 9px;font-family:'Poppins',sans-serif;font-size:13px;margin-bottom:8px}
@@ -697,6 +707,46 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       </div>
     </div>
 
+    <div id="tab-vergunningen" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Vergunningen</div>
+        <div class="page-subtitle">Aangevraagde en afgehandelde vuurvergunningen</div>
+      </div>
+      <div class="content-area">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num" id="vgStatLopend">-</div><div class="stat-label">Lopend</div></div>
+          <div class="stat-card"><div class="stat-num" id="vgStatWacht">-</div><div class="stat-label">Wacht op beslissing</div></div>
+          <div class="stat-card"><div class="stat-num" id="vgStatVoorbehoud">-</div><div class="stat-label">Voorbehoud</div></div>
+          <div class="stat-card"><div class="stat-num" id="vgStatTotaal">-</div><div class="stat-label">Totaal</div></div>
+        </div>
+        <div class="filters-bar niet-printen">
+          <div class="filter-group"><span class="filter-label">Van</span><input type="date" class="filter-input" id="vgVan"></div>
+          <div class="filter-group"><span class="filter-label">Tot</span><input type="date" class="filter-input" id="vgTot"></div>
+          <div class="filter-group"><span class="filter-label">Status</span>
+            <select class="filter-input" id="vgStatus">
+              <option value="">Alle</option>
+              <option value="aangevraagd">Wacht op beslissing</option>
+              <option value="voorbehoud">Voorbehoud</option>
+              <option value="actief">Actief</option>
+              <option value="afgesloten">Afgesloten</option>
+              <option value="afgewezen">Afgewezen</option>
+              <option value="ingetrokken">Ingetrokken</option>
+            </select>
+          </div>
+          <div class="filter-group"><span class="filter-label">Zoeken</span><input type="text" class="filter-input" id="vgZoek" placeholder="Nummer, werkplek..."></div>
+          <button class="btn-reset" onclick="resetVergunningFilters()">&#10006; Reset</button>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">Vergunningen</span>
+            <span class="table-count" id="vgCount">0</span>
+          </div>
+          <table><thead><tr><th>Nummer</th><th>Datum</th><th>Werk</th><th>Werkplek</th><th>Aanvrager</th><th>Status</th><th></th></tr></thead>
+          <tbody id="vergunningenTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
     <div id="tab-vuurvergunning" style="display:none">
       <div class="page-header">
         <div class="page-title">Vuurvergunning</div>
@@ -936,6 +986,7 @@ var MENU=[
     {key:'checklist',naam:'Checklist',laad:function(){laadChecklist();}}
   ]},
   {groep:'Vuurvergunning',icoon:'vuurvergunning',module:'vuurvergunning',optIn:true,items:[
+    {key:'vergunningen',naam:'Vergunningen',laad:function(){laadVergunningenBeheer();}},
     {key:'vuurvergunning',naam:'Vragenlijst',laad:function(){laadVuurvergunning();}}
   ]},
   {groep:'Instellingen',icoon:'instellingen',items:[
@@ -3027,6 +3078,185 @@ function printRapportage(){
   var maand=document.getElementById('rapportMaand').value||'';
   printOnderdeel(document.getElementById('tab-rapportages'),veiligeBestandsnaam('Rapportage '+maand));
 }
+
+// ---- Vergunningenoverzicht ----
+var alleVergunningen=[], vgNamen={}, vgWerktypes={};
+
+var VG_STATUS={
+  aangevraagd:['Wacht op beslissing','onvolledig'],
+  voorbehoud:['Voorbehoud','onvolledig'],
+  actief:['Actief','rijklaar'],
+  afgesloten:['Afgesloten','rijklaar'],
+  afgewezen:['Afgewezen','niet_rijklaar'],
+  ingetrokken:['Ingetrokken','niet_rijklaar'],
+  verlopen_niet_opgestart:['Verlopen','niet_rijklaar']
+};
+
+function laadVergunningenBeheer(){
+  if(!huidigeBedrijfId)return;
+  // Namen en werktypes apart ophalen i.p.v. via een join: vuurvergunningen
+  // verwijst vier keer naar gebruikers (aanvrager, goedkeurder, bewaker,
+  // afsluiter), en zo'n join vraagt expliciete sleutelnamen die stil kunnen
+  // breken. Client-side samenvoegen is hier eenvoudiger en robuuster.
+  Promise.all([
+    sb.from('vuurvergunningen').select('*').eq('bedrijf_id',huidigeBedrijfId).order('aangemaakt_op',{ascending:false}),
+    sb.from('gebruikers').select('id,naam').eq('bedrijf_id',huidigeBedrijfId),
+    sb.from('werktypes').select('id,naam').eq('bedrijf_id',huidigeBedrijfId)
+  ]).then(function(r){
+    if(r[0].error){showToast('Fout: '+r[0].error.message);return;}
+    alleVergunningen=r[0].data||[];
+    vgNamen={}; (r[1].data||[]).forEach(function(g){vgNamen[g.id]=g.naam;});
+    vgWerktypes={}; (r[2].data||[]).forEach(function(w){vgWerktypes[w.id]=w.naam;});
+    updateVergunningStats();
+    filterVergunningen();
+  });
+}
+
+function updateVergunningStats(){
+  function tel(s){return alleVergunningen.filter(function(v){return v.status===s;}).length;}
+  document.getElementById('vgStatLopend').textContent=tel('actief');
+  document.getElementById('vgStatWacht').textContent=tel('aangevraagd');
+  document.getElementById('vgStatVoorbehoud').textContent=tel('voorbehoud');
+  document.getElementById('vgStatTotaal').textContent=alleVergunningen.length;
+}
+
+function filterVergunningen(){
+  var van=document.getElementById('vgVan').value;
+  var tot=document.getElementById('vgTot').value;
+  var status=document.getElementById('vgStatus').value;
+  var zoek=document.getElementById('vgZoek').value.toLowerCase();
+
+  renderVergunningenTabel(alleVergunningen.filter(function(v){
+    var datum=(v.aangemaakt_op||'').slice(0,10);
+    if(van&&datum<van)return false;
+    if(tot&&datum>tot)return false;
+    if(status&&v.status!==status)return false;
+    if(zoek){
+      var hooi=(v.vergunningsnummer+' '+v.locatie_omschrijving+' '+(vgNamen[v.aanvrager_id]||'')).toLowerCase();
+      if(hooi.indexOf(zoek)===-1)return false;
+    }
+    return true;
+  }));
+}
+
+function resetVergunningFilters(){
+  ['vgVan','vgTot','vgZoek'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('vgStatus').value='';
+  renderVergunningenTabel(alleVergunningen);
+}
+
+function renderVergunningenTabel(rijen){
+  document.getElementById('vgCount').textContent=rijen.length+(rijen.length===1?' vergunning':' vergunningen');
+  var tbody=document.getElementById('vergunningenTabel');
+  if(!rijen.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">Geen vergunningen gevonden.</td></tr>';return;}
+  tbody.innerHTML=rijen.map(function(v){
+    var st=VG_STATUS[v.status]||[v.status,'onvolledig'];
+    return '<tr><td><strong>'+v.vergunningsnummer+'</strong></td>'+
+      '<td>'+formatDatum((v.aangemaakt_op||'').slice(0,10))+'</td>'+
+      '<td>'+(vgWerktypes[v.werktype_id]||'-')+'</td>'+
+      '<td>'+v.locatie_omschrijving+'</td>'+
+      '<td>'+(vgNamen[v.aanvrager_id]||'-')+'</td>'+
+      '<td><span class="badge '+st[1]+'">'+st[0]+'</span></td>'+
+      '<td><button class="btn-add-sm" onclick="openVergunningDetail(\''+v.id+'\')">Bekijk</button></td></tr>';
+  }).join('');
+}
+
+function openVergunningDetail(id){
+  var v=alleVergunningen.filter(function(x){return x.id===id;})[0];
+  if(!v)return;
+  document.getElementById('detailOverlay').classList.add('active');
+  document.getElementById('detailPrintKnop').style.display='';
+  document.getElementById('detailTitel').textContent=v.vergunningsnummer;
+  document.getElementById('detailSub').textContent=(vgWerktypes[v.werktype_id]||'')+' — '+v.locatie_omschrijving;
+  document.getElementById('detailBody').innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-400)"><div class="spinner-sm"></div>Laden...</div>';
+
+  sb.from('vergunning_antwoorden')
+    .select('*,vergunning_vragen(vraagtekst,antwoordtype,blokkerend)')
+    .eq('vergunning_id',id)
+    .order('tijdstip')
+    .then(function(r){
+      renderVergunningDetail(v,r.data||[]);
+    });
+}
+
+function renderVergunningDetail(v,antwoorden){
+  var st=VG_STATUS[v.status]||[v.status,'onvolledig'];
+  var h='<div class="detail-meta">';
+  function regel(label,waarde){
+    if(!waarde)return '';
+    return '<div class="detail-meta-rij"><div class="detail-meta-label">'+label+'</div><div>'+waarde+'</div></div>';
+  }
+  h+=regel('Status','<span class="badge '+st[1]+'">'+st[0]+'</span>');
+  h+=regel('Geldig van',formatDatumTijd(v.geldig_van));
+  h+=regel('Geldig tot',formatDatumTijd(v.geldig_tot));
+  h+=regel('Aanvrager',vgNamen[v.aanvrager_id]);
+  h+=regel('Uitvoerders',v.uitvoerders);
+  h+=regel('Brandwacht',vgNamen[v.bewaker_id]);
+  h+=regel('Aangevraagd op',formatDatumTijd(v.aangemaakt_op));
+  h+='</div>';
+
+  if(v.goedgekeurd_op){
+    h+='<div class="vv-blok"><div class="detail-sectie-titel">Beslissing</div><div class="detail-meta">';
+    h+=regel('Door',vgNamen[v.goedgekeurd_door_id]);
+    h+=regel('Op',formatDatumTijd(v.goedgekeurd_op));
+    // Hoe hard is deze handtekening? Dat hoort in het dossier te staan, niet
+    // impliciet te blijven -- zie migratie 0057.
+    h+=regel('Ondertekend met',{
+      pincode:'pincode alleen',
+      pincode_emailcode:'pincode + eenmalige code per e-mail',
+      portaal_login:'portaallogin'
+    }[v.handtekening_methode]||v.handtekening_methode);
+    h+=regel('Toelichting',v.beslissing_toelichting);
+    h+=regel('Voorwaarden bevestigd op',formatDatumTijd(v.voorwaarden_bevestigd_op));
+    h+='</div></div>';
+  }
+
+  if(v.ingetrokken_op){
+    h+='<div class="vv-blok"><div class="detail-sectie-titel">Ingetrokken</div><div class="detail-meta">';
+    h+=regel('Door',vgNamen[v.ingetrokken_door_id]);
+    h+=regel('Op',formatDatumTijd(v.ingetrokken_op));
+    h+=regel('Reden',v.ingetrokken_reden);
+    h+=regel('Werk was al gestart',v.vroegtijdig_beeindigd?'ja — nazorg blijft van toepassing':'nee');
+    h+='</div></div>';
+  }
+
+  var perFase={voor:[],tijdens:[],na:[]};
+  antwoorden.forEach(function(a){ (perFase[a.fase]||perFase.voor).push(a); });
+  var faseNaam={voor:'Vóór de werken',tijdens:'Tijdens de werken',na:'Na de werken'};
+
+  ['voor','tijdens','na'].forEach(function(f){
+    if(!perFase[f].length)return;
+    h+='<div class="vv-blok"><div class="detail-sectie-titel">'+faseNaam[f]+'</div>';
+    perFase[f].forEach(function(a){
+      var vr=a.vergunning_vragen||{};
+      var kleur=a.antwoord==='ok'?'rijklaar':a.antwoord==='nok'?'niet_rijklaar':'onvolledig';
+      var label={ok:'JA',nok:'NEE',nvt:'NVT',afwijking:'AFWIJKING',foto:'FOTO'}[a.antwoord]||a.antwoord||'-';
+      h+='<div class="detail-punt">'+
+        '<span class="badge '+kleur+'">'+label+'</span>'+
+        '<div><div>'+(vr.vraagtekst||'')+'</div>'+
+        (a.motivering?'<div class="detail-motivering">'+a.motivering+'</div>':'')+
+        (a.foto_url?'<img src="'+a.foto_url+'" class="detail-foto" onclick="openLightbox(\''+a.foto_url+'\')">':'')+
+        '</div></div>';
+    });
+    h+='</div>';
+  });
+
+  document.getElementById('detailBody').innerHTML=h;
+}
+
+function formatDatumTijd(ts){
+  if(!ts)return '';
+  var d=new Date(ts);
+  return d.toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric'})+' om '+
+         d.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+}
+
+['vgVan','vgTot','vgStatus','vgZoek'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('change',filterVergunningen);
+  el.addEventListener('input',filterVergunningen);
+});
 
 // ---- Vuurvergunning: werktypes en vragenbeheer ----
 var vvWerktypes=[], vvAlleVragen=[], vvActieveFase='voor', vvOpenWerktypesEditor=null;
