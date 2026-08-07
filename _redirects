@@ -1,0 +1,6 @@
+# De chauffeurs-app heette /pre-insp toen ze enkel pre-inspecties deed. Sinds er
+# meerdere modules in zitten (vuurvergunning) heet ze /app. Reeds geïnstalleerde
+# apps op telefoons starten nog op het oude pad -- die doorverwijzing moet dus
+# blijven bestaan tot niemand nog een oude installatie heeft.
+/pre-insp       /app    301
+/pre-insp.html  /app    301

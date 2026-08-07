@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>PrevX Inspectie</title>
+<title>PrevX app</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#003366">
 <link rel="apple-touch-icon" href="/Logo-PrevX.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PrevX Inspectie">
+<meta name="apple-mobile-web-app-title" content="PrevX">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -52,13 +52,26 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .pincode-wijzig-link { font-size: 10px; color: var(--gray-400); text-decoration: underline; background: none; border: none; cursor: pointer; padding: 2px 0 0; font-family: 'Poppins', sans-serif; }
 .progress-bar { height: 3px; background: var(--navy2); }
 .progress-fill { height: 100%; background: var(--accent); transition: width 0.4s; }
-#screen-login { background: var(--navy); align-items: center; justify-content: flex-start; padding: 24px 20px; overflow-y: auto; }
+#screen-login, #screen-klantcode { background: var(--navy); align-items: center; justify-content: flex-start; padding: 24px 20px; overflow-y: auto; }
 .login-box { background: transparent; box-shadow: none; padding: 0; width: 100%; max-width: 320px; text-align: center; }
 .login-logo { margin-bottom: 10px; }
 .login-logo img { height: 52px; }
-.login-logo p { font-size: 12px; color: var(--navy2); margin-top: 6px; }
+.login-logo p { font-size: 15px; font-weight: 500; color: rgba(255,255,255,.9); margin-top: 8px; letter-spacing: 0.2px; }
 .login-lock { width: 40px; height: 40px; margin: 0 auto 10px; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; }
-.pin-label { font-size: 12px; font-weight: 600; color: var(--navy2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+.login-bedrijf { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 10px; }
+.login-bedrijf button { display: block; margin: 4px auto 0; font-size: 10px; color: rgba(255,255,255,.7); text-decoration: underline; background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 400; }
+.klantcode-input { width: 100%; padding: 14px; border: 1.5px solid rgba(255,255,255,.35); border-radius: var(--radius); background: transparent; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 700; text-align: center; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; }
+.klantcode-hint { font-size: 12px; color: rgba(255,255,255,.85); line-height: 1.5; margin-bottom: 18px; }
+/* Enkel hier ruimer: dit scherm heeft plaats zat, terwijl het pincodescherm
+   zijn verticale ruimte nodig heeft om het toetsenbord op een telefoon
+   volledig te tonen. */
+#screen-klantcode .login-logo { margin-bottom: 32px; }
+.klantcode-input::placeholder { color: rgba(255,255,255,.5); font-weight: 500; letter-spacing: 2px; font-size: 15px; }
+.klantcode-input:focus { outline: none; border-color: #fff; }
+.btn-klantcode { width: 100%; padding: 14px; border: none; border-radius: var(--radius); background: var(--accent); color: #fff; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
+.btn-klantcode:active { background: #fff; color: var(--navy); }
+.btn-klantcode[disabled] { opacity: .6; }
+.pin-label { font-size: 12px; font-weight: 600; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
 .pin-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
 .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.4); background: transparent; box-sizing: border-box; transition: all 0.2s; }
 .pin-dot.filled { border-color: #fff; background: #fff; animation: dotPop 0.2s ease; }
@@ -175,13 +188,28 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 </head>
 <body>
 
+<div id="screen-klantcode" class="screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" style="object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px;">
+      <p>Veiligheid die werkt</p>
+    </div>
+    <span class="pin-label">Code van uw bedrijf</span>
+    <input type="text" id="klantcodeInput" class="klantcode-input" placeholder="BV. K7M2QP" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="12">
+    <p class="klantcode-hint">U hoeft dit maar één keer te doen. Uw beheerder bezorgt u deze code.</p>
+    <button class="btn-klantcode" onclick="controleerKlantcode()" id="klantcodeKnop">Verder</button>
+    <div class="login-error" id="klantcodeError"></div>
+  </div>
+</div>
+
 <div id="screen-login" class="screen active">
   <div class="login-box">
     <div class="login-logo">
       <img src="Logo-PrevX.png" alt="PrevX" style="object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px;">
-      <p>Pre-inspectie rijdend materieel</p>
+      <p>Veiligheid die werkt</p>
     </div>
     <div class="login-lock"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <div class="login-bedrijf" id="loginBedrijf"></div>
     <span class="pin-label">Voer uw pincode in</span>
     <div class="pin-display" id="pinDisplay">
       <div class="pin-dot" id="d0"></div>
@@ -356,6 +384,70 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// De klantcode identificeert het bedrijf; de pincode de persoon. Vroeger werd
+// een pincode platformbreed gematcht, zodat één geraden code toegang gaf bij
+// een willekeurige klant (zie migratie 0052). De code wordt één keer ingevoerd
+// en blijft op het toestel staan.
+var KLANTCODE_KEY = 'prevx_klantcode';
+var klantBedrijf = null;
+try {
+  var bewaard = localStorage.getItem(KLANTCODE_KEY);
+  if (bewaard) klantBedrijf = JSON.parse(bewaard);
+} catch (e) { klantBedrijf = null; }
+
+function toonStartscherm() {
+  if (klantBedrijf && klantBedrijf.code) {
+    document.getElementById('loginBedrijf').innerHTML =
+      (klantBedrijf.naam || klantBedrijf.code) +
+      '<button onclick="wisKlantcode()">Ander bedrijf</button>';
+    showScreen('login');
+  } else {
+    showScreen('klantcode');
+  }
+}
+
+function controleerKlantcode() {
+  var invoer = document.getElementById('klantcodeInput').value.trim();
+  var foutEl = document.getElementById('klantcodeError');
+  var knop = document.getElementById('klantcodeKnop');
+  if (!invoer) return;
+
+  knop.disabled = true;
+  knop.textContent = 'Bezig...';
+  function toonFout(tekst) {
+    foutEl.textContent = tekst;
+    foutEl.style.display = 'block';
+    knop.disabled = false;
+    knop.textContent = 'Verder';
+  }
+
+  sb.rpc('rpc_bedrijf_via_klantcode', { p_klantcode: invoer }).then(function (r) {
+    if (r.error) { toonFout(r.error.message); return; }
+    var rijen = r.data || [];
+    if (!rijen.length) { toonFout('Deze code kennen we niet. Controleer bij uw beheerder.'); return; }
+
+    klantBedrijf = { code: invoer.toUpperCase(), naam: rijen[0].naam, logo_url: rijen[0].logo_url };
+    try { localStorage.setItem(KLANTCODE_KEY, JSON.stringify(klantBedrijf)); } catch (e) {}
+    foutEl.style.display = 'none';
+    knop.disabled = false;
+    knop.textContent = 'Verder';
+    if (klantBedrijf.logo_url) pasBrandingToe(klantBedrijf);
+    toonStartscherm();
+  });
+}
+
+function wisKlantcode() {
+  klantBedrijf = null;
+  try { localStorage.removeItem(KLANTCODE_KEY); } catch (e) {}
+  pin = '';
+  updatePinDisplay();
+  document.getElementById('klantcodeInput').value = '';
+  document.getElementById('klantcodeError').style.display = 'none';
+  showScreen('klantcode');
+}
+
+toonStartscherm();
+if (klantBedrijf && klantBedrijf.logo_url) pasBrandingToe(klantBedrijf);
 window.addEventListener('load', function () { herstelVoortgangIndienMogelijk(); });
 
 var gebruiker = null;
@@ -418,7 +510,7 @@ function herstelVoortgangIndienMogelijk() {
   sb.rpc('rpc_checklist', { p_gebruiker_id: gebruiker.id, p_voertuig_id: voertuig.id })
     .then(function(result) {
       var rijen = result.data || [];
-      if (!rijen.length) { wisVoortgang(); showScreen('login'); return; }
+      if (!rijen.length) { wisVoortgang(); toonStartscherm(); return; }
       var bySectie = {};
       var volgorde = [];
       rijen.forEach(function(r) {
@@ -448,7 +540,7 @@ function herstelVoortgangIndienMogelijk() {
       toonSectie(hervatIdx);
       showToast('Vorige inspectie hersteld — verdergegaan waar je was.');
     })
-    .catch(function() { wisVoortgang(); showScreen('login'); });
+    .catch(function() { wisVoortgang(); toonStartscherm(); });
 }
 
 var VOERTUIG_ICONS = {
@@ -484,16 +576,24 @@ function updatePinDisplay() {
 function doPinLogin() {
   if (pin.length < 4) return;
   var pinCode = pin;
-  sb.rpc('rpc_login_chauffeur', { p_pincode: pinCode })
+  sb.rpc('rpc_login_chauffeur_klant', { p_pincode: pinCode, p_klantcode: klantBedrijf ? klantBedrijf.code : '' })
     .then(function(result) {
       var rows = result.data;
       if (result.error || !rows || !rows.length) {
-        document.getElementById('loginError').style.display = 'block';
+        var foutEl = document.getElementById('loginError');
+        // Bij te veel mislukte pogingen blokkeert de server tijdelijk (migratie
+        // 0051). Dan die reden tonen i.p.v. "ongeldige pincode", anders blijft
+        // iemand proberen zonder te begrijpen waarom het niet lukt.
+        var geblokkeerd = result.error && /te veel/i.test(result.error.message || '');
+        foutEl.textContent = geblokkeerd
+          ? result.error.message
+          : 'Ongeldige pincode. Probeer opnieuw.';
+        foutEl.style.display = 'block';
         pin = '';
         updatePinDisplay();
         setTimeout(function() {
-          document.getElementById('loginError').style.display = 'none';
-        }, 2500);
+          foutEl.style.display = 'none';
+        }, geblokkeerd ? 6000 : 2500);
         return;
       }
       gebruiker = rows[0];
@@ -1088,7 +1188,7 @@ function nieuweInspectie() {
   secties = [];
   resultaten = {};
   gestartOp = null;
-  showScreen('login');
+  toonStartscherm();
 }
 
 function showScreen(naam) {

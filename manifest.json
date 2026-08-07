@@ -1,8 +1,8 @@
 {
-  "name": "PrevX Pre-inspectie",
-  "short_name": "PrevX Inspectie",
-  "description": "Pre-inspectie rijdend materieel",
-  "start_url": "/pre-insp",
+  "name": "PrevX app",
+  "short_name": "PrevX",
+  "description": "Pre-inspecties en vuurvergunningen",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "background_color": "#003366",

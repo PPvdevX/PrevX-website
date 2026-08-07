@@ -3,9 +3,11 @@ Allow: /
 
 # Afgeschermde toepassingen: horen niet in zoekresultaten thuis.
 # Dit regelt enkel indexering, niet de toegang -- die loopt via
-# Supabase Auth (portaal) en de pincode-RPC's (chauffeurs-app).
+# Supabase Auth (portaal) en de klantcode + pincode (app).
 Disallow: /mijn
 Disallow: /mijn.html
+Disallow: /app
+Disallow: /app.html
 Disallow: /pre-insp
 Disallow: /pre-insp.html
 
