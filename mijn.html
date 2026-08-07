@@ -15,18 +15,21 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--gray-900)
 h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex;flex-direction:column}
-#screen-login{background:var(--navy);align-items:center;justify-content:center;padding:40px 20px}
-.login-box{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--shadow-lg)}
-.login-logo{text-align:center;margin-bottom:28px}
-.login-logo img{height:64px;object-fit:contain}
-.login-logo h1{font-size:22px;color:var(--navy);margin-top:10px}
-.login-logo p{font-size:12px;color:var(--gray-500);margin-top:4px}
+/* Zelfde vormtaal als de chauffeurs-app: volvlak navy, geen witte kaart,
+   omlijnde velden op een doorzichtige achtergrond. */
+#screen-login{background:var(--navy);align-items:center;justify-content:flex-start;padding:40px 20px;overflow-y:auto}
+.login-box{background:transparent;padding:0;width:100%;max-width:340px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo img{height:64px;object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px}
+.login-logo h1{font-size:22px;color:#fff;margin-top:12px}
+.login-logo p{font-size:15px;font-weight:500;color:rgba(255,255,255,.9);margin-top:8px;letter-spacing:.2px}
 .form-group{margin-bottom:16px}
-.form-label{display:block;font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.form-input{width:100%;padding:10px 14px;border:2px solid var(--gray-200);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:14px;color:var(--gray-900);background:var(--gray-50);transition:border-color .2s}
-.form-input:focus{outline:none;border-color:var(--navy);background:#fff}
-.btn-login{width:100%;padding:12px;background:#003366;color:#fff;border:none;border-radius:var(--radius);font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:8px}
-.btn-login:hover{background:var(--accent)}
+.form-label{display:block;font-size:12px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.form-input{width:100%;padding:13px 14px;border:1.5px solid rgba(255,255,255,.35);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:15px;color:#fff;background:transparent;transition:border-color .2s}
+.form-input::placeholder{color:rgba(255,255,255,.45)}
+.form-input:focus{outline:none;border-color:#fff}
+.btn-login{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:10px}
+.btn-login:hover{background:#fff;color:var(--navy)}
 .btn-login:disabled{opacity:.6;cursor:not-allowed}
 .login-error{background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none}
 #screen-dashboard{flex-direction:row!important}
@@ -820,7 +823,7 @@ var sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 // Vaste set lijniconen voor checklist-secties, in dezelfde SVG-stijl als de
 // sidebar-iconen hierboven (stroke=currentColor, geen fill). Moet in sync
-// blijven met dezelfde constanten in pre-insp.html.
+// blijven met dezelfde constanten in app.html.
 var ICOON_PATHS={
   algemeen:'<path d="M9 3h6a1 1 0 0 1 1 1v1h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1V4a1 1 0 0 1 1-1z"/><path d="m9 12 1.5 1.5L13 10.5"/><path d="M9 16h6"/>',
   verlichting:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.45 1 1.15 1 1.9v.2h5v-.2c0-.75.4-1.45 1-1.9A6 6 0 0 0 12 3z"/>',
