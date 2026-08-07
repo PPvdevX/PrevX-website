@@ -76,8 +76,8 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.4); background: transparent; box-sizing: border-box; transition: all 0.2s; }
 .pin-dot.filled { border-color: #fff; background: #fff; animation: dotPop 0.2s ease; }
 @keyframes dotPop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
-.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.pin-key { aspect-ratio: 1; border: 1.5px solid rgba(255,255,255,.35); border-radius: 50%; background: transparent; box-shadow: none; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; color: #fff; transition: all 0.15s; user-select: none; display: flex; align-items: center; justify-content: center; }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 260px; margin: 0 auto; }
+.pin-key { aspect-ratio: 1; border: 1.5px solid rgba(255,255,255,.35); border-radius: 50%; background: transparent; box-shadow: none; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 21px; font-weight: 500; color: #fff; transition: all 0.15s; user-select: none; display: flex; align-items: center; justify-content: center; }
 .pin-key:active { background: rgba(255,255,255,.9); color: var(--navy); border-color: #fff; transform: scale(0.94); }
 .pin-key.enter { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
 .login-error { background: var(--red-bg); color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 14px; display: none; text-align: center; }
