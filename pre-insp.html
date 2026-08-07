@@ -55,15 +55,18 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .login-box { background: #fff; border-radius: 20px; padding: 36px 28px; width: 100%; max-width: 360px; box-shadow: var(--shadow-lg); text-align: center; }
 .login-logo { margin-bottom: 20px; }
 .login-logo p { font-size: 12px; color: var(--gray-500); margin-top: 8px; }
-.pin-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
-.pin-display { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
-.pin-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--gray-200); transition: background 0.2s; }
-.pin-dot.filled { background: var(--navy); }
-.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.pin-key { padding: 16px; border: 2px solid var(--gray-200); border-radius: var(--radius); background: var(--gray-50); cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 700; color: var(--gray-900); transition: all 0.1s; user-select: none; text-align: center; }
-.pin-key:active { background: var(--navy); color: #fff; border-color: var(--navy); transform: scale(0.95); }
-.pin-key.del { font-size: 16px; color: var(--gray-500); }
-.pin-key.enter { background: var(--navy); border-color: var(--navy); color: #fff; }
+.login-box { background: transparent; box-shadow: none; padding: 0; }
+.login-logo p { color: var(--navy2); }
+.login-lock { width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; }
+.pin-label { font-size: 12px; font-weight: 600; color: var(--navy2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+.pin-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 28px; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.4); background: transparent; box-sizing: border-box; transition: all 0.2s; }
+.pin-dot.filled { border-color: #fff; background: #fff; animation: dotPop 0.2s ease; }
+@keyframes dotPop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.pin-key { aspect-ratio: 1; border: 1.5px solid rgba(255,255,255,.35); border-radius: 50%; background: transparent; box-shadow: none; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; color: #fff; transition: all 0.15s; user-select: none; display: flex; align-items: center; justify-content: center; }
+.pin-key:active { background: rgba(255,255,255,.9); color: var(--navy); border-color: #fff; transform: scale(0.94); }
+.pin-key.enter { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
 .login-error { background: var(--red-bg); color: var(--red); padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-top: 14px; display: none; text-align: center; }
 #screen-voertuig { background: var(--bg); }
 .screen-content { flex: 1; padding: 20px 16px 100px; max-width: 700px; margin: 0 auto; width: 100%; }
@@ -167,9 +170,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 <div id="screen-login" class="screen active">
   <div class="login-box">
     <div class="login-logo">
-      <img src="Logo-PrevX.png" alt="PrevX" style="height:70px;object-fit:contain;">
+      <img src="Logo-PrevX.png" alt="PrevX" style="height:70px;object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px;">
       <p>Pre-inspectie rijdend materieel</p>
     </div>
+    <div class="login-lock"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
     <span class="pin-label">Voer uw pincode in</span>
     <div class="pin-display" id="pinDisplay">
       <div class="pin-dot" id="d0"></div>
@@ -187,9 +191,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
       <button class="pin-key" onclick="doPinPress('7')">7</button>
       <button class="pin-key" onclick="doPinPress('8')">8</button>
       <button class="pin-key" onclick="doPinPress('9')">9</button>
-      <button class="pin-key del" onclick="doPinDel()">&#9003;</button>
+      <button class="pin-key del" onclick="doPinDel()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></button>
       <button class="pin-key" onclick="doPinPress('0')">0</button>
-      <button class="pin-key enter" onclick="doPinLogin()">&#10003;</button>
+      <button class="pin-key enter" onclick="doPinLogin()">OK</button>
     </div>
     <div class="login-error" id="loginError">Ongeldige pincode. Probeer opnieuw.</div>
     <button class="pincode-wijzig-link" style="margin-top:14px" onclick="pincodeVergeten()">Pincode vergeten?</button>
@@ -334,6 +338,7 @@ var gebruiker = null;
 var voertuig = null;
 var secties = [];
 var resultaten = {};
+var gestartOp = null;
 var huidigeSectieIdx = 0;
 var sigCtx = null;
 var sigDrawing = false;
@@ -356,6 +361,7 @@ function slaVoortgangOp() {
       gebruiker: gebruiker,
       voertuig: voertuig,
       resultaten: resultaten,
+      gestartOp: gestartOp,
       opgeslagenOp: Date.now()
     }));
   } catch (e) {}
@@ -379,6 +385,7 @@ function herstelVoortgangIndienMogelijk() {
   }
   gebruiker = opgeslagen.gebruiker;
   voertuig = opgeslagen.voertuig;
+  gestartOp = opgeslagen.gestartOp || new Date().toISOString();
   showScreen('inspectie');
   document.getElementById('headerUser2').innerHTML = '<strong>' + voertuig.nummerplaat + '</strong>' + gebruiker.naam;
   document.getElementById('btnTerug').onclick = stapTerug;
@@ -581,6 +588,7 @@ function kiesVoertuig(v) {
   voertuig = v;
   huidigeSectieIdx = 0;
   resultaten = {};
+  gestartOp = new Date().toISOString();
   showScreen('inspectie');
   document.getElementById('headerUser2').innerHTML = '<strong>' + v.nummerplaat + '</strong>' + gebruiker.naam;
   document.getElementById('btnTerug').onclick = stapTerug;
@@ -959,7 +967,8 @@ function verzendRapport() {
       p_voertuig_id: voertuig.id,
       p_verdict: verdict,
       p_handtekening: handtekening,
-      p_resultaten: punten
+      p_resultaten: punten,
+      p_gestart_op: gestartOp
     });
   }).then(function(result) {
     if (result.error) throw result.error;
@@ -984,6 +993,7 @@ function nieuweInspectie() {
   voertuig = null;
   secties = [];
   resultaten = {};
+  gestartOp = null;
   showScreen('login');
 }
 
