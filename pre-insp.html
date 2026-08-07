@@ -71,6 +71,14 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .screen-content { flex: 1; padding: 20px 16px 100px; max-width: 700px; margin: 0 auto; width: 100%; }
 .screen-title { font-size: 20px; color: var(--navy-text); margin-bottom: 16px; }
 .voertuig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#screen-module { background: var(--bg); }
+.module-grid { display: grid; gap: 14px; }
+.module-card { background: #fff; border-radius: var(--radius-lg); padding: 22px 20px; border: 1px solid var(--gray-300); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px; text-align: left; }
+.module-card:hover { border-color: var(--navy); }
+.module-card:active { transform: scale(0.99); }
+.module-icon { width: 52px; height: 52px; flex-shrink: 0; border-radius: 50%; background: var(--navy); color: var(--on-navy); display: flex; align-items: center; justify-content: center; }
+.module-naam { font-family: 'Montserrat', sans-serif; font-size: 17px; font-weight: 700; color: var(--navy-text); }
+.module-sub { font-size: 12px; color: var(--gray-500); margin-top: 3px; }
 .voertuig-card { background: #fff; border-radius: var(--radius-lg); padding: 20px 16px; border: 1px solid var(--gray-300); cursor: pointer; transition: all 0.2s; text-align: center; }
 .voertuig-card:hover { border-color: var(--navy); }
 .voertuig-icon { width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 28px; }
@@ -199,6 +207,22 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   </div>
 </div>
 
+<div id="screen-module" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name">PrevX</div>
+    </div>
+    <div class="header-user" id="headerUserModule"></div>
+  </div>
+  <div class="screen-content">
+    <h2 class="screen-title">Wat wil je doen?</h2>
+    <div class="module-grid" id="moduleGrid">
+      <div class="loading"><div class="spinner"></div>Laden...</div>
+    </div>
+  </div>
+</div>
+
 <div id="screen-voertuig" class="screen">
   <div class="app-header">
     <div class="app-header-logo">
@@ -277,7 +301,7 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Vaste set lijniconen voor checklist-secties, in dezelfde SVG-stijl als de
 // sidebar-iconen van het portaal (stroke=currentColor, geen fill). Moet in
-// sync blijven met dezelfde constanten in portaal.html.
+// sync blijven met dezelfde constanten in mijn.html.
 var ICOON_PATHS = {
   algemeen: '<path d="M9 3h6a1 1 0 0 1 1 1v1h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1V4a1 1 0 0 1 1-1z"/><path d="m9 12 1.5 1.5L13 10.5"/><path d="M9 16h6"/>',
   verlichting: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.45 1 1.15 1 1.9v.2h5v-.2c0-.75.4-1.45 1-1.9A6 6 0 0 0 12 3z"/>',
@@ -474,8 +498,77 @@ function doPinLogin() {
       gebruiker = rows[0];
       document.getElementById('loginError').style.display = 'none';
       pasBrandingToe(gebruiker);
-      laadVoertuigen();
+      laadModules();
     });
+}
+
+// Modules die de app vandaag ook echt kan openen. Een module die in de
+// databank geactiveerd is maar hier nog niet in staat, wordt niet getoond --
+// zo levert het alvast activeren van 'vuurvergunning' geen dode knop op
+// zolang die flow nog niet gebouwd is.
+var GEBOUWDE_MODULES = ['preinspecties'];
+
+var MODULE_ICONEN = {
+  preinspecties: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/></svg>',
+  vuurvergunning: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.8-1.3-2.8-2-4.5-1 1.5-2 2-2.4 2.8A3 3 0 0 0 12 22z"/></svg>'
+};
+var MODULE_SUBTITELS = {
+  preinspecties: 'Bedrijfsmiddel controleren vóór gebruik',
+  vuurvergunning: 'Vergunning voor brandgevaarlijk werk'
+};
+
+var beschikbareModules = [];
+
+function laadModules() {
+  showScreen('module');
+  var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
+  document.getElementById('headerUserModule').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  var grid = document.getElementById('moduleGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+
+  sb.rpc('rpc_modules', { p_gebruiker_id: gebruiker.id }).then(function(result) {
+    // Faalt de oproep, dan terugvallen op pre-inspectie i.p.v. de chauffeur
+    // met een leeg scherm achter te laten: dat is precies wat hij vóór de
+    // modulekeuze ook kreeg, en stilvallen op een werf is erger dan een
+    // module die even niet te kiezen valt.
+    if (result.error) {
+      console.error('rpc_modules faalde, terugval op pre-inspectie:', result.error);
+      beschikbareModules = [];
+      laadVoertuigen();
+      return;
+    }
+
+    var modules = (result.data || []).filter(function(m) {
+      return GEBOUWDE_MODULES.indexOf(m.key) > -1;
+    });
+    beschikbareModules = modules;
+
+    if (!modules.length) {
+      grid.innerHTML = '<p style="color:var(--gray-500);padding:20px;">Er is nog geen module voor je beschikbaar. Neem contact op met je beheerder.</p>';
+      return;
+    }
+    // Eén module: niemand hoeft te kiezen tussen één ding.
+    if (modules.length === 1) {
+      kiesModule(modules[0].key);
+      return;
+    }
+
+    grid.innerHTML = '';
+    modules.forEach(function(m) {
+      var card = document.createElement('div');
+      card.className = 'module-card';
+      card.innerHTML = '<div class="module-icon">' + (MODULE_ICONEN[m.key] || MODULE_ICONEN.preinspecties) + '</div>' +
+        '<div><div class="module-naam">' + m.naam + '</div>' +
+        '<div class="module-sub">' + (MODULE_SUBTITELS[m.key] || '') + '</div></div>';
+      card.onclick = function() { kiesModule(m.key); };
+      grid.appendChild(card);
+    });
+  });
+}
+
+function kiesModule(key) {
+  if (key === 'preinspecties') { laadVoertuigen(); return; }
+  showToast('Deze module is nog niet beschikbaar.');
 }
 
 function pasBrandingToe(bedrijf) {
@@ -556,6 +649,7 @@ function laadVoertuigen() {
   showScreen('voertuig');
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
   document.getElementById('headerUser').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel +
+    (beschikbareModules.length > 1 ? '<button class="pincode-wijzig-link" onclick="laadModules()">Andere module</button>' : '') +
     '<button class="pincode-wijzig-link" onclick="wijzigPincode()">Pincode wijzigen</button>';
   var grid = document.getElementById('voertuigGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
