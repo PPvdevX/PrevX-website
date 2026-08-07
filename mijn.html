@@ -501,8 +501,8 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
           <div class="table-header"><span class="table-title">Bedrijven</span>
             <span class="table-count" id="klantenCount">0</span>
           </div>
-          <table><thead><tr><th>Bedrijfsnaam</th><th>Pre-inspecties</th><th>Actiepunten</th><th>Documenten</th><th>Planning</th><th>Kennisbank</th><th></th></tr></thead>
-          <tbody id="klantenTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+          <table><thead><tr><th>Bedrijfsnaam</th><th>Klantcode</th><th>Pre-inspecties</th><th>Actiepunten</th><th>Documenten</th><th>Planning</th><th>Kennisbank</th><th></th></tr></thead>
+          <tbody id="klantenTabel"><tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
 
         <div style="margin:24px 0 14px">
@@ -647,6 +647,12 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
         <div class="page-subtitle">Chauffeurs, leidinggevenden en preventieadviseurs</div>
       </div>
       <div class="content-area">
+        <div class="table-card" style="margin-bottom:20px;padding:14px 22px">
+          <span style="font-size:13px;color:var(--gray-700)">Code van dit bedrijf voor de chauffeurs-app:
+            <code id="gebruikersKlantcode" style="font-family:monospace;font-size:15px;letter-spacing:2px;background:var(--gray-100);padding:4px 10px;border-radius:5px;margin-left:6px">—</code>
+          </span>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:6px">Een chauffeur voert deze code één keer in op zijn toestel, daarna enkel nog zijn pincode.</div>
+        </div>
         <div class="table-card">
           <div class="table-header"><span class="table-title">Gebruikers</span>
             <span style="display:flex;align-items:center;gap:10px">
@@ -968,7 +974,7 @@ function pasModuleToegangToe(){
 }
 
 function laadEnPasBrandingToe(){
-  sb.from('bedrijven').select('naam,logo_url,rol_label_chauffeur,rol_label_leidinggevende,rol_label_preventieadviseur,rol_label_beheerder').eq('id',huidigeBedrijfId).single().then(function(r){
+  sb.from('bedrijven').select('naam,klantcode,logo_url,rol_label_chauffeur,rol_label_leidinggevende,rol_label_preventieadviseur,rol_label_beheerder').eq('id',huidigeBedrijfId).single().then(function(r){
     if(r.error||!r.data)return;
     huidigeBedrijf=r.data;
     huidigeRolLabels={chauffeur:r.data.rol_label_chauffeur,leidinggevende:r.data.rol_label_leidinggevende,preventieadviseur:r.data.rol_label_preventieadviseur,beheerder:r.data.rol_label_beheerder};
@@ -1428,7 +1434,7 @@ function verwijderBedrijf(bedrijfId,naam){
 }
 
 function laadKlanten(){
-  sb.from('bedrijven').select('id,naam').order('naam').then(function(br){
+  sb.from('bedrijven').select('id,naam,klantcode').order('naam').then(function(br){
     var bedrijven=br.data||[];
     sb.from('bedrijf_modules').select('bedrijf_id,module_key,actief').then(function(mr){
       var modules={};
@@ -1582,7 +1588,7 @@ function nieuwPakket(){
 function renderKlantenTabel(bedrijven,modules){
   document.getElementById('klantenCount').textContent=bedrijven.length+' bedrijven';
   var tbody=document.getElementById('klantenTabel');
-  if(!bedrijven.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">Geen bedrijven.</td></tr>';return;}
+  if(!bedrijven.length){tbody.innerHTML='<tr class="empty-row"><td colspan="8">Geen bedrijven.</td></tr>';return;}
   tbody.innerHTML='';
   bedrijven.forEach(function(b){
     var preinspectiesActief=!(modules[b.id]&&modules[b.id].preinspecties===false);
@@ -1592,6 +1598,8 @@ function renderKlantenTabel(bedrijven,modules){
     var kennisbankActief=!(modules[b.id]&&modules[b.id].kennisbank===false);
     var tr=document.createElement('tr');
     tr.innerHTML='<td><input value="'+b.naam.replace(/"/g,'&quot;')+'" onchange="wijzigBedrijfsnaam(\''+b.id+'\',this)" style="width:160px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:13px"></td>'+
+      // Deze code geeft de klant aan zijn chauffeurs; zij voeren hem één keer in.
+      '<td><code style="font-family:monospace;font-size:13px;letter-spacing:1px;background:var(--gray-100);padding:3px 8px;border-radius:5px">'+(b.klantcode||'—')+'</code></td>'+
       '<td>'+moduleDot(b.id,'preinspecties','Pre-inspecties',preinspectiesActief)+'</td>'+
       '<td>'+moduleDot(b.id,'actiepunten','Actiepunten',actiepuntenActief)+'</td>'+
       '<td>'+moduleDot(b.id,'documenten','Documenten',documentenActief)+'</td>'+
@@ -2241,14 +2249,25 @@ function importGebruikersBestand(input){
       if(!fout)gebruiktInBestand[pincode]=true;
       return {naam:naam,rol:rol,pincode:pincode,email:email,fout:fout};
     });
-    Promise.all(voorlopig.map(function(rij){
-      if(rij.fout)return rij;
-      return sb.rpc('rpc_pincode_bestaat',{p_pincode:rij.pincode}).then(function(r){
-        if(r.error)rij.fout='Kon pincode niet controleren';
-        else if(r.data===true)rij.fout='Pincode al in gebruik';
-        return rij;
-      });
-    })).then(function(resultaten){
+    // Eén oproep met de pincodes uit het bestand zelf, i.p.v. per rij vragen of
+    // een willekeurige code bestaat -- dat laatste was een orakel waarmee de
+    // volledige sleutelruimte af te lopen viel (zie migratie 0051).
+    var teControleren=voorlopig.filter(function(r){return !r.fout;}).map(function(r){return r.pincode;});
+    var controle=teControleren.length
+      ? sb.rpc('rpc_pincodes_controleren',{p_pincodes:teControleren})
+      : Promise.resolve({data:[],error:null});
+    controle.then(function(cr){
+      if(cr.error){
+        voorlopig.forEach(function(rij){if(!rij.fout)rij.fout='Kon pincode niet controleren';});
+      }else{
+        var bezet={};
+        (cr.data||[]).forEach(function(x){bezet[x.pincode]=true;});
+        voorlopig.forEach(function(rij){
+          if(!rij.fout&&bezet[rij.pincode])rij.fout='Pincode al in gebruik';
+        });
+      }
+      return voorlopig;
+    }).then(function(resultaten){
       toonImportPreview('gebruikers',resultaten);
     });
   });
@@ -2376,14 +2395,13 @@ function nieuweGebruiker(){
   });
 }
 
-function genereerUniekePincode(callback,pogingen){
-  pogingen=pogingen||0;
-  if(pogingen>10){showToast('Kon geen unieke pincode genereren, probeer opnieuw.');return;}
-  var kandidaat=String(Math.floor(1000+Math.random()*9000));
-  sb.rpc('rpc_pincode_bestaat',{p_pincode:kandidaat}).then(function(r){
-    if(r.error){showToast('Fout: '+r.error.message);return;}
-    if(r.data===true)genereerUniekePincode(callback,pogingen+1);
-    else callback(kandidaat);
+// De pincode wordt server-side gegenereerd (migratie 0051). Vroeger raadde de
+// browser een code en vroeg hij "bestaat die al?" -- die vraag was een orakel
+// waarmee geldige pincodes van andere klanten te vinden waren.
+function genereerUniekePincode(callback){
+  sb.rpc('rpc_genereer_pincode').then(function(r){
+    if(r.error||!r.data){showToast('Fout: '+((r.error&&r.error.message)||'kon geen pincode genereren'));return;}
+    callback(r.data);
   });
 }
 
@@ -2443,6 +2461,7 @@ function verwijderGebruiker(gebruikerId,naam){
 
 function laadGebruikers(){
   if(!huidigeBedrijfId)return;
+  document.getElementById('gebruikersKlantcode').textContent=(huidigeBedrijf&&huidigeBedrijf.klantcode)||'—';
   sb.from('gebruikers').select('id,naam,rol,bedrijf_id,actief,dossier_rol').eq('bedrijf_id',huidigeBedrijfId).order('naam').then(function(r){
     var g=r.data||[];
     document.getElementById('gebruikersCount').textContent=g.length+' gebruikers';
