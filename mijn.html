@@ -35,7 +35,7 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 #screen-dashboard{flex-direction:row!important}
 .sidebar{width:240px;background:var(--sidebar-bg);flex-shrink:0;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0}
 .sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:flex-start;gap:10px}
-.sidebar-logo-text{font-family:'Montserrat',sans-serif;font-weight:700;font-size:16px;color:var(--gray-900)}
+.sidebar-logo-text{font-family:'Montserrat',sans-serif;font-weight:600;font-size:15px;color:var(--gray-900)}
 .sidebar-logo-sub{font-size:10px;color:var(--gray-500);display:block}
 .sidebar-user{padding:16px 20px;border-bottom:1px solid rgba(0,0,0,.1)}
 .sidebar-user-name{font-size:13px;font-weight:600;color:var(--gray-900)}
@@ -43,7 +43,7 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .sidebar-nav{flex:1;padding:12px 12px}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:2px;font-size:13px;font-weight:500;color:var(--gray-700);cursor:pointer;transition:all .2s;border-radius:8px}
 .nav-item:hover{background:rgba(0,0,0,.05);color:var(--gray-900)}
-.nav-item.active{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.nav-item.active{background:var(--accent);color:#fff}
 .nav-item.inactief{opacity:.45;cursor:not-allowed}
 .nav-icon{width:20px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center}
 .sidebar-bottom{padding:16px 20px;border-top:1px solid rgba(0,0,0,.1)}
@@ -51,39 +51,40 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .btn-logout:hover{background:#4d7aa3;border-color:rgba(0,0,0,.25)}
 .main-content{flex:1;overflow-y:auto}
 .page-header{background:#fff;padding:22px 32px;border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:10}
-.page-title{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--navy-text)}
+.page-title{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:600;color:var(--navy-text);letter-spacing:-.2px}
 .page-subtitle{font-size:12px;color:var(--gray-500);margin-top:2px}
 .content-area{padding:28px 32px}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:26px}
-.stat-card{background:#fff;border-radius:var(--radius-lg);padding:20px 22px;border:1px solid var(--gray-300);border-top:3px solid var(--gray-200);transition:border-color .2s}
-.stat-card:hover{border-color:var(--gray-300)}
-.stat-card.totaal{border-top-color:var(--navy)}
-.stat-card.rijklaar{border-top-color:var(--green)}
-.stat-card.niet-rijklaar{border-top-color:var(--red)}
-.stat-card.vandaag{border-top-color:var(--orange)}
-.stat-num{font-family:'Montserrat',sans-serif;font-size:32px;font-weight:800;color:var(--gray-900);line-height:1}
-.stat-card.rijklaar .stat-num{color:var(--green)}
-.stat-card.niet-rijklaar .stat-num{color:var(--red)}
-.stat-card.vandaag .stat-num{color:var(--orange)}
-.stat-label{font-size:11px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+/* Kerncijfers als een strook in tabelvorm i.p.v. vier losse gekleurde kaarten:
+   elk een eigen kleur en een groot cijfer maakte dat ze onderling om aandacht
+   vochten. Nu leest het als een regel gegevens, op dezelfde tekstgrootte als de
+   rest van de pagina. De label-voor-cijfer-volgorde komt van `order`, zodat de
+   HTML (cijfer, dan label) ongemoeid blijft op beide tabbladen. */
+.stats-grid{display:flex;flex-wrap:wrap;background:#fff;border:1px solid var(--gray-300);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
+.stat-card{flex:1 1 auto;min-width:150px;display:flex;align-items:baseline;gap:8px;padding:13px 18px;border-right:1px solid var(--gray-200)}
+.stat-card:last-child{border-right:none}
+.stat-num{order:2;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--gray-900);line-height:1.4}
+.stat-label{order:1;font-size:13px;color:var(--gray-500);font-weight:400;margin-top:0}
 .filters-bar{background:#fff;border-radius:var(--radius-lg);padding:16px 20px;border:1px solid var(--gray-300);margin-bottom:22px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .filter-group{display:flex;flex-direction:column;gap:4px}
-.filter-label{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase}
+.filter-label{font-size:12px;font-weight:400;color:var(--gray-500)}
 .filter-input{padding:7px 10px;border:2px solid var(--gray-200);border-radius:6px;font-family:'Poppins',sans-serif;font-size:13px;color:var(--gray-900);min-width:140px}
 .filter-input:focus{outline:none;border-color:var(--navy)}
 .btn-reset{padding:7px 14px;background:var(--gray-100);border:2px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;white-space:nowrap}
 .btn-reset:hover{border-color:var(--gray-400);color:var(--gray-700)}
 .table-card{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-300);overflow:hidden}
 .table-header{padding:16px 22px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
-.table-title{font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:var(--navy-text)}
+.table-title{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--navy-text)}
 .table-count{font-size:12px;color:var(--gray-500);background:var(--gray-100);padding:3px 8px;border-radius:12px}
 table{width:100%;border-collapse:collapse}
 thead{background:var(--gray-50)}
-th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--gray-200);white-space:nowrap}
-td{padding:12px 16px;font-size:13px;color:var(--gray-700);border-bottom:1px solid var(--gray-100);vertical-align:middle}
+/* Kolomkoppen mogen wijken: ze benoemen de inhoud, ze zijn de inhoud niet.
+   Vandaar geen kapitalen en geen spatiëring meer -- die schreeuwden harder dan
+   de gegevens eronder. */
+th{padding:10px 16px;text-align:left;font-size:12px;font-weight:500;color:var(--gray-400);border-bottom:1px solid var(--gray-200);white-space:nowrap}
+td{padding:10px 16px;font-size:13px;color:var(--gray-700);border-bottom:1px solid var(--gray-100);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--gray-50);cursor:pointer}
-.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;font-family:'Montserrat',sans-serif;white-space:nowrap}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;font-family:'Poppins',sans-serif;white-space:nowrap}
 .badge.rijklaar{background:var(--green-bg);color:var(--green)}
 .badge.niet_rijklaar{background:var(--red-bg);color:var(--red)}
 .badge.onvolledig{background:var(--orange-bg);color:var(--orange)}
@@ -92,7 +93,8 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .punt-rij-beheer{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;flex-wrap:wrap}
 .punt-rij-beheer:last-child{border-bottom:none}
 .punt-rij-beheer .punt-omschr{flex:1 1 240px;min-width:200px}
-.btn-add-sm{padding:6px 12px;background:var(--gray-100);border:1px dashed var(--gray-300);border-radius:6px;font-size:12px;color:var(--gray-500);cursor:pointer;font-weight:600}
+.btn-add-sm{padding:6px 12px;background:#fff;border:1px solid var(--gray-300);border-radius:6px;font-size:12px;color:var(--gray-700);cursor:pointer;font-weight:500;transition:all .15s}
+.btn-add-sm:hover{border-color:var(--navy);color:var(--navy-text)}
 .btn-add-sm:hover{border-color:var(--navy);color:var(--navy-text)}
 .module-dot{width:14px;height:14px;border-radius:50%;border:none;padding:0;cursor:pointer;display:inline-block;transition:transform .15s,box-shadow .15s}
 .module-dot.aan{background:var(--green)}
@@ -100,7 +102,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .module-dot:hover{transform:scale(1.2);box-shadow:0 0 0 4px rgba(0,0,0,.06)}
 .type-tab{padding:7px 14px;border-radius:20px;border:1px solid var(--gray-300);background:#fff;font-size:12px;font-weight:600;color:var(--gray-700);cursor:pointer;white-space:nowrap}
 .type-tab.actief{background:var(--navy);border-color:var(--navy);color:#fff}
-.bg-page-title{font-family:'Poppins',sans-serif;font-size:18px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--navy-text);margin-bottom:18px}
+.bg-page-title{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:600;color:var(--navy-text);margin-bottom:18px}
 .bg-card-grid{display:flex;gap:22px;align-items:flex-start}
 .bg-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:22px}
 .bg-card{background:var(--gray-50);border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:20px 24px}
@@ -143,12 +145,12 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .detail-verdict.niet_rijklaar{background:var(--red-bg);color:var(--red)}
 .detail-verdict.onvolledig{background:var(--orange-bg);color:var(--orange)}
 .detail-verdict.rijklaar_met_opmerkingen{background:var(--orange-bg);color:var(--orange)}
-.punt-niveau{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:1px 6px;border-radius:8px;margin-left:6px;vertical-align:middle}
+.punt-niveau{display:inline-block;font-size:10px;font-weight:500;padding:1px 7px;border-radius:8px;margin-left:6px;vertical-align:middle}
 .punt-niveau.kritisch{background:var(--red-bg);color:var(--red)}
 .punt-niveau.informatief{background:var(--orange-bg);color:var(--orange)}
 .detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .detail-meta-item{background:var(--gray-50);border-radius:6px;padding:10px 14px}
-.detail-meta-label{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px}
+.detail-meta-label{font-size:11px;font-weight:400;color:var(--gray-400)}
 .detail-meta-value{font-size:13px;font-weight:600;color:var(--gray-900);margin-top:3px}
 .detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 .detail-stat{text-align:center;padding:12px;border-radius:var(--radius)}
@@ -159,9 +161,9 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .detail-stat.ok .detail-stat-n{color:var(--green)}
 .detail-stat.nok .detail-stat-n{color:var(--red)}
 .detail-stat.open .detail-stat-n{color:var(--gray-500)}
-.detail-stat-l{font-size:10px;font-weight:600;color:var(--gray-500);text-transform:uppercase;margin-top:3px}
+.detail-stat-l{font-size:11px;font-weight:400;color:var(--gray-500);margin-top:3px}
 .sectie-blok{margin-bottom:14px;border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden}
-.sectie-blok-header{background:var(--navy);padding:10px 14px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;color:var(--on-navy);text-transform:uppercase}
+.sectie-blok-header{background:var(--navy);padding:10px 14px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--on-navy)}
 /* Afdrukken: geen bibliotheek, gewoon window.print() met een afdrukstijl -- de
    gebruiker kiest zelf "Opslaan als PDF" in de printdialoog. Alles onzichtbaar
    maken en enkel .print-doel weer zichtbaar, zodat we niet per scherm hoeven te
@@ -194,7 +196,6 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .vraag-werktypes{margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-100);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--gray-500)}
 .vraag-werktypes strong{color:var(--gray-900)}
 .vraag-werktypes-editor{flex-basis:100%;display:flex;flex-wrap:wrap;gap:12px;padding-top:4px}
-.stats-grid.flexibel{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
 .kpi-instel-kaart{background:#fff;border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:22px}
 .kpi-instel-kop{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--navy-text);margin-bottom:10px}
 .kpi-instel-rij{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--gray-100)}
@@ -221,7 +222,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .punt-fotos{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .punt-foto{width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-300);cursor:pointer}
 .sig-sectie{margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200)}
-.sig-label{font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.sig-label{font-size:11px;font-weight:400;color:var(--gray-400);margin-bottom:8px}
 .sig-img{max-width:100%;border:1px solid var(--gray-300);border-radius:6px;background:var(--gray-50)}
 .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center}
 .lightbox.active{display:flex}
@@ -727,7 +728,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
         </div>
         <div id="rapportKpiInstellingen" class="niet-printen" style="display:none"></div>
         <div id="rapportPrintKop" class="enkel-printen"></div>
-        <div class="stats-grid flexibel" id="rapportKpiGrid"></div>
+        <div class="stats-grid" id="rapportKpiGrid"></div>
         <div class="table-card" style="margin-bottom:20px">
           <div class="table-header"><span class="table-title">Meest voorkomende defecten</span></div>
           <div id="rapportDefectenLijst" style="text-align:center;padding:40px;color:var(--gray-400)"><div class="spinner-sm"></div>Laden...</div>
@@ -1600,7 +1601,7 @@ function renderKlantenTabel(bedrijven,modules){
     var planningActief=!(modules[b.id]&&modules[b.id].planning===false);
     var kennisbankActief=!(modules[b.id]&&modules[b.id].kennisbank===false);
     var tr=document.createElement('tr');
-    tr.innerHTML='<td><input value="'+b.naam.replace(/"/g,'&quot;')+'" onchange="wijzigBedrijfsnaam(\''+b.id+'\',this)" style="width:160px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:13px"></td>'+
+    tr.innerHTML='<td><input value="'+b.naam.replace(/"/g,'&quot;')+'" onchange="wijzigBedrijfsnaam(\''+b.id+'\',this)" style="width:160px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-weight:500;font-size:13px"></td>'+
       // Deze code geeft de klant aan zijn chauffeurs; zij voeren hem één keer in.
       '<td><code style="font-family:monospace;font-size:13px;letter-spacing:1px;background:var(--gray-100);padding:3px 8px;border-radius:5px">'+(b.klantcode||'—')+'</code></td>'+
       '<td>'+moduleDot(b.id,'preinspecties','Pre-inspecties',preinspectiesActief)+'</td>'+
@@ -2052,7 +2053,7 @@ function laadVoertuigen(){
               '<label class="btn-add-sm" style="display:inline-block">'+(vt.foto_url?'Wijzig':'Upload')+
                 '<input type="file" accept="image/*" style="display:none" onchange="uploadBedrijfsmiddelFoto(\''+vt.id+'\',this)">'+
               '</label></td>'+
-            '<td><input value="'+vt.nummerplaat.replace(/"/g,'&quot;')+'" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'nummerplaat\',this.value)" style="width:100px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Montserrat\',sans-serif;font-weight:700;font-size:13px"></td>'+
+            '<td><input value="'+vt.nummerplaat.replace(/"/g,'&quot;')+'" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'nummerplaat\',this.value)" style="width:100px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-weight:500;font-size:13px"></td>'+
             '<td><select class="niveau-select" onchange="wijzigVoertuigType(\''+vt.id+'\',this.value)">'+opties+'</select></td>'+
             '<td><input value="'+(vt.omschrijving||'').replace(/"/g,'&quot;')+'" placeholder="-" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'omschrijving\',this.value)" style="width:140px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Poppins\',sans-serif;font-size:13px"></td>'+
             '<td><input value="'+(vt.serienummer||'').replace(/"/g,'&quot;')+'" placeholder="-" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'serienummer\',this.value)" style="width:120px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Poppins\',sans-serif;font-size:13px"></td>'+
@@ -2644,7 +2645,7 @@ function renderChecklistBeheer(){
       '<span style="display:flex;align-items:center;gap:6px;flex:1 1 auto">'+
         '<span id="icoonPrev-'+s.id+'" style="display:inline-flex;flex-shrink:0">'+renderIcoon(resolveIcoonKey(s.icon),16)+'</span>'+
         '<select onchange="wijzigSectieVeld(\''+s.id+'\',\'icon\',this.value);document.getElementById(\'icoonPrev-'+s.id+'\').innerHTML=renderIcoon(this.value,16)" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:var(--on-navy);font-size:11px;padding:3px" title="Icoon">'+icoonOptiesHtml(resolveIcoonKey(s.icon))+'</select>'+
-        '<input value="'+s.naam.replace(/"/g,'&quot;')+'" onchange="wijzigSectieVeld(\''+s.id+'\',\'naam\',this.value)" style="flex:1;min-width:120px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:var(--on-navy);font-size:13px;padding:3px 6px;font-family:\'Montserrat\',sans-serif;font-weight:700;text-transform:uppercase">'+
+        '<input value="'+s.naam.replace(/"/g,'&quot;')+'" onchange="wijzigSectieVeld(\''+s.id+'\',\'naam\',this.value)" style="flex:1;min-width:120px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:var(--on-navy);font-size:13px;padding:3px 6px;font-weight:600">'+
       '</span>'+
       '<span style="display:flex;gap:6px;flex-shrink:0">'+
         '<button class="btn-add-sm" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:var(--on-navy)" onclick="nieuwPunt(\''+s.id+'\')">+ Punt</button>'+
