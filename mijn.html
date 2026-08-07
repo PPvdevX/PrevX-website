@@ -1981,6 +1981,21 @@ function wijzigBedrijfsgegeven(veld,input){
     showToast('Opgeslagen');
     if(veld==='pakket')suggereerTarief(waarde);
     if(veld==='pakket'||veld==='contract_startdatum')suggereerEinddatum();
+    if(veld==='pakket'&&waarde)pasPakketModulesToe(waarde);
+  });
+}
+
+// Een pakket bepaalt welke modules de klant krijgt (migratie 0059). Bewust een
+// voorstel en geen dwang: dit zet ze goed bij het kiezen van de formule, daarna
+// kan je per klant nog afwijken via de Klanten-tab.
+// Pre-inspecties en vuurvergunning blijven ongemoeid -- dat zijn losse producten,
+// geen onderdeel van een formule.
+function pasPakketModulesToe(pakketNaam){
+  if(!isSuperbeheerder||!huidigeBedrijfId)return;
+  sb.rpc('rpc_pakket_toepassen',{p_bedrijf_id:huidigeBedrijfId,p_pakket_naam:pakketNaam}).then(function(r){
+    if(r.error){showToast('Modules niet aangepast: '+r.error.message);return;}
+    showToast('Modules aangepast aan ' + pakketNaam);
+    laadModuleToegang();
   });
 }
 
