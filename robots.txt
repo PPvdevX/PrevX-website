@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 
+# Afgeschermde toepassingen: horen niet in zoekresultaten thuis.
+# Dit regelt enkel indexering, niet de toegang -- die loopt via
+# Supabase Auth (portaal) en de pincode-RPC's (chauffeurs-app).
+Disallow: /mijn
+Disallow: /mijn.html
+Disallow: /pre-insp
+Disallow: /pre-insp.html
+
 Sitemap: https://prevx.be/sitemap.xml
