@@ -51,19 +51,18 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .pincode-wijzig-link { font-size: 10px; color: var(--gray-400); text-decoration: underline; background: none; border: none; cursor: pointer; padding: 2px 0 0; font-family: 'Poppins', sans-serif; }
 .progress-bar { height: 3px; background: var(--navy2); }
 .progress-fill { height: 100%; background: var(--accent); transition: width 0.4s; }
-#screen-login { background: var(--navy); align-items: center; justify-content: center; padding: 40px 20px; }
-.login-box { background: #fff; border-radius: 20px; padding: 36px 28px; width: 100%; max-width: 360px; box-shadow: var(--shadow-lg); text-align: center; }
-.login-logo { margin-bottom: 20px; }
-.login-logo p { font-size: 12px; color: var(--gray-500); margin-top: 8px; }
-.login-box { background: transparent; box-shadow: none; padding: 0; }
-.login-logo p { color: var(--navy2); }
-.login-lock { width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; }
+#screen-login { background: var(--navy); align-items: center; justify-content: flex-start; padding: 24px 20px; overflow-y: auto; }
+.login-box { background: transparent; box-shadow: none; padding: 0; width: 100%; max-width: 320px; text-align: center; }
+.login-logo { margin-bottom: 10px; }
+.login-logo img { height: 52px; }
+.login-logo p { font-size: 12px; color: var(--navy2); margin-top: 6px; }
+.login-lock { width: 40px; height: 40px; margin: 0 auto 10px; border-radius: 50%; background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; }
 .pin-label { font-size: 12px; font-weight: 600; color: var(--navy2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
-.pin-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 28px; }
+.pin-display { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
 .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.4); background: transparent; box-sizing: border-box; transition: all 0.2s; }
 .pin-dot.filled { border-color: #fff; background: #fff; animation: dotPop 0.2s ease; }
 @keyframes dotPop { 0% { transform: scale(0.6); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
-.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .pin-key { aspect-ratio: 1; border: 1.5px solid rgba(255,255,255,.35); border-radius: 50%; background: transparent; box-shadow: none; cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 500; color: #fff; transition: all 0.15s; user-select: none; display: flex; align-items: center; justify-content: center; }
 .pin-key:active { background: rgba(255,255,255,.9); color: var(--navy); border-color: #fff; transform: scale(0.94); }
 .pin-key.enter { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
@@ -170,7 +169,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 <div id="screen-login" class="screen active">
   <div class="login-box">
     <div class="login-logo">
-      <img src="Logo-PrevX.png" alt="PrevX" style="height:70px;object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px;">
+      <img src="Logo-PrevX.png" alt="PrevX" style="object-fit:contain;border:1px solid rgba(255,255,255,.3);border-radius:10px;">
       <p>Pre-inspectie rijdend materieel</p>
     </div>
     <div class="login-lock"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
