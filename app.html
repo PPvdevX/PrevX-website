@@ -261,9 +261,9 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
     <div class="header-user" id="headerUser"></div>
   </div>
   <div class="screen-content">
-    <h2 class="screen-title">Kies uw bedrijfsmiddel</h2>
+    <h2 class="screen-title">Kies uw asset</h2>
     <div class="voertuig-grid" id="voertuigGrid">
-      <div class="loading"><div class="spinner"></div>Bedrijfsmiddelen laden...</div>
+      <div class="loading"><div class="spinner"></div>Assets laden...</div>
     </div>
   </div>
 </div>
@@ -614,7 +614,7 @@ var MODULE_ICONEN = {
   vuurvergunning: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.8-1.3-2.8-2-4.5-1 1.5-2 2-2.4 2.8A3 3 0 0 0 12 22z"/></svg>'
 };
 var MODULE_SUBTITELS = {
-  preinspecties: 'Bedrijfsmiddel controleren vóór gebruik',
+  preinspecties: 'Asset controleren vóór gebruik',
   vuurvergunning: 'Vergunning voor brandgevaarlijk werk'
 };
 
@@ -758,7 +758,7 @@ function laadVoertuigen() {
   sb.rpc('rpc_voertuigen', { p_gebruiker_id: gebruiker.id }).then(function(result) {
     var voertuigen = result.data || [];
     if (!voertuigen.length) {
-      grid.innerHTML = '<p style="color:var(--gray-500);padding:20px;">Geen bedrijfsmiddelen gevonden.</p>';
+      grid.innerHTML = '<p style="color:var(--gray-500);padding:20px;">Geen assets gevonden.</p>';
       return;
     }
     grid.innerHTML = '';
@@ -803,7 +803,7 @@ function kiesVoertuig(v) {
       secties = volgorde.map(function(id) { return bySectie[id]; });
       if (!secties.length) {
         document.getElementById('stapTabs').innerHTML = '';
-        document.getElementById('inspectieCard').innerHTML = '<div class="loading">Voor dit bedrijfsmiddel zijn nog geen checklistpunten ingesteld. Neem contact op met de beheerder.</div>';
+        document.getElementById('inspectieCard').innerHTML = '<div class="loading">Voor dit asset zijn nog geen checklistpunten ingesteld. Neem contact op met de beheerder.</div>';
         var btnTerug = document.getElementById('btnTerug');
         btnTerug.style.display = '';
         btnTerug.onclick = function() { laadVoertuigen(); };

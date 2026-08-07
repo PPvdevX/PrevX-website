@@ -44,6 +44,14 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:2px;font-size:13px;font-weight:500;color:var(--gray-700);cursor:pointer;transition:all .2s;border-radius:8px}
 .nav-item:hover{background:rgba(0,0,0,.05);color:var(--gray-900)}
 .nav-item.active{background:var(--accent);color:#fff}
+.nav-groep{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:2px;font-size:13px;font-weight:500;color:var(--gray-700);cursor:pointer;border-radius:8px;transition:all .2s;user-select:none}
+.nav-groep:hover{background:rgba(0,0,0,.05);color:var(--gray-900)}
+.nav-groep-naam{flex:1}
+.nav-chevron{flex-shrink:0;color:var(--gray-400);transition:transform .2s}
+.nav-groep.open .nav-chevron{transform:rotate(180deg)}
+/* Subitems staan ingesprongen op de icoonbreedte van hun groep, zodat ze
+   visueel onder de kop hangen i.p.v. ernaast. */
+.nav-sub{padding-left:44px;font-size:13px}
 .nav-item.inactief{opacity:.45;cursor:not-allowed}
 .nav-icon{width:20px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center}
 .sidebar-bottom{padding:16px 20px;border-top:1px solid rgba(0,0,0,.1)}
@@ -265,48 +273,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       <div class="sidebar-user-email" id="sidebarEmail"></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-item active" id="nav-overzicht" onclick="toonTab('overzicht')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span> Overzicht
-      </div>
-      <div class="nav-item" id="nav-klanten" style="display:none" onclick="toonTab('klanten')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg></span> Klanten
-      </div>
-      <div class="nav-item" id="nav-alleafspraken" style="display:none" onclick="toonTab('alleafspraken')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M7.5 13.5h3M7.5 17h3M13.5 13.5h3M13.5 17h3"/></svg></span> Afspraken
-      </div>
-      <div class="nav-item" id="nav-actiepunten" onclick="toonTab('actiepunten')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span> Actiepunten
-      </div>
-      <div class="nav-item" id="nav-documenten" onclick="toonTab('documenten')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 16.5h6"/></svg></span> Documenten
-      </div>
-      <div class="nav-item" id="nav-planning" onclick="toonTab('planning')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/></svg></span> Planning
-      </div>
-      <div class="nav-item" id="nav-kennisbank" onclick="toonTab('kennisbank')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2 2 0 0 1 6 4h5v16H6a2 2 0 0 0-2 1.5z"/><path d="M20 5.5A2 2 0 0 0 18 4h-5v16h5a2 2 0 0 1 2 1.5z"/></svg></span> Kennisbank
-      </div>
-      <div class="nav-item" id="nav-inspecties" onclick="toonTab('inspecties')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/></svg></span> Inspecties
-      </div>
-      <div class="nav-item" id="nav-voertuigen" onclick="toonTab('voertuigen')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="12" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg></span> Bedrijfsmiddelen
-      </div>
-      <div class="nav-item" id="nav-gebruikers" onclick="toonTab('gebruikers')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg></span> Gebruikers
-      </div>
-      <div class="nav-item" id="nav-checklist" onclick="toonTab('checklist')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></span> Checklist
-      </div>
-      <div class="nav-item" id="nav-vuurvergunning" onclick="toonTab('vuurvergunning')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.8-1.3-2.8-2-4.5-1 1.5-2 2-2.4 2.8A3 3 0 0 0 12 22z"/></svg></span> Vuurvergunning
-      </div>
-      <div class="nav-item" id="nav-rapportages" onclick="toonTab('rapportages')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg></span> Rapportages
-      </div>
-      <div class="nav-item" id="nav-huisstijl" onclick="toonTab('huisstijl')">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.4-1.9-.2-.5-.1-1.1.3-1.5.4-.4 1-.5 1.5-.3.9.4 1.9-.2 1.9-1.3A9 9 0 0 0 12 3z"/><circle cx="8" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.3" r="1.1" fill="currentColor" stroke="none"/><circle cx="16" cy="10" r="1.1" fill="currentColor" stroke="none"/></svg></span> Huisstijl
-      </div>
+      <!-- Wordt opgebouwd uit MENU door bouwMenu(); zie daar voor de indeling. -->
     </nav>
     <div class="sidebar-bottom">
       <a id="contacteerAdviseurLink" href="#" class="btn-logout" style="text-decoration:none;margin-bottom:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg> Contacteer uw adviseur</a>
@@ -604,7 +571,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
               <option value="rijklaar_met_opmerkingen">Rijklaar met opmerkingen</option>
             </select>
           </div>
-          <div class="filter-group"><span class="filter-label">Bedrijfsmiddel</span><input type="text" class="filter-input" id="filterVoertuig" placeholder="Nummerplaat..."></div>
+          <div class="filter-group"><span class="filter-label">Asset</span><input type="text" class="filter-input" id="filterVoertuig" placeholder="Nummerplaat..."></div>
           <button class="btn-reset" onclick="resetFilters()">&#10006; Reset</button>
         </div>
         <div class="table-card">
@@ -612,7 +579,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
             <span class="table-title">Rapporten</span>
             <span class="table-count" id="tabelCount">0 resultaten</span>
           </div>
-          <table><thead><tr><th>Datum</th><th>Tijd</th><th>Bedrijfsmiddel</th><th>Type</th><th>Chauffeur</th><th>Verdict</th><th></th></tr></thead>
+          <table><thead><tr><th>Datum</th><th>Tijd</th><th>Asset</th><th>Type</th><th>Chauffeur</th><th>Verdict</th><th></th></tr></thead>
           <tbody id="inspectiesTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
@@ -620,21 +587,21 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 
     <div id="tab-voertuigen" style="display:none">
       <div class="page-header">
-        <div class="page-title">Bedrijfsmiddelen</div>
-        <div class="page-subtitle">Overzicht van de bedrijfsmiddelen</div>
+        <div class="page-title">Assets</div>
+        <div class="page-subtitle">Overzicht van de assets</div>
       </div>
       <div class="content-area">
         <div class="table-card" style="margin-bottom:20px">
-          <div class="table-header"><span class="table-title">Types bedrijfsmiddelen</span>
+          <div class="table-header"><span class="table-title">Assettypes</span>
             <button class="btn-add-sm" onclick="nieuwVoertuigType()">+ Nieuw type</button>
           </div>
           <div id="voertuigTypesLijst" style="padding:14px 20px;font-size:13px;color:var(--gray-500)">Laden...</div>
         </div>
         <div class="table-card">
-          <div class="table-header"><span class="table-title">Bedrijfsmiddelen</span>
+          <div class="table-header"><span class="table-title">Assets</span>
             <span style="display:flex;align-items:center;gap:10px">
               <span class="table-count" id="voertuigenCount">0</span>
-              <button class="btn-add-sm" onclick="nieuwBedrijfsmiddel()">+ Nieuw bedrijfsmiddel</button>
+              <button class="btn-add-sm" onclick="nieuwBedrijfsmiddel()">+ Nieuw asset</button>
               <button class="btn-add-sm" onclick="downloadBedrijfsmiddelenSjabloon()">Download sjabloon</button>
               <label class="btn-add-sm" style="display:inline-block">Bulk importeren<input type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importBedrijfsmiddelenBestand(this)"></label>
             </span>
@@ -666,7 +633,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
               <label class="btn-add-sm" style="display:inline-block">Bulk importeren<input type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importGebruikersBestand(this)"></label>
             </span>
           </div>
-          <table><thead><tr><th>Naam</th><th>Rol</th><th>Pincode</th><th>E-mail (rapport-notificaties)</th><th>Bedrijfsmiddelen</th><th>Klantendossier-rol</th><th>Status</th><th></th></tr></thead>
+          <table><thead><tr><th>Naam</th><th>Rol</th><th>Pincode</th><th>E-mail (rapport-notificaties)</th><th>Assets</th><th>Klantendossier-rol</th><th>Status</th><th></th></tr></thead>
           <tbody id="gebruikersTabel"><tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
@@ -675,7 +642,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     <div id="tab-checklist" style="display:none">
       <div class="page-header">
         <div class="page-title">Checklist</div>
-        <div class="page-subtitle">Aparte checklist per bedrijfsmiddel-type, plus een gedeeld tabblad voor vragen die overal gelden</div>
+        <div class="page-subtitle">Aparte checklist per asset-type, plus een gedeeld tabblad voor vragen die overal gelden</div>
       </div>
       <div class="content-area">
         <div id="checklistTypeTabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
@@ -877,6 +844,148 @@ function icoonOptiesHtml(huidig){
   }).join('');
 }
 
+// ---- Menu ----
+// Eén beschrijving van de navigatie, waaruit de zijbalk, de tabbladenlijst, de
+// modulegating en de superbeheerder-zichtbaarheid allemaal volgen. Voordien
+// stond dat op vier plaatsen los van elkaar (zijbalk-HTML, de tabs-array in
+// toonTab, de if/else eronder, en de lijsten in pasModuleToegangToe) -- bij het
+// toevoegen van de vuurvergunning moest dat alle vier aangeraakt worden.
+//
+// Per item: key (= id van het tabblad en van het nav-element), naam, laad
+// (functie die de inhoud ophaalt), icoon.
+// Per groep: naam, module (welke bedrijf_modules-sleutel hem aanstuurt), en
+// optioneel optIn (standaard uit i.p.v. standaard aan) of superbeheerder.
+var MENU_ICOON={
+  overzicht:'<path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  rapportages:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+  klanten:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/>',
+  alleafspraken:'<rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><path d="M7.5 13.5h3M7.5 17h3M13.5 13.5h3M13.5 17h3"/>',
+  actiepunten:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
+  documenten:'<path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 16.5h6"/>',
+  planning:'<rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/>',
+  kennisbank:'<path d="M4 5.5A2 2 0 0 1 6 4h5v16H6a2 2 0 0 0-2 1.5z"/><path d="M20 5.5A2 2 0 0 0 18 4h-5v16h5a2 2 0 0 1 2 1.5z"/>',
+  inspecties:'<rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/>',
+  voertuigen:'<rect x="2" y="7" width="12" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/>',
+  checklist:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
+  vuurvergunning:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.8-1.3-2.8-2-4.5-1 1.5-2 2-2.4 2.8A3 3 0 0 0 12 22z"/>',
+  gebruikers:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
+  huisstijl:'<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.4-1.9-.2-.5-.1-1.1.3-1.5.4-.4 1-.5 1.5-.3.9.4 1.9-.2 1.9-1.3A9 9 0 0 0 12 3z"/><circle cx="8" cy="10" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.3" r="1.1" fill="currentColor" stroke="none"/><circle cx="16" cy="10" r="1.1" fill="currentColor" stroke="none"/>',
+  instellingen:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.5 15H4a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 2.8-1V4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1 2.8h.2a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.4 1z"/>'
+};
+
+var MENU=[
+  {key:'overzicht',naam:'Overzicht',laad:function(){laadOverzicht();}},
+  {key:'rapportages',naam:'Rapportages',laad:function(){laadRapportages();}},
+  {groep:'Klanten',icoon:'klanten',superbeheerder:true,items:[
+    {key:'klanten',naam:'Klantdossiers',laad:function(){laadKlanten();}},
+    {key:'alleafspraken',naam:'Afspraken',laad:function(){laadAlleAfspraken();}}
+  ]},
+  {groep:'Klantendossier',icoon:'documenten',items:[
+    {key:'actiepunten',naam:'Actiepunten',module:'actiepunten',laad:function(){laadActiepunten();}},
+    {key:'documenten',naam:'Documenten',module:'documenten',laad:function(){laadDocumenten();}},
+    {key:'planning',naam:'Planning',module:'planning',laad:function(){laadPlanning();}},
+    {key:'kennisbank',naam:'Kennisbank',module:'kennisbank',laad:function(){laadKennisbank();}}
+  ]},
+  {groep:'Pre-inspectie',icoon:'inspecties',module:'preinspecties',items:[
+    {key:'inspecties',naam:'Inspecties',laad:function(){laadInspecties();}},
+    {key:'voertuigen',naam:'Assets',laad:function(){laadVoertuigen();}},
+    {key:'checklist',naam:'Checklist',laad:function(){laadChecklist();}}
+  ]},
+  {groep:'Vuurvergunning',icoon:'vuurvergunning',module:'vuurvergunning',optIn:true,items:[
+    {key:'vuurvergunning',naam:'Vragenlijst',laad:function(){laadVuurvergunning();}}
+  ]},
+  {groep:'Instellingen',icoon:'instellingen',items:[
+    {key:'gebruikers',naam:'Gebruikers',laad:function(){laadGebruikers();}},
+    {key:'huisstijl',naam:'Huisstijl',laad:function(){laadHuisstijl();}}
+  ]}
+];
+
+var menuOpenGroep=null;
+var menuActieveTab='overzicht';
+
+function menuIcoonHtml(sleutel){
+  return '<span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+
+    (MENU_ICOON[sleutel]||MENU_ICOON.overzicht)+'</svg></span>';
+}
+
+function bouwMenu(){
+  var nav=document.querySelector('.sidebar-nav');
+  if(!nav)return;
+  nav.innerHTML='';
+
+  MENU.forEach(function(e){
+    if(!e.items){
+      var el=document.createElement('div');
+      el.className='nav-item'+(menuActieveTab===e.key?' active':'');
+      el.id='nav-'+e.key;
+      el.innerHTML=menuIcoonHtml(e.key)+' '+e.naam;
+      el.onclick=function(){toonTab(e.key);};
+      nav.appendChild(el);
+      return;
+    }
+
+    if(!menuGroepZichtbaar(e))return;
+
+    var items=e.items.filter(function(i){return menuItemZichtbaar(i,e);});
+    if(!items.length)return;
+
+    var open=menuOpenGroep===e.groep;
+    var kop=document.createElement('div');
+    kop.className='nav-groep'+(open?' open':'');
+    kop.innerHTML=menuIcoonHtml(e.icoon)+'<span class="nav-groep-naam">'+e.groep+'</span>'+
+      '<svg class="nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+    kop.onclick=function(){
+      menuOpenGroep=(menuOpenGroep===e.groep)?null:e.groep;
+      bouwMenu();
+    };
+    nav.appendChild(kop);
+
+    if(!open)return;
+    items.forEach(function(i){
+      var el=document.createElement('div');
+      el.className='nav-item nav-sub'+(menuActieveTab===i.key?' active':'');
+      el.id='nav-'+i.key;
+      el.textContent=i.naam;
+      el.onclick=function(){toonTab(i.key);};
+      nav.appendChild(el);
+    });
+  });
+}
+
+// Alle bladeren, ongeacht groep -- de tabbladenlijst van vroeger.
+function menuAlleItems(){
+  var uit=[];
+  MENU.forEach(function(e){
+    if(e.items)e.items.forEach(function(i){uit.push(i);});
+    else uit.push(e);
+  });
+  return uit;
+}
+function menuItem(key){
+  return menuAlleItems().filter(function(i){return i.key===key;})[0];
+}
+function menuGroepVan(key){
+  var g=null;
+  MENU.forEach(function(e){
+    if(e.items&&e.items.some(function(i){return i.key===key;}))g=e;
+  });
+  return g;
+}
+// Een groep is zichtbaar als de module aanstaat. Modules zijn standaard AAN
+// (een ontbrekende rij betekent "niets ingesteld"), behalve wie optIn is --
+// die moet uitdrukkelijk geactiveerd zijn. De superbeheerder ziet opt-in-groepen
+// altijd, anders kan hij ze nergens aanzetten.
+function menuGroepZichtbaar(e){
+  if(e.superbeheerder)return isSuperbeheerder;
+  if(!e.module)return true;
+  if(e.optIn)return actieveModules[e.module]===true||isSuperbeheerder;
+  return actieveModules[e.module]!==false;
+}
+function menuItemZichtbaar(item,groep){
+  if(item.module)return actieveModules[item.module]!==false;
+  return true;
+}
+
 var huidigeBedrijfId=null;
 var huidigeBedrijf=null;
 var alleInspecties=[];
@@ -935,11 +1044,9 @@ function laadDashboard(user){
     if(huidigeBedrijfId){laadEnPasBrandingToe();laadModuleToegang();}
     sb.rpc('is_superbeheerder').then(function(r){
       isSuperbeheerder=r.data===true;
-      document.getElementById('nav-klanten').style.display=isSuperbeheerder?'':'none';
-      document.getElementById('nav-alleafspraken').style.display=isSuperbeheerder?'':'none';
-      // Deze aanroep komt binnen ná laadModuleToegang(), dus de zichtbaarheid
-      // die van isSuperbeheerder afhangt opnieuw bepalen.
-      pasModuleToegangToe();
+      // Komt binnen ná laadModuleToegang(); het menu opnieuw tekenen, want de
+      // superbeheerder-groep en de opt-in-modules hangen hiervan af.
+      bouwMenu();
     });
   });
 }
@@ -953,29 +1060,11 @@ function laadModuleToegang(){
 }
 
 function pasModuleToegangToe(){
-  var preinspectiesActief=actieveModules.preinspecties!==false;
-  ['inspecties','checklist'].forEach(function(t){
-    var navEl=document.getElementById('nav-'+t);
-    navEl.classList.toggle('inactief',!preinspectiesActief);
-    navEl.onclick=preinspectiesActief
-      ?function(){toonTab(t);}
-      :function(){showToast('Niet actief in de huidige overeenkomst voor dit bedrijf.');};
-  });
-  ['actiepunten','documenten','planning','kennisbank'].forEach(function(m){
-    var actief=actieveModules[m]!==false;
-    var navEl=document.getElementById('nav-'+m);
-    navEl.classList.toggle('inactief',!actief);
-    navEl.onclick=actief
-      ?function(){toonTab(m);}
-      :function(){showToast('Niet actief in de huidige overeenkomst voor dit bedrijf.');};
-  });
-  // Vuurvergunning is opt-in: standaard UIT, niet fail-open zoals de modules
-  // hierboven. De superbeheerder ziet het tabblad altijd, want die moet de
-  // module net kunnen activeren.
-  var vvActief=actieveModules.vuurvergunning===true;
-  var vvNav=document.getElementById('nav-vuurvergunning');
-  vvNav.style.display=(vvActief||isSuperbeheerder)?'':'none';
+  // Zichtbaarheid volgt nu volledig uit MENU; bouwMenu leest actieveModules en
+  // isSuperbeheerder zelf uit, dus hier hoeft enkel opnieuw getekend te worden.
+  bouwMenu();
 }
+
 
 function laadEnPasBrandingToe(){
   sb.from('bedrijven').select('naam,klantcode,logo_url,rol_label_chauffeur,rol_label_leidinggevende,rol_label_preventieadviseur,rol_label_beheerder').eq('id',huidigeBedrijfId).single().then(function(r){
@@ -992,26 +1081,21 @@ function pasBrandingToe(bedrijf){
 }
 
 function toonTab(naam){
-  var tabs=['overzicht','klanten','alleafspraken','actiepunten','documenten','planning','kennisbank','inspecties','voertuigen','gebruikers','checklist','vuurvergunning','rapportages','huisstijl'];
-  tabs.forEach(function(t){
-    document.getElementById('tab-'+t).style.display=t===naam?'':'none';
-    document.getElementById('nav-'+t).classList.toggle('active',t===naam);
+  var item=menuItem(naam);
+  if(!item)return;
+  menuAlleItems().forEach(function(i){
+    var el=document.getElementById('tab-'+i.key);
+    if(el)el.style.display=i.key===naam?'':'none';
   });
-  if(naam==='overzicht')laadOverzicht();
-  else if(naam==='klanten')laadKlanten();
-  else if(naam==='alleafspraken')laadAlleAfspraken();
-  else if(naam==='actiepunten')laadActiepunten();
-  else if(naam==='documenten')laadDocumenten();
-  else if(naam==='planning')laadPlanning();
-  else if(naam==='kennisbank')laadKennisbank();
-  else if(naam==='inspecties')laadInspecties();
-  else if(naam==='voertuigen')laadVoertuigen();
-  else if(naam==='gebruikers')laadGebruikers();
-  else if(naam==='huisstijl')laadHuisstijl();
-  else if(naam==='checklist')laadChecklist();
-  else if(naam==='rapportages')laadRapportages();
-  else if(naam==='vuurvergunning')laadVuurvergunning();
+  // De groep van het geopende tabblad klapt vanzelf open; zo zie je altijd waar
+  // je zit zonder dat je iets moet onthouden.
+  var groep=menuGroepVan(naam);
+  menuOpenGroep=groep?groep.groep:null;
+  menuActieveTab=naam;
+  bouwMenu();
+  if(item.laad)item.laad();
 }
+
 
 function laadActiepunten(){
   if(!huidigeBedrijfId)return;
@@ -1429,7 +1513,7 @@ function nieuwBedrijf(){
 }
 
 function verwijderBedrijf(bedrijfId,naam){
-  if(!confirm('Bedrijf "'+naam+'" en ALLES eronder (gebruikers, bedrijfsmiddelen, checklist, inspecties, actiepunten, documenten, planning, meldingen) definitief verwijderen? Dit kan niet ongedaan gemaakt worden.'))return;
+  if(!confirm('Bedrijf "'+naam+'" en ALLES eronder (gebruikers, assets, checklist, inspecties, actiepunten, documenten, planning, meldingen) definitief verwijderen? Dit kan niet ongedaan gemaakt worden.'))return;
   sb.rpc('rpc_verwijder_bedrijf_cascade',{p_bedrijf_id:bedrijfId}).then(function(r){
     if(r.error){showToast('Fout: '+r.error.message);return;}
     showToast('Bedrijf en alle bijhorende gegevens verwijderd');
@@ -2002,7 +2086,7 @@ function renderDetail(ins,resultaten){
   });
   var sectieArr=Object.values(secties).sort(function(a,b){return a.volgorde-b.volgorde;});
   var html='<div class="detail-verdict '+ins.verdict+'">'+(verdictLabels[ins.verdict]||ins.verdict)+'</div>';
-  html+='<div class="detail-meta"><div class="detail-meta-item"><div class="detail-meta-label">Bedrijfsmiddel</div><div class="detail-meta-value">'+(ins.voertuigen?ins.voertuigen.nummerplaat:'-')+'</div></div>';
+  html+='<div class="detail-meta"><div class="detail-meta-item"><div class="detail-meta-label">Asset</div><div class="detail-meta-value">'+(ins.voertuigen?ins.voertuigen.nummerplaat:'-')+'</div></div>';
   var detailType=ins.voertuigen?(ins.voertuigen.voertuig_types?ins.voertuigen.voertuig_types.naam:ins.voertuigen.type):'-';
   html+='<div class="detail-meta-item"><div class="detail-meta-label">Type</div><div class="detail-meta-value">'+detailType+'</div></div>';
   html+='<div class="detail-meta-item"><div class="detail-meta-label">Chauffeur</div><div class="detail-meta-value">'+(ins.gebruikers?ins.gebruikers.naam:'-')+'</div></div>';
@@ -2037,11 +2121,11 @@ function laadVoertuigen(){
     renderVoertuigTypesLijst();
     sb.from('voertuigen').select('*').eq('bedrijf_id',huidigeBedrijfId).order('nummerplaat').then(function(r){
       var v=r.data||[];
-      document.getElementById('voertuigenCount').textContent=v.length+' bedrijfsmiddelen';
+      document.getElementById('voertuigenCount').textContent=v.length+' assets';
       sb.from('inspecties').select('voertuig_id').eq('bedrijf_id',huidigeBedrijfId).then(function(ir){
         var tel={};(ir.data||[]).forEach(function(i){tel[i.voertuig_id]=(tel[i.voertuig_id]||0)+1;});
         var tbody=document.getElementById('voertuigenTabel');
-        if(!v.length){tbody.innerHTML='<tr class="empty-row"><td colspan="9">Geen bedrijfsmiddelen.</td></tr>';return;}
+        if(!v.length){tbody.innerHTML='<tr class="empty-row"><td colspan="9">Geen assets.</td></tr>';return;}
         tbody.innerHTML='';
         v.forEach(function(vt){
           var tr2=document.createElement('tr');
@@ -2057,7 +2141,7 @@ function laadVoertuigen(){
             '<td><select class="niveau-select" onchange="wijzigVoertuigType(\''+vt.id+'\',this.value)">'+opties+'</select></td>'+
             '<td><input value="'+(vt.omschrijving||'').replace(/"/g,'&quot;')+'" placeholder="-" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'omschrijving\',this.value)" style="width:140px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Poppins\',sans-serif;font-size:13px"></td>'+
             '<td><input value="'+(vt.serienummer||'').replace(/"/g,'&quot;')+'" placeholder="-" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'serienummer\',this.value)" style="width:120px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Poppins\',sans-serif;font-size:13px"></td>'+
-            '<td><input value="'+(vt.notificatie_emails||'').replace(/"/g,'&quot;')+'" placeholder="naam@bedrijf.be, ..." title="Komma-gescheiden e-mailadressen die een rapport krijgen bij een inspectie van dit bedrijfsmiddel" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'notificatie_emails\',this.value)" style="width:170px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Poppins\',sans-serif;font-size:13px"></td>'+
+            '<td><input value="'+(vt.notificatie_emails||'').replace(/"/g,'&quot;')+'" placeholder="naam@bedrijf.be, ..." title="Komma-gescheiden e-mailadressen die een rapport krijgen bij een inspectie van dit asset" onchange="wijzigVoertuigVeld(\''+vt.id+'\',\'notificatie_emails\',this.value)" style="width:170px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-family:\'Poppins\',sans-serif;font-size:13px"></td>'+
             '<td><span class="badge '+(vt.actief?'rijklaar':'niet_rijklaar')+'">'+(vt.actief?'Actief':'Inactief')+'</span></td>'+
             '<td>'+(tel[vt.id]||0)+'</td>'+
             '<td style="white-space:nowrap"><button class="btn-add-sm" onclick="toggleBedrijfsmiddelActief(\''+vt.id+'\','+(!vt.actief)+')">'+(vt.actief?'Archiveer':'Herstel')+'</button> '+
@@ -2071,7 +2155,7 @@ function laadVoertuigen(){
 
 function renderVoertuigTypesLijst(){
   var el=document.getElementById('voertuigTypesLijst');
-  if(!alleVoertuigTypes.length){el.textContent='Nog geen voertuigtypes. Voeg er een toe.';return;}
+  if(!alleVoertuigTypes.length){el.textContent='Nog geen assettypes. Voeg er een toe.';return;}
   el.innerHTML=alleVoertuigTypes.map(function(t){
     return '<span class="badge" style="background:var(--gray-100);color:var(--gray-700);margin:0 6px 6px 0;display:inline-flex;align-items:center;gap:6px">'+
       (t.icon||'')+' '+t.naam+
@@ -2166,7 +2250,7 @@ function downloadGebruikersSjabloon(){
 }
 
 function downloadBedrijfsmiddelenSjabloon(){
-  downloadCsvBestand('bedrijfsmiddelen-sjabloon.csv',['Asset ID,Asset,Serienummer','1-ABC-123,Scania G410,WDB9634031L123456']);
+  downloadCsvBestand('asseten-sjabloon.csv',['Asset ID,Asset,Serienummer','1-ABC-123,Scania G410,WDB9634031L123456']);
 }
 
 function leesGeuploadBestand(input,callback){
@@ -2227,7 +2311,7 @@ function bevestigImport(type){
     var rijen=importPreviewData.map(function(r){return {bedrijf_id:huidigeBedrijfId,nummerplaat:r.id,omschrijving:r.omschrijving||null,serienummer:r.serienummer||null,actief:true};});
     sb.from('voertuigen').insert(rijen).then(function(res){
       if(res.error){showToast('Fout: '+res.error.message);return;}
-      showToast(rijen.length+' bedrijfsmiddelen geïmporteerd');
+      showToast(rijen.length+' assets geïmporteerd');
       sluitDetail();
       laadVoertuigen();
     });
@@ -2294,14 +2378,14 @@ function importBedrijfsmiddelenBestand(input){
         if(!fout)gebruiktInBestand[id]=true;
         return {id:id,omschrijving:omschrijving,serienummer:serienummer,fout:fout};
       });
-      toonImportPreview('bedrijfsmiddelen',resultaten);
+      toonImportPreview('assets',resultaten);
     });
   });
 }
 
 function nieuwBedrijfsmiddel(){
   if(!huidigeBedrijfId)return;
-  var id=prompt('Asset ID van het nieuwe bedrijfsmiddel (bv. kenteken of nummer):');
+  var id=prompt('Asset ID van het nieuwe asset (bv. kenteken of nummer):');
   if(!id||!id.trim())return;
   sb.from('voertuigen').insert({bedrijf_id:huidigeBedrijfId,nummerplaat:id.trim(),actief:true}).then(function(r){
     if(r.error){showToast('Fout: '+r.error.message);return;}
@@ -2317,14 +2401,14 @@ function toggleBedrijfsmiddelActief(voertuigId,actief){
 }
 
 function verwijderBedrijfsmiddel(voertuigId,naam){
-  if(!confirm('Bedrijfsmiddel "'+naam+'" definitief verwijderen?'))return;
+  if(!confirm('Asset "'+naam+'" definitief verwijderen?'))return;
   sb.from('voertuigen').delete().eq('id',voertuigId).then(function(r){
     if(r.error){
-      if(r.error.code==='23503')alert('Kan niet verwijderd worden: dit bedrijfsmiddel hangt nog ergens aan vast.\n\nTechnische details (welke tabel):\n'+r.error.message+(r.error.details?'\n'+r.error.details:''));
+      if(r.error.code==='23503')alert('Kan niet verwijderd worden: dit asset hangt nog ergens aan vast.\n\nTechnische details (welke tabel):\n'+r.error.message+(r.error.details?'\n'+r.error.details:''));
       else showToast('Fout: '+r.error.message);
       return;
     }
-    showToast('Bedrijfsmiddel verwijderd');
+    showToast('Asset verwijderd');
     laadVoertuigen();
   });
 }
@@ -2481,7 +2565,7 @@ function laadGebruikers(){
     var dossierRolLabels={klant_beheerder:'Klant-beheerder',klant_medewerker:'Klant-medewerker'};
     g.forEach(function(u){
       var tr=document.createElement('tr');
-      var bedrijfsmiddelen=u.rol==='chauffeur'
+      var assets=u.rol==='chauffeur'
         ?'<button class="btn-add-sm" onclick="beheerVoertuigToewijzing(\''+u.id+'\',\''+u.naam.replace(/'/g,"\\'")+'\')">Beheer</button>'
         :'-';
       var dossierRol=isSuperbeheerder
@@ -2497,7 +2581,7 @@ function laadGebruikers(){
       tr.innerHTML='<td><strong>'+u.naam+'</strong></td><td>'+rolSelect+'</td>'+
         '<td><button class="btn-add-sm" onclick="resetGebruikerPincode(\''+u.id+'\')">Reset pincode</button></td>'+
         '<td><input type="email" value="" placeholder="nieuw e-mailadres" onchange="wijzigGebruikerEmail(\''+u.id+'\',this)" style="width:170px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-size:13px"></td>'+
-        '<td>'+bedrijfsmiddelen+'</td>'+
+        '<td>'+assets+'</td>'+
         '<td>'+dossierRol+'</td>'+
         '<td><span class="badge '+(u.actief?'rijklaar':'niet_rijklaar')+'">'+(u.actief?'Actief':'Inactief')+'</span></td>'+
         '<td style="white-space:nowrap"><button class="btn-add-sm" onclick="toggleGebruikerActief(\''+u.id+'\','+(!u.actief)+')">'+(u.actief?'Archiveer':'Herstel')+'</button> '+
@@ -2508,8 +2592,8 @@ function laadGebruikers(){
 }
 
 function beheerVoertuigToewijzing(gebruikerId,naam){
-  document.getElementById('detailTitel').textContent='Bedrijfsmiddelen — '+naam;
-  document.getElementById('detailSub').textContent='Enkel aangevinkte bedrijfsmiddelen zijn zichtbaar voor deze chauffeur';
+  document.getElementById('detailTitel').textContent='Assets — '+naam;
+  document.getElementById('detailSub').textContent='Enkel aangevinkte assets zijn zichtbaar voor deze chauffeur';
   document.getElementById('detailBody').innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-400)"><div class="spinner-sm"></div>Laden...</div>';
   document.getElementById('detailOverlay').classList.add('active');
   document.getElementById('detailPrintKnop').style.display='none';
@@ -2518,7 +2602,7 @@ function beheerVoertuigToewijzing(gebruikerId,naam){
       var toegewezenIds=(gr.data||[]).map(function(row){return row.voertuig_id;});
       var voertuigen=vr.data||[];
       if(!voertuigen.length){
-        document.getElementById('detailBody').innerHTML='<p style="color:var(--gray-400)">Nog geen bedrijfsmiddelen.</p>';
+        document.getElementById('detailBody').innerHTML='<p style="color:var(--gray-400)">Nog geen assets.</p>';
         return;
       }
       var html=voertuigen.map(function(v){
@@ -2603,7 +2687,7 @@ function wijzigSectieType(sectieId,typeId,aangevinkt){
   // Laatste vinkje weghalen maakt de sectie "gedeeld", dus zichtbaar bij ALLE
   // types -- een checklist die stilzwijgend breder wordt, expliciet bevestigen.
   if(!aangevinkt&&huidige.length===1&&huidige[0]===typeId){
-    if(!confirm('Zonder aangevinkt type geldt deze sectie voor ALLE bedrijfsmiddel-types.\n\nDoorgaan?')){
+    if(!confirm('Zonder aangevinkt type geldt deze sectie voor ALLE asset-types.\n\nDoorgaan?')){
       renderChecklistBeheer();
       return;
     }
@@ -3152,7 +3236,7 @@ var KPI_CATALOGUS=[
   {key:'actieve_chauffeurs',label:'Chauffeurs actief',kleur:'totaal',bereken:function(d){
     return d.dekkingArr.filter(function(c){return c.ingediend>0;}).length;
   }},
-  {key:'voertuigen_geinspecteerd',label:'Bedrijfsmiddelen gecontroleerd',kleur:'totaal',bereken:function(d){
+  {key:'voertuigen_geinspecteerd',label:'Assets gecontroleerd',kleur:'totaal',bereken:function(d){
     var gezien={};
     d.inspecties.forEach(function(i){if(i.voertuig_id)gezien[i.voertuig_id]=true;});
     return Object.keys(gezien).length;
