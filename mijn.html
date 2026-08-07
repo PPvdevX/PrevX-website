@@ -500,8 +500,16 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
           <table><thead><tr><th>Bedrijfsnaam</th><th>Klantcode</th><th>Pre-inspecties</th><th>Actiepunten</th><th>Documenten</th><th>Planning</th><th>Kennisbank</th><th></th></tr></thead>
           <tbody id="klantenTabel"><tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
+      </div>
+    </div>
 
-        <div style="margin:24px 0 14px">
+    <div id="tab-codelijsten" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Codelijsten</div>
+        <div class="page-subtitle">Sectorcodes, paritaire comit&eacute;s en pakketten &mdash; gedeeld over alle klanten</div>
+      </div>
+      <div class="content-area">
+<div style="margin:24px 0 14px">
           <button class="btn-add-sm" onclick="nieuweSectorCode()">+ Nieuwe sectorcode</button>
         </div>
         <div class="table-card">
@@ -536,7 +544,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       </div>
     </div>
 
-    <div id="tab-alleafspraken" style="display:none">
+<div id="tab-alleafspraken" style="display:none">
       <div class="page-header">
         <div class="page-title">Afspraken</div>
         <div class="page-subtitle">Planning over alle klanten heen</div>
@@ -921,7 +929,10 @@ var MENU=[
   ]},
   {groep:'Instellingen',icoon:'instellingen',items:[
     {key:'gebruikers',naam:'Gebruikers',laad:function(){laadGebruikers();}},
-    {key:'huisstijl',naam:'Huisstijl',laad:function(){laadHuisstijl();}}
+    {key:'huisstijl',naam:'Huisstijl',laad:function(){laadHuisstijl();}},
+    // Platformbrede codelijsten: enkel de superbeheerder beheert die, maar ze
+    // horen wel bij "instellingen" en niet bij de klantdossiers.
+    {key:'codelijsten',naam:'Codelijsten',superbeheerder:true,laad:function(){laadCodelijsten();}}
   ]}
 ];
 
@@ -1007,6 +1018,7 @@ function menuGroepZichtbaar(e){
   return actieveModules[e.module]!==false;
 }
 function menuItemZichtbaar(item,groep){
+  if(item.superbeheerder&&!isSuperbeheerder)return false;
   if(item.module)return actieveModules[item.module]!==false;
   return true;
 }
@@ -1620,6 +1632,12 @@ function laadKlanten(){
       renderKlantenTabel(bedrijven,modules);
     });
   });
+}
+
+// Sectorcodes, paritaire comités en pakketten zijn geen klantdossiers maar
+// codelijsten die over alle klanten heen gelden -- vandaar een eigen tabblad
+// onder Instellingen i.p.v. onderaan de klantenlijst.
+function laadCodelijsten(){
   laadSectorCodes(renderSectorCodesTabel);
   laadParitaireComites(renderParitaireComitesTabel);
   laadPakketten(renderPakkettenTabel);

@@ -85,7 +85,27 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .screen-content { flex: 1; padding: 20px 16px 100px; max-width: 700px; margin: 0 auto; width: 100%; }
 .screen-title { font-size: 20px; color: var(--navy-text); margin-bottom: 16px; }
 .voertuig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-#screen-module { background: var(--bg); }
+#screen-module, #screen-vergunningen, #screen-vergunning-nieuw, #screen-vergunning-detail { background: var(--bg); }
+.btn-primair { width: 100%; padding: 15px; border: none; border-radius: var(--radius); background: var(--navy); color: #fff; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
+.btn-primair:active { transform: scale(0.99); }
+.vv-veld { margin-bottom: 14px; }
+.vv-label { display: block; font-size: 12px; color: var(--gray-500); margin-bottom: 5px; }
+.vv-input { width: 100%; padding: 12px; border: 1px solid var(--gray-300); border-radius: var(--radius); font-family: 'Poppins', sans-serif; font-size: 14px; color: var(--gray-900); background: #fff; }
+.vv-input:focus { outline: none; border-color: var(--navy); }
+.vv-kaart { background: #fff; border: 1px solid var(--gray-300); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; }
+.vv-kaart-kop { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.vv-nummer { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 700; color: var(--navy-text); }
+.vv-regel { font-size: 12px; color: var(--gray-500); }
+.vv-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.vv-status.aangevraagd { background: var(--orange-bg); color: var(--orange); }
+.vv-status.actief { background: var(--green-bg); color: var(--green); }
+.vv-status.voorbehoud { background: var(--orange-bg); color: var(--orange); }
+.vv-status.afgewezen, .vv-status.ingetrokken { background: var(--red-bg); color: var(--red); }
+.vv-melding { border-radius: var(--radius); padding: 14px 16px; font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+.vv-melding.wacht { background: var(--orange-bg); color: var(--orange); }
+.vv-melding.goed { background: var(--green-bg); color: var(--green); }
+.vv-melding.fout { background: var(--red-bg); color: var(--red); }
+.vv-sectiekop { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; color: var(--navy-text); margin: 20px 0 10px; }
 .module-grid { display: grid; gap: 14px; }
 .module-card { background: #fff; border-radius: var(--radius-lg); padding: 22px 20px; border: 1px solid var(--gray-300); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 16px; text-align: left; }
 .module-card:hover { border-color: var(--navy); }
@@ -318,6 +338,84 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
     <button class="btn-nav btn-terug" onclick="showScreen('inspectie')">&#8592; Terug</button>
     <button class="btn-nav btn-verzend" id="btnVerzend" onclick="verzendRapport()">Verzenden</button>
     <button class="btn-nav btn-nieuw" id="btnNieuw" onclick="nieuweInspectie()" style="display:none">&#8635; Nieuw</button>
+  </div>
+</div>
+
+<div id="screen-vergunningen" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name">Vuurvergunning</div>
+    </div>
+    <div class="header-user" id="headerUserVv"></div>
+  </div>
+  <div class="screen-content">
+    <button class="btn-primair" onclick="startNieuweVergunning()">+ Nieuwe aanvraag</button>
+    <h2 class="screen-title" style="margin-top:22px">Lopende vergunningen</h2>
+    <div id="vergunningenLijst"><div class="loading"><div class="spinner"></div>Laden...</div></div>
+  </div>
+</div>
+
+<div id="screen-vergunning-nieuw" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name">Nieuwe aanvraag</div>
+    </div>
+    <div class="header-user" id="headerUserVvNieuw"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:90px">
+    <div class="screen-content">
+      <div id="vvStapWerktype">
+        <h2 class="screen-title">Wat voor werk gaat u doen?</h2>
+        <div class="module-grid" id="vvWerktypeGrid"></div>
+      </div>
+
+      <div id="vvStapFormulier" style="display:none">
+        <div class="vv-veld">
+          <label class="vv-label">Werkplek</label>
+          <input type="text" id="vvLocatie" class="vv-input" placeholder="Bv. hal 2, dak magazijn" list="vvLocatieLijst">
+          <datalist id="vvLocatieLijst"></datalist>
+        </div>
+        <div class="vv-veld">
+          <label class="vv-label">Uitvoerder(s)</label>
+          <input type="text" id="vvUitvoerders" class="vv-input" placeholder="Wie voert het werk uit?">
+        </div>
+        <div class="vv-veld">
+          <label class="vv-label">Geldig van</label>
+          <input type="datetime-local" id="vvGeldigVan" class="vv-input">
+        </div>
+        <div class="vv-veld">
+          <label class="vv-label">Geldig tot</label>
+          <input type="datetime-local" id="vvGeldigTot" class="vv-input">
+        </div>
+        <div class="vv-veld">
+          <label class="vv-label">Brandwacht</label>
+          <select id="vvBewaker" class="vv-input"></select>
+        </div>
+        <div id="vvVragen"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="btn-nav btn-terug" onclick="terugVanVergunning()">&#8592; Terug</button>
+    <button class="btn-nav btn-verzend" id="btnVvIndienen" style="display:none" onclick="dienVergunningIn()">Aanvragen</button>
+  </div>
+</div>
+
+<div id="screen-vergunning-detail" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name" id="vvDetailNummer">Vergunning</div>
+    </div>
+    <div class="header-user" id="headerUserVvDetail"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:90px">
+    <div class="screen-content" id="vvDetailInhoud"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="btn-nav btn-terug" onclick="laadVergunningen()">&#8592; Terug</button>
   </div>
 </div>
 
@@ -607,7 +705,7 @@ function doPinLogin() {
 // databank geactiveerd is maar hier nog niet in staat, wordt niet getoond --
 // zo levert het alvast activeren van 'vuurvergunning' geen dode knop op
 // zolang die flow nog niet gebouwd is.
-var GEBOUWDE_MODULES = ['preinspecties'];
+var GEBOUWDE_MODULES = ['preinspecties', 'vuurvergunning'];
 
 var MODULE_ICONEN = {
   preinspecties: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/></svg>',
@@ -669,7 +767,443 @@ function laadModules() {
 
 function kiesModule(key) {
   if (key === 'preinspecties') { laadVoertuigen(); return; }
+  if (key === 'vuurvergunning') { laadVergunningen(); return; }
   showToast('Deze module is nog niet beschikbaar.');
+}
+
+// ---- Vuurvergunning ----
+var vvWerktype = null;
+var vvVragenLijst = [];
+var vvAntwoorden = {};
+var vvHuidigeVergunning = null;
+var vvPolling = null;
+
+var VV_STATUS_TEKST = {
+  aangevraagd: 'Wacht op goedkeuring',
+  actief: 'Goedgekeurd',
+  voorbehoud: 'Voorbehoud',
+  afgewezen: 'Afgewezen',
+  ingetrokken: 'Ingetrokken',
+  afgesloten: 'Afgesloten',
+  verlopen_niet_opgestart: 'Verlopen'
+};
+
+function magGoedkeuren() {
+  return ['leidinggevende', 'preventieadviseur', 'beheerder'].indexOf(gebruiker.rol) > -1;
+}
+
+function stopPolling() {
+  if (vvPolling) { clearInterval(vvPolling); vvPolling = null; }
+}
+
+function laadVergunningen() {
+  stopPolling();
+  showScreen('vergunningen');
+  var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
+  document.getElementById('headerUserVv').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  var lijst = document.getElementById('vergunningenLijst');
+  lijst.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+
+  sb.rpc('rpc_mijn_vergunningen', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    if (r.error) { lijst.innerHTML = '<p class="vv-regel">Kon de lijst niet laden: ' + r.error.message + '</p>'; return; }
+    var rijen = r.data || [];
+    if (!rijen.length) {
+      lijst.innerHTML = '<p class="vv-regel">Er lopen momenteel geen vergunningen.</p>';
+      return;
+    }
+    lijst.innerHTML = '';
+    rijen.forEach(function (v) {
+      var kaart = document.createElement('div');
+      kaart.className = 'vv-kaart';
+      var telt = !v.ben_aanvrager && v.status === 'aangevraagd' && magGoedkeuren();
+      kaart.innerHTML =
+        '<div class="vv-kaart-kop"><span class="vv-nummer">' + v.vergunningsnummer + '</span>' +
+        '<span class="vv-status ' + v.status + '">' + (VV_STATUS_TEKST[v.status] || v.status) + '</span></div>' +
+        '<div class="vv-regel">' + v.werktype_naam + ' &middot; ' + v.locatie_omschrijving + '</div>' +
+        '<div class="vv-regel">' + (v.ben_aanvrager ? 'Uw aanvraag' : 'Aangevraagd door ' + v.aanvrager_naam) +
+        (telt ? ' &middot; <strong>wacht op u</strong>' : '') + '</div>';
+      kaart.onclick = function () { toonVergunning(v); };
+      lijst.appendChild(kaart);
+    });
+  });
+}
+
+function startNieuweVergunning() {
+  vvWerktype = null; vvVragenLijst = []; vvAntwoorden = {};
+  showScreen('vergunning-nieuw');
+  document.getElementById('vvStapWerktype').style.display = '';
+  document.getElementById('vvStapFormulier').style.display = 'none';
+  document.getElementById('btnVvIndienen').style.display = 'none';
+  var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
+  document.getElementById('headerUserVvNieuw').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+
+  var grid = document.getElementById('vvWerktypeGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+  sb.rpc('rpc_werktypes', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    var types = r.data || [];
+    if (!types.length) {
+      grid.innerHTML = '<p class="vv-regel">Er zijn nog geen werktypes ingesteld. Vraag uw beheerder om die aan te vullen.</p>';
+      return;
+    }
+    grid.innerHTML = '';
+    types.forEach(function (t) {
+      var kaart = document.createElement('div');
+      kaart.className = 'module-card';
+      kaart.innerHTML = '<div class="module-icon">' + MODULE_ICONEN.vuurvergunning + '</div>' +
+        '<div><div class="module-naam">' + t.naam + '</div>' +
+        '<div class="module-sub">' + (t.toelichting || '') + '</div></div>';
+      kaart.onclick = function () { kiesWerktype(t); };
+      grid.appendChild(kaart);
+    });
+  });
+}
+
+function terugVanVergunning() {
+  // Vanuit het formulier terug naar de werktypekeuze, anders naar de lijst.
+  if (document.getElementById('vvStapFormulier').style.display !== 'none') {
+    startNieuweVergunning();
+  } else {
+    laadVergunningen();
+  }
+}
+
+function kiesWerktype(t) {
+  vvWerktype = t;
+  document.getElementById('vvStapWerktype').style.display = 'none';
+  document.getElementById('vvStapFormulier').style.display = '';
+  document.getElementById('btnVvIndienen').style.display = '';
+
+  // Standaard geldig vanaf nu tot het einde van de werkdag -- dat is verreweg
+  // het gewone geval, en het document schrijft één dag/shift voor.
+  var nu = new Date();
+  var eind = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate(), 18, 0, 0);
+  if (eind <= nu) eind = new Date(nu.getTime() + 4 * 3600 * 1000);
+  document.getElementById('vvGeldigVan').value = naarLokaleInvoer(nu);
+  document.getElementById('vvGeldigTot').value = naarLokaleInvoer(eind);
+
+  sb.rpc('rpc_vergunning_locaties', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    document.getElementById('vvLocatieLijst').innerHTML =
+      (r.data || []).map(function (x) { return '<option value="' + String(x.locatie).replace(/"/g, '&quot;') + '">'; }).join('');
+  });
+
+  vulBewakers();
+
+  var houder = document.getElementById('vvVragen');
+  houder.innerHTML = '<div class="loading"><div class="spinner"></div>Vragen laden...</div>';
+  sb.rpc('rpc_vergunning_vragen', { p_gebruiker_id: gebruiker.id, p_werktype_id: t.id, p_fase: 'voor' })
+    .then(function (r) {
+      if (r.error) { houder.innerHTML = '<p class="vv-regel">Kon de vragen niet laden: ' + r.error.message + '</p>'; return; }
+      vvVragenLijst = r.data || [];
+      vvAntwoorden = {};
+      vvVragenLijst.forEach(function (v) { vvAntwoorden[v.vraag_id] = { antwoord: null, motivering: '', foto_url: null }; });
+      bouwVergunningVragen();
+    });
+}
+
+function naarLokaleInvoer(d) {
+  function p(n) { return String(n).padStart(2, '0'); }
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+function vulBewakers() {
+  var sel = document.getElementById('vvBewaker');
+  sel.innerHTML = '<option value="">Geen brandwacht aangeduid</option>';
+  sb.rpc('rpc_collegas', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    if (r.error) return;
+    (r.data || []).forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.id; o.textContent = g.naam;
+      sel.appendChild(o);
+    });
+  });
+}
+
+// Welke knoppen horen bij welk antwoordtype.
+var VV_KEUZES = {
+  ok_nok: [['ok', 'JA'], ['nok', 'NEE']],
+  ok_nok_nvt: [['ok', 'JA'], ['nok', 'NEE'], ['nvt', 'NVT']],
+  ok_nok_afwijking: [['ok', 'JA'], ['nok', 'NEE'], ['afwijking', 'AFWIJKING']],
+  ok_nok_nvt_afwijking: [['ok', 'JA'], ['nok', 'NEE'], ['nvt', 'NVT'], ['afwijking', 'AFWIJKING']],
+  ja_nee: [['ok', 'JA'], ['nok', 'NEE']]
+};
+
+function bouwVergunningVragen() {
+  var houder = document.getElementById('vvVragen');
+  houder.innerHTML = '<div class="vv-sectiekop">Controle vóór aanvang</div>';
+
+  vvVragenLijst.forEach(function (v, i) {
+    var a = vvAntwoorden[v.vraag_id];
+    var div = document.createElement('div');
+    div.className = 'check-item';
+    div.style.background = '#fff';
+    div.style.border = '1px solid var(--gray-300)';
+    div.style.borderRadius = 'var(--radius)';
+    div.style.marginBottom = '10px';
+
+    var kop = '<div class="check-top"><div class="check-num">' + (i + 1) + '</div>' +
+      '<div class="check-label">' + v.vraagtekst +
+      (v.blokkerend ? '<span class="check-niveau kritisch">Blokkerend</span>' : '') +
+      (v.verplicht ? '' : '<span class="check-niveau informatief">Optioneel</span>') +
+      '</div></div>';
+
+    var invoer = '';
+    if (v.antwoordtype === 'tekst') {
+      invoer = '<textarea class="opmerking" id="vva-' + v.vraag_id + '" placeholder="Uw antwoord...">' + (a.antwoord || '') + '</textarea>';
+    } else if (v.antwoordtype === 'foto') {
+      invoer = '<label class="foto-btn">&#128247; Foto toevoegen<input type="file" accept="image/*" capture="environment" style="display:none" id="vvf-' + v.vraag_id + '"></label>' +
+        '<div class="foto-row" id="vvfr-' + v.vraag_id + '"></div>';
+    } else {
+      var keuzes = VV_KEUZES[v.antwoordtype] || VV_KEUZES.ok_nok;
+      invoer = '<div class="check-btns">' + keuzes.map(function (k) {
+        var sel = a.antwoord === k[0] ? ' sel' : '';
+        var kl = k[0] === 'ok' ? 'ok' : k[0] === 'nok' ? 'nok' : 'na';
+        return '<button class="btn-check ' + kl + sel + '" data-vraag="' + v.vraag_id + '" data-waarde="' + k[0] + '">' + k[1] + '</button>';
+      }).join('') + '</div>';
+    }
+
+    var motivering = '<textarea class="opmerking" id="vvm-' + v.vraag_id + '" placeholder="Motivering en compenserende maatregel (verplicht)..." style="display:' +
+      (a.antwoord === 'afwijking' ? 'block' : 'none') + '">' + (a.motivering || '') + '</textarea>';
+
+    div.innerHTML = kop + invoer + motivering +
+      (v.toelichting ? '<div class="vv-regel" style="margin-top:6px">' + v.toelichting + '</div>' : '');
+    houder.appendChild(div);
+
+    div.querySelectorAll('.btn-check').forEach(function (btn) {
+      btn.onclick = function () {
+        var vid = btn.getAttribute('data-vraag');
+        vvAntwoorden[vid].antwoord = btn.getAttribute('data-waarde');
+        bouwVergunningVragen();
+      };
+    });
+    var mt = div.querySelector('#vvm-' + v.vraag_id);
+    if (mt) mt.oninput = function () { vvAntwoorden[v.vraag_id].motivering = this.value; };
+    var tt = div.querySelector('#vva-' + v.vraag_id);
+    if (tt) tt.oninput = function () { vvAntwoorden[v.vraag_id].antwoord = this.value; };
+    var fi = div.querySelector('#vvf-' + v.vraag_id);
+    if (fi) fi.onchange = function () { vergunningFoto(v.vraag_id, this); };
+  });
+}
+
+function toonVergunning(v) {
+  stopPolling();
+  vvHuidigeVergunning = v;
+  showScreen('vergunning-detail');
+  document.getElementById('vvDetailNummer').textContent = v.vergunningsnummer;
+  var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
+  document.getElementById('headerUserVvDetail').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  tekenVergunningDetail();
+
+  // De aanvrager staat te wachten om te kunnen beginnen; kort polsen zolang dit
+  // scherm openstaat is genoeg. Een echte pushmelding hoort bij dezelfde
+  // afweging als de nazorgherinnering in fase C.
+  if (v.ben_aanvrager && v.status === 'aangevraagd') {
+    vvPolling = setInterval(function () {
+      sb.rpc('rpc_vergunning_status', { p_vergunning_id: v.id, p_gebruiker_id: gebruiker.id }).then(function (r) {
+        var rij = (r.data || [])[0];
+        if (!rij || rij.status === vvHuidigeVergunning.status) return;
+        vvHuidigeVergunning.status = rij.status;
+        vvHuidigeVergunning.beslissing_toelichting = rij.beslissing_toelichting;
+        stopPolling();
+        tekenVergunningDetail();
+        showToast('Er is beslist: ' + (VV_STATUS_TEKST[rij.status] || rij.status));
+      });
+    }, 8000);
+  }
+}
+
+function tekenVergunningDetail() {
+  var v = vvHuidigeVergunning;
+  var el = document.getElementById('vvDetailInhoud');
+  var html = '';
+
+  if (v.status === 'aangevraagd') {
+    html += '<div class="vv-melding wacht">' +
+      (v.ben_aanvrager
+        ? '<strong>Wacht op goedkeuring.</strong><br>U mag nog niet beginnen. Zodra iemand met goedkeuringsrecht getekend heeft, verschijnt dat hier vanzelf.'
+        : '<strong>Deze aanvraag wacht op een beslissing.</strong>') + '</div>';
+  } else if (v.status === 'actief') {
+    html += '<div class="vv-melding goed"><strong>Goedgekeurd.</strong><br>Het werk mag starten binnen de opgegeven geldigheidsduur.</div>';
+  } else if (v.status === 'voorbehoud') {
+    html += '<div class="vv-melding wacht"><strong>Goedgekeurd onder voorwaarden.</strong><br>' +
+      (v.beslissing_toelichting || '') +
+      '<br><br>Het werk mag <strong>nog niet</strong> starten. Bevestig eerst dat u deze voorwaarden kunt naleven.</div>';
+    if (v.ben_aanvrager) {
+      html += '<button class="btn-primair" onclick="bevestigVoorwaarden()">Ik aanvaard deze voorwaarden</button>';
+    }
+  } else if (v.status === 'afgewezen') {
+    html += '<div class="vv-melding fout"><strong>Afgewezen.</strong><br>' + (v.beslissing_toelichting || '') +
+      '<br><br>Pas aan wat hierboven staat en dien een nieuwe aanvraag in.</div>';
+  } else if (v.status === 'ingetrokken') {
+    html += '<div class="vv-melding fout"><strong>Ingetrokken.</strong> Deze vergunning kan niet heropend worden; dien zo nodig een nieuwe aanvraag in.</div>';
+  }
+
+  if (v.werktype_naam) {
+    html += '<div class="vv-regel"><strong>' + v.werktype_naam + '</strong> &middot; ' + (v.locatie_omschrijving || '') + '</div>';
+  }
+
+  // Goedkeurder ziet de antwoorden en kan beslissen.
+  if (!v.ben_aanvrager && v.status === 'aangevraagd' && magGoedkeuren()) {
+    html += '<div id="vvBeslisBlok"></div>';
+  }
+
+  if (['aangevraagd', 'actief', 'voorbehoud'].indexOf(v.status) > -1) {
+    html += '<button class="btn-nav btn-terug" style="width:100%;margin-top:22px" onclick="trekVergunningIn()">Vergunning intrekken</button>';
+  }
+
+  el.innerHTML = html;
+
+  if (document.getElementById('vvBeslisBlok')) tekenBeslisBlok();
+}
+
+function tekenBeslisBlok() {
+  var el = document.getElementById('vvBeslisBlok');
+  el.innerHTML =
+    '<div class="vv-sectiekop">Uw beslissing</div>' +
+    '<div class="vv-veld"><label class="vv-label">Toelichting (verplicht bij afwijzen of voorbehoud)</label>' +
+    '<textarea class="opmerking" id="vvToelichting" placeholder="Bv. eerst de paletten verplaatsen"></textarea></div>' +
+    '<div class="vv-veld"><label class="vv-label">Uw pincode</label>' +
+    '<input type="password" inputmode="numeric" maxlength="4" class="vv-input" id="vvPin" placeholder="4 cijfers"></div>' +
+    '<button class="btn-primair" id="vvCodeKnop" onclick="vraagGoedkeuringCode()">Stuur mij een code</button>' +
+    '<div id="vvCodeBlok" style="display:none;margin-top:14px">' +
+      '<div class="vv-melding wacht">Er is een code naar uw mailbox gestuurd. Die is 15 minuten geldig.</div>' +
+      '<div class="vv-veld"><label class="vv-label">Code uit de e-mail</label>' +
+      '<input type="text" inputmode="numeric" maxlength="6" class="vv-input" id="vvCode" placeholder="6 cijfers"></div>' +
+      '<button class="btn-primair" style="background:var(--green)" onclick="beslis(\'goedgekeurd\')">Goedkeuren</button>' +
+      '<button class="btn-primair" style="background:var(--orange);margin-top:8px" onclick="beslis(\'voorbehoud\')">Goedkeuren onder voorwaarden</button>' +
+      '<button class="btn-primair" style="background:var(--red);margin-top:8px" onclick="beslis(\'afgewezen\')">Afwijzen</button>' +
+    '</div>';
+}
+
+function vraagGoedkeuringCode() {
+  var pin = document.getElementById('vvPin').value.trim();
+  var knop = document.getElementById('vvCodeKnop');
+  if (pin.length !== 4) { showToast('Vul uw pincode van 4 cijfers in.'); return; }
+  knop.disabled = true; knop.textContent = 'Bezig...';
+  sb.rpc('rpc_goedkeuring_code_aanvragen', {
+    p_vergunning_id: vvHuidigeVergunning.id,
+    p_pincode: pin,
+    p_klantcode: klantBedrijf ? klantBedrijf.code : ''
+  }).then(function (r) {
+    knop.disabled = false; knop.textContent = 'Stuur mij een code';
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    if (r.data !== true) { showToast('Ongeldige pincode.'); return; }
+    document.getElementById('vvCodeBlok').style.display = '';
+    showToast('Code verstuurd.');
+  });
+}
+
+function beslis(keuze) {
+  var pin = document.getElementById('vvPin').value.trim();
+  var code = document.getElementById('vvCode').value.trim();
+  var toelichting = document.getElementById('vvToelichting').value.trim();
+  if (code.length !== 6) { showToast('Vul de code van 6 cijfers in.'); return; }
+  if ((keuze === 'afgewezen' || keuze === 'voorbehoud') && !toelichting) {
+    showToast(keuze === 'afgewezen'
+      ? 'Geef aan waarom u afwijst, anders weet de aanvrager niet wat hij moet aanpassen.'
+      : 'Geef aan onder welke voorwaarden u goedkeurt.');
+    return;
+  }
+  sb.rpc('rpc_vergunning_beslissen', {
+    p_vergunning_id: vvHuidigeVergunning.id,
+    p_pincode: pin,
+    p_klantcode: klantBedrijf ? klantBedrijf.code : '',
+    p_code: code,
+    p_beslissing: keuze,
+    p_toelichting: toelichting || null,
+    p_handtekening: null
+  }).then(function (r) {
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    showToast('Beslissing vastgelegd.');
+    laadVergunningen();
+  });
+}
+
+function bevestigVoorwaarden() {
+  sb.rpc('rpc_voorwaarden_bevestigen', {
+    p_vergunning_id: vvHuidigeVergunning.id,
+    p_gebruiker_id: gebruiker.id
+  }).then(function (r) {
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    vvHuidigeVergunning.status = 'actief';
+    tekenVergunningDetail();
+    showToast('Voorwaarden aanvaard, het werk mag starten.');
+  });
+}
+
+function trekVergunningIn() {
+  var reden = prompt('Waarom wordt deze vergunning ingetrokken?');
+  if (!reden || !reden.trim()) return;
+  sb.rpc('rpc_vergunning_intrekken', {
+    p_vergunning_id: vvHuidigeVergunning.id,
+    p_gebruiker_id: gebruiker.id,
+    p_reden: reden.trim()
+  }).then(function (r) {
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    showToast('Vergunning ingetrokken.');
+    laadVergunningen();
+  });
+}
+
+function vergunningFoto(vraagId, input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  var rij = document.getElementById('vvfr-' + vraagId);
+  rij.innerHTML = '<div class="loading"><div class="spinner"></div>Uploaden...</div>';
+  uploadInspectieMedia(f, f.name).then(function (res) {
+    if (!res.ok) { rij.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; return; }
+    vvAntwoorden[vraagId].antwoord = 'foto';
+    vvAntwoorden[vraagId].foto_url = res.body.url;
+    rij.innerHTML = '<img src="' + res.body.url + '" class="foto-thumb">';
+  }).catch(function () { rij.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; });
+}
+
+function dienVergunningIn() {
+  var btn = document.getElementById('btnVvIndienen');
+  var locatie = document.getElementById('vvLocatie').value.trim();
+  if (!locatie) { showToast('Vul de werkplek in.'); return; }
+
+  // Blokkerende vragen ook hier al tegenhouden: de server weigert het sowieso,
+  // maar dan pas na een rondje netwerk en zonder te tonen wélke vraag.
+  var geblokkeerd = vvVragenLijst.filter(function (v) {
+    return v.blokkerend && vvAntwoorden[v.vraag_id].antwoord === 'nok';
+  });
+  if (geblokkeerd.length) {
+    showToast('Kan niet aanvragen: ' + geblokkeerd[0].vraagtekst);
+    return;
+  }
+  var ontbreekt = vvVragenLijst.filter(function (v) {
+    return v.verplicht && !vvAntwoorden[v.vraag_id].antwoord;
+  });
+  if (ontbreekt.length) { showToast('Nog ' + ontbreekt.length + ' verplichte vraag(en) open.'); return; }
+  var zonderMotivering = vvVragenLijst.filter(function (v) {
+    return vvAntwoorden[v.vraag_id].antwoord === 'afwijking' && !String(vvAntwoorden[v.vraag_id].motivering || '').trim();
+  });
+  if (zonderMotivering.length) { showToast('Geef een motivering bij elke afwijking.'); return; }
+
+  btn.disabled = true; btn.textContent = 'Bezig...';
+
+  var antwoorden = vvVragenLijst.map(function (v) {
+    var a = vvAntwoorden[v.vraag_id];
+    return { vraag_id: v.vraag_id, antwoord: a.antwoord, motivering: a.motivering || null, foto_url: a.foto_url || null };
+  });
+
+  sb.rpc('rpc_vergunning_aanvragen', {
+    p_gebruiker_id: gebruiker.id,
+    p_werktype_id: vvWerktype.id,
+    p_locatie: locatie,
+    p_uitvoerders: document.getElementById('vvUitvoerders').value.trim(),
+    p_geldig_van: new Date(document.getElementById('vvGeldigVan').value).toISOString(),
+    p_geldig_tot: new Date(document.getElementById('vvGeldigTot').value).toISOString(),
+    p_bewaker_id: document.getElementById('vvBewaker').value || null,
+    p_antwoorden: antwoorden
+  }).then(function (r) {
+    btn.disabled = false; btn.textContent = 'Aanvragen';
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    var rij = (r.data || [])[0];
+    if (!rij) { showToast('Aanvraag mislukt.'); return; }
+    showToast('Aangevraagd: ' + rij.vergunningsnummer);
+    toonVergunning({ id: rij.vergunning_id, vergunningsnummer: rij.vergunningsnummer, status: 'aangevraagd', ben_aanvrager: true });
+  });
 }
 
 function pasBrandingToe(bedrijf) {
