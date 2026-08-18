@@ -49,6 +49,11 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .logo-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--on-navy); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
 .header-user { font-size: 12px; color: var(--gray-400); text-align: right; }
 .header-user strong { color: var(--on-navy); display: block; font-size: 13px; }
+.scherm-acties { margin-top: 28px; border-top: 1px solid var(--gray-200); padding-top: 6px; }
+.scherm-actie { display: block; width: 100%; text-align: left; padding: 13px 2px; background: none; border: none; border-bottom: 1px solid var(--gray-100); cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 14px; color: var(--gray-700); }
+.scherm-actie:last-child { border-bottom: none; }
+.scherm-actie:active { background: var(--gray-100); }
+.scherm-actie .actie-stand { float: right; font-size: 12px; color: var(--gray-400); }
 .pincode-wijzig-link { font-size: 10px; color: var(--gray-400); text-decoration: underline; background: none; border: none; cursor: pointer; padding: 2px 0 0; font-family: 'Poppins', sans-serif; }
 .progress-bar { height: 3px; background: var(--navy2); }
 .progress-fill { height: 100%; background: var(--accent); transition: width 0.4s; }
@@ -312,6 +317,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
     <div class="module-grid" id="moduleGrid">
       <div class="loading"><div class="spinner"></div>Laden...</div>
     </div>
+    <div class="scherm-acties" id="actiesModule"></div>
   </div>
 </div>
 
@@ -328,6 +334,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
     <div class="voertuig-grid" id="voertuigGrid">
       <div class="loading"><div class="spinner"></div>Assets laden...</div>
     </div>
+    <div class="scherm-acties" id="actiesVoertuig"></div>
   </div>
 </div>
 
@@ -396,6 +403,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
     <button class="btn-primair" onclick="startNieuweVergunning()">+ Nieuwe aanvraag</button>
     <h2 class="screen-title" style="margin-top:22px">Lopende vergunningen</h2>
     <div id="vergunningenLijst"><div class="loading"><div class="spinner"></div>Laden...</div></div>
+    <div class="scherm-acties" id="actiesVergunning"></div>
   </div>
 </div>
 
@@ -769,7 +777,8 @@ var beschikbareModules = [];
 function laadModules(pinVoorPush) {
   showScreen('module');
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
-  document.getElementById('headerUserModule').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel + meldingenLink();
+  document.getElementById('headerUserModule').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  tekenActies('actiesModule');
   var grid = document.getElementById('moduleGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
@@ -973,10 +982,37 @@ function uitloggen() {
 
 var meldingenTerug = null;
 
-function meldingenLink() {
-  var uit = '<button class="pincode-wijzig-link" onclick="uitloggen()">Uitloggen</button>';
-  if (!('Notification' in window)) return uit;
-  return '<button class="pincode-wijzig-link" onclick="openMeldingen()">Meldingen</button>' + uit;
+// De acties stonden eerst als piepkleine onderstreepte tekst in de kopbalk,
+// rechts uitgelijnd onder de naam. Met meer dan één actie werd dat een kolom
+// van 10px-linkjes die op een telefoon nauwelijks te raken zijn. Ze staan nu
+// onderaan het scherm zelf, als volwaardige regels.
+function tekenActies(containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var rijen = [];
+
+  if (beschikbareModules.length > 1 && containerId !== 'actiesModule') {
+    rijen.push({ tekst: 'Andere module', actie: 'laadModules()' });
+  }
+  if ('Notification' in window) {
+    rijen.push({ tekst: 'Meldingen', actie: 'openMeldingen()', stand: meldingenStand() });
+  }
+  rijen.push({ tekst: 'Pincode wijzigen', actie: 'wijzigPincode()' });
+  rijen.push({ tekst: 'Uitloggen', actie: 'uitloggen()' });
+
+  el.innerHTML = rijen.map(function(r) {
+    return '<button class="scherm-actie" onclick="' + r.actie + '">' + r.tekst +
+      (r.stand ? '<span class="actie-stand">' + r.stand + '</span>' : '') + '</button>';
+  }).join('');
+}
+
+// De stand meteen tonen, zodat je niet hoeft door te klikken om te zien of
+// meldingen aanstaan. Dat is precies de vraag die iemand hier heeft.
+function meldingenStand() {
+  if (!pushMogelijk()) return 'niet beschikbaar';
+  if (Notification.permission === 'granted') return 'aan';
+  if (Notification.permission === 'denied') return 'geweigerd';
+  return 'uit';
 }
 
 function openMeldingen() {
@@ -1137,7 +1173,8 @@ function laadVergunningen() {
   stopPolling();
   showScreen('vergunningen');
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
-  document.getElementById('headerUserVv').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel + meldingenLink();
+  document.getElementById('headerUserVv').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  tekenActies('actiesVergunning');
   var lijst = document.getElementById('vergunningenLijst');
   lijst.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
@@ -1779,9 +1816,8 @@ var STANDAARD_ROL_LABELS = {
 function laadVoertuigen() {
   showScreen('voertuig');
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
-  document.getElementById('headerUser').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel +
-    (beschikbareModules.length > 1 ? '<button class="pincode-wijzig-link" onclick="laadModules()">Andere module</button>' : '') +
-    '<button class="pincode-wijzig-link" onclick="wijzigPincode()">Pincode wijzigen</button>' + meldingenLink();
+  document.getElementById('headerUser').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  tekenActies('actiesVoertuig');
   var grid = document.getElementById('voertuigGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
