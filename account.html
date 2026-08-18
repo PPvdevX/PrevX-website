@@ -1438,6 +1438,7 @@ function keuringStand(vervaldatum){
 }
 
 function renderKeuringen(data){
+  laatsteKeuringen=data;
   document.getElementById('keuringenCount').textContent=data.length+' keuringen';
   var tbody=document.getElementById('keuringenTabel');
   if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nog geen keuringen vastgelegd.</td></tr>';return;}
@@ -1446,7 +1447,9 @@ function renderKeuringen(data){
     var st=keuringStand(k.vervaldatum);
     var tr=document.createElement('tr');
     var actie=isSuperbeheerder
-      ? '<button class="btn-add-sm" onclick="keuringUitgevoerd(\''+k.id+'\','+(k.periodiciteit_maanden||'null')+')">Keuring uitgevoerd</button>'
+      ? '<span style="display:flex;gap:6px;justify-content:flex-end">'+
+        '<button class="btn-add-sm" onclick="keuringUitgevoerd(\''+k.id+'\','+(k.periodiciteit_maanden||'null')+')">Keuring uitgevoerd</button>'+
+        '<button class="btn-add-sm" style="background:var(--gray-100);color:var(--gray-700)" onclick="openKeuringForm(\''+k.id+'\')">Bewerken</button></span>'
       : '-';
     var t=k.keuring_types;
     var onder=[];
@@ -1469,66 +1472,125 @@ function renderKeuringen(data){
   });
 }
 
-// Kiezen uit een genummerde lijst in een prompt. Niet mooi, wel consequent met
-// de rest van dit scherm, en het houdt de keuze bij de beheerde lijst i.p.v.
-// bij wat iemand toevallig intypt.
-function kiesUitLijst(vraag,items,labelFn){
-  if(!items.length)return null;
-  var regels=items.map(function(it,i){return (i+1)+'. '+labelFn(it);}).join('\n');
-  var antwoord=prompt(vraag+'\n\n'+regels+'\n\nGeef het nummer (leeg = geen):');
-  if(!antwoord||!antwoord.trim())return null;
-  var n=parseInt(antwoord.trim(),10);
-  if(isNaN(n)||n<1||n>items.length){showToast('Ongeldig nummer.');return undefined;}
-  return items[n-1];
+// Aanmaken en bewerken gebruiken hetzelfde formulier in het detailpaneel.
+// Het was eerst een keten van negen prompt()-vensters; dat gaat net om iets
+// aan te maken, maar om een uitvoerder te corrigeren moest je door alle negen.
+// En bewerken bestond helemaal niet -- op een vervalkalender die als bewijsstuk
+// dient is "typfout niet recht te zetten" geen detail.
+var laatsteKeuringen=[];
+
+function openKeuringForm(id){
+  var k=id?laatsteKeuringen.filter(function(x){return x.id===id;})[0]:null;
+  document.getElementById('detailOverlay').classList.add('active');
+  document.getElementById('detailPrintKnop').style.display='none';
+  document.getElementById('detailTitel').textContent=k?'Keuring bewerken':'Nieuwe keuring';
+  document.getElementById('detailSub').textContent=k?k.omschrijving:'';
+
+  var types=alleKeuringTypes.filter(function(t){return t.actief||(k&&k.keuring_type_id===t.id);});
+  function opties(lijst,gekozen,labelFn){
+    return '<option value="">-</option>'+lijst.map(function(it){
+      return '<option value="'+it.id+'"'+(gekozen===it.id?' selected':'')+'>'+labelFn(it)+'</option>';
+    }).join('');
+  }
+  function veld(label,inhoud,hint){
+    return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">'+label+'</label>'+inhoud+
+      (hint?'<div style="font-size:11px;color:var(--gray-500);margin-top:4px">'+hint+'</div>':'')+'</div>';
+  }
+  function esc(v){return (v==null?'':String(v)).replace(/"/g,'&quot;');}
+  var w='width:100%';
+  var archiveerKnop=k?'<button class="btn-add-sm" style="background:var(--gray-100);color:var(--gray-700);margin-left:auto" onclick="archiveerKeuring(&quot;'+k.id+'&quot;)">Archiveren</button>':'';
+  var bewaarArg=k?'&quot;'+k.id+'&quot;':'null';
+
+  document.getElementById('detailBody').innerHTML=
+    '<div style="max-width:520px;padding:4px 0">'+
+    veld('Type keuring','<select class="filter-input" id="kfType" style="'+w+'" onchange="keuringTypeGekozen()">'+
+      opties(types,k?k.keuring_type_id:null,function(t){return t.naam+' ['+(t.domein==='milieu'?'milieu':'veiligheid')+']';})+'</select>',
+      '<span id="kfBasis">'+((k&&k.keuring_types&&k.keuring_types.wettelijke_basis)||'')+'</span>')+
+    veld('Asset (optioneel)','<select class="filter-input" id="kfAsset" style="'+w+'">'+
+      opties(keuringAssets,k?k.voertuig_id:null,function(v){return v.nummerplaat+(v.omschrijving?' - '+v.omschrijving:'');})+'</select>')+
+    veld('Wat wordt er gekeurd? *','<input class="filter-input" id="kfOms" style="'+w+'" value="'+esc(k&&k.omschrijving)+'">')+
+    veld('Vervaldatum *','<input class="filter-input" type="date" id="kfVerval" style="'+w+'" value="'+esc(k&&k.vervaldatum)+'">',
+      'Neem de datum die op het attest staat.')+
+    veld('Datum laatste keuring','<input class="filter-input" type="date" id="kfLaatste" style="'+w+'" value="'+esc(k&&k.laatste_keuring)+'">')+
+    veld('Periodiciteit (maanden)','<input class="filter-input" type="number" min="1" id="kfPer" style="'+w+'" value="'+esc(k&&k.periodiciteit_maanden)+'">')+
+    veld('Aantal toestellen','<input class="filter-input" type="number" min="1" id="kfAantal" style="'+w+'" value="'+esc(k&&k.aantal)+'">')+
+    veld('Uitvoerder','<input class="filter-input" id="kfUitvoerder" style="'+w+'" value="'+esc(k&&k.uitvoerder)+'">')+
+    veld('Opmerking','<textarea class="filter-input" id="kfOpmerking" rows="2" style="'+w+'">'+((k&&k.opmerking)||'')+'</textarea>')+
+    '<div style="display:flex;gap:8px;margin-top:18px;align-items:center">'+
+      '<button class="btn-add-sm" onclick="bewaarKeuring('+bewaarArg+')">Bewaren</button>'+
+      '<button class="btn-add-sm" style="background:var(--gray-100);color:var(--gray-700)" onclick="sluitDetail()">Annuleren</button>'+
+      archiveerKnop+
+    '</div></div>';
 }
 
-function nieuweKeuring(){
-  if(!huidigeBedrijfId)return;
-
-  var types=alleKeuringTypes.filter(function(t){return t.actief;});
-  var type=kiesUitLijst('Welk type keuring?',types,function(t){
-    return t.naam+' ['+(t.domein==='milieu'?'milieu':'veiligheid')+']'+
-      (t.standaard_periodiciteit_maanden?' — '+t.standaard_periodiciteit_maanden+' mnd':'');
-  });
-  if(type===undefined)return;
-
-  var asset=kiesUitLijst('Aan welke asset? (leeg laten mag)',keuringAssets,function(v){
-    return v.nummerplaat+(v.omschrijving?' — '+v.omschrijving:'');
-  });
-  if(asset===undefined)return;
-
-  // Voorstel voor de omschrijving uit type en asset, zodat er altijd een
-  // leesbaar etiket staat -- ook nadat een asset ooit verwijderd wordt en de
-  // koppeling op null valt.
-  var voorstelOms=(type?type.naam:'')+(asset?' — '+asset.nummerplaat:'');
-  var omschrijving=prompt('Wat wordt er gekeurd?',voorstelOms);
-  if(!omschrijving||!omschrijving.trim())return;
-
-  var vervaldatum=prompt('Vervaldatum (JJJJ-MM-DD) — neem de datum die op het attest staat:');
-  if(!vervaldatum)return;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(vervaldatum)){showToast('Vervaldatum moet het formaat JJJJ-MM-DD hebben.');return;}
-
-  var aantalRuw=prompt('Aantal toestellen (optioneel):');
-  var aantal=aantalRuw&&/^\d+$/.test(aantalRuw.trim())?parseInt(aantalRuw,10):null;
-  var uitvoerder=prompt('Uitvoerder (optioneel, bv. "EDTC"):')||null;
-
-  // Het interval komt uit het type, maar blijft overschrijfbaar: een klant met
-  // een strengere interne regel of een verzekeraar die vaker wil, komt voor.
-  var standaard=type&&type.standaard_periodiciteit_maanden?String(type.standaard_periodiciteit_maanden):'';
-  var perRuw=prompt('Periodiciteit in maanden:',standaard);
-  var periodiciteit=perRuw&&/^\d+$/.test(perRuw.trim())?parseInt(perRuw,10):null;
-
-  var laatste=prompt('Datum laatste keuring (JJJJ-MM-DD, optioneel):')||null;
-  if(laatste&&!/^\d{4}-\d{2}-\d{2}$/.test(laatste)){showToast('Datum laatste keuring moet JJJJ-MM-DD zijn.');return;}
-
-  sb.from('keuringen').insert({bedrijf_id:huidigeBedrijfId,omschrijving:omschrijving.trim(),
-    keuring_type_id:type?type.id:null,voertuig_id:asset?asset.id:null,
-    aantal:aantal,uitvoerder:uitvoerder,periodiciteit_maanden:periodiciteit,
-    laatste_keuring:laatste,vervaldatum:vervaldatum}).then(function(r){
-      if(r.error){showToast('Fout: '+r.error.message);return;}
-      laadKeuringen();
-    });
+// Het type vult de periodiciteit en de omschrijving voor. Wat de gebruiker
+// zelf intypte blijft staan; wat IK eerder invulde wordt wel bijgewerkt.
+// Zonder dat onderscheid houdt iemand die van type wisselt het interval van
+// het vorige type over -- en dat is precies een fout die je niet ziet, want er
+// staat gewoon een getal.
+function markeerAutoIngevuld(el,waarde){
+  el.value=waarde;
+  el.dataset.auto='1';
+  if(!el.dataset.luistert){
+    el.dataset.luistert='1';
+    el.addEventListener('input',function(){delete el.dataset.auto;});
+  }
 }
+function magVoorinvullen(el){ return !el.value || el.dataset.auto==='1'; }
+
+function keuringTypeGekozen(){
+  var gekozen=document.getElementById('kfType').value;
+  var t=alleKeuringTypes.filter(function(x){return x.id===gekozen;})[0];
+  document.getElementById('kfBasis').textContent=(t&&t.wettelijke_basis)||'';
+  if(!t)return;
+  var per=document.getElementById('kfPer');
+  if(magVoorinvullen(per)&&t.standaard_periodiciteit_maanden)markeerAutoIngevuld(per,t.standaard_periodiciteit_maanden);
+  var oms=document.getElementById('kfOms');
+  if(magVoorinvullen(oms)){
+    var aid=document.getElementById('kfAsset').value;
+    var a=keuringAssets.filter(function(v){return v.id===aid;})[0];
+    markeerAutoIngevuld(oms,t.naam+(a?' - '+a.nummerplaat:''));
+  }
+}
+
+function bewaarKeuring(id){
+  var oms=document.getElementById('kfOms').value.trim();
+  var verval=document.getElementById('kfVerval').value;
+  if(!oms){showToast('Vul in wat er gekeurd wordt.');return;}
+  if(!verval){showToast('Een keuring zonder vervaldatum kan niet vervallen - vul er een in.');return;}
+  function getal(el){var v=document.getElementById(el).value;return v&&/^\d+$/.test(v)?parseInt(v,10):null;}
+  var rij={
+    bedrijf_id:huidigeBedrijfId,
+    keuring_type_id:document.getElementById('kfType').value||null,
+    voertuig_id:document.getElementById('kfAsset').value||null,
+    omschrijving:oms,
+    vervaldatum:verval,
+    laatste_keuring:document.getElementById('kfLaatste').value||null,
+    periodiciteit_maanden:getal('kfPer'),
+    aantal:getal('kfAantal'),
+    uitvoerder:document.getElementById('kfUitvoerder').value.trim()||null,
+    opmerking:document.getElementById('kfOpmerking').value.trim()||null
+  };
+  var q=id?sb.from('keuringen').update(rij).eq('id',id):sb.from('keuringen').insert(rij);
+  q.then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    sluitDetail();
+    laadKeuringen();
+  });
+}
+
+// Archiveren en niet verwijderen: dat een keuring ooit bestond en wanneer ze
+// verviel, hoort in het dossier te blijven staan.
+function archiveerKeuring(id){
+  if(!confirm('Deze keuring archiveren?\n\nZe verdwijnt uit de vervalkalender maar blijft bewaard.'))return;
+  sb.from('keuringen').update({actief:false}).eq('id',id).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    sluitDetail();
+    laadKeuringen();
+  });
+}
+
+function nieuweKeuring(){ if(huidigeBedrijfId)openKeuringForm(null); }
 
 // De nieuwe vervaldatum wordt VOORGESTELD uit de periodiciteit, niet opgelegd.
 // Op het attest staat een geldigheidsdatum en die valt lang niet altijd samen
