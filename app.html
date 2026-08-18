@@ -285,6 +285,20 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   </div>
 </div>
 
+<div id="screen-meldingen" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name">PrevX</div>
+    </div>
+  </div>
+  <div class="screen-content">
+    <h2 class="screen-title" style="margin-bottom:16px">Meldingen</h2>
+    <div id="meldingenInhoud"></div>
+    <button class="pincode-wijzig-link" style="margin-top:22px" onclick="sluitMeldingen()">Terug</button>
+  </div>
+</div>
+
 <div id="screen-module" class="screen">
   <div class="app-header">
     <div class="app-header-logo">
@@ -755,7 +769,7 @@ var beschikbareModules = [];
 function laadModules(pinVoorPush) {
   showScreen('module');
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
-  document.getElementById('headerUserModule').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  document.getElementById('headerUserModule').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel + meldingenLink();
   var grid = document.getElementById('moduleGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
@@ -895,6 +909,105 @@ function regelPush(pin, klaar) {
   toonPushVraag(pin, klaar);
 }
 
+// ---------------------------------------------------------------------------
+// Meldingenscherm: de stand bekijken en alsnog aan- of uitzetten
+// ---------------------------------------------------------------------------
+// Nodig omdat een browser maar één keer toestemming vraagt. Wie bij het
+// inloggen "niet nu" koos, kon nergens meer terecht -- en wie ooit geweigerd
+// heeft, kan het alleen nog in de instellingen van zijn toestel terugzetten.
+// Dat laatste kunnen we niet voor hem doen, wel uitleggen waar het staat.
+
+var meldingenTerug = null;
+
+function meldingenLink() {
+  if (!('Notification' in window)) return '';
+  return '<button class="pincode-wijzig-link" onclick="openMeldingen()">Meldingen</button>';
+}
+
+function openMeldingen() {
+  var vorige = document.querySelector('.screen.active');
+  meldingenTerug = vorige ? vorige.id.replace('screen-', '') : 'module';
+  showScreen('meldingen');
+  tekenMeldingen();
+}
+
+function sluitMeldingen() {
+  showScreen(meldingenTerug || 'module');
+}
+
+function tekenMeldingen() {
+  var el = document.getElementById('meldingenInhoud');
+  var p = 'font-size:14px;color:var(--gray-500);line-height:1.6;margin-bottom:16px';
+
+  if (!pushMogelijk()) {
+    var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    el.innerHTML = '<p style="' + p + '">' + (iOS
+      ? 'Op een iPhone of iPad werken meldingen alleen wanneer PrevX op je beginscherm staat. Open deze pagina in Safari, tik op het deelicoon en kies <strong>Zet op beginscherm</strong>. Start daarna PrevX vanaf dat icoon.'
+      : 'Dit toestel of deze browser ondersteunt geen meldingen.') + '</p>';
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    el.innerHTML = '<p style="' + p + '">Meldingen staan <strong>aan</strong> op dit toestel.</p>' +
+      '<button class="pincode-wijzig-link" onclick="zetMeldingenUit()">Meldingen uitzetten op dit toestel</button>';
+    return;
+  }
+
+  if (Notification.permission === 'denied') {
+    var iOS2 = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    // Bewust geen knop: een geweigerde toestemming kan een website niet
+    // opnieuw vragen. Doen alsof dat wel kan, levert een knop op die niets
+    // doet -- dan liever eerlijk uitleggen waar het staat.
+    el.innerHTML = '<p style="' + p + '">Meldingen staan <strong>uit</strong>. Dat kan alleen nog in de instellingen van je toestel aangezet worden, niet meer vanuit de app.</p>' +
+      '<p style="' + p + '">' + (iOS2
+        ? 'Ga naar <strong>Instellingen &rsaquo; PrevX &rsaquo; Berichtgeving</strong> en zet <strong>Sta berichtgeving toe</strong> aan.'
+        : 'Houd het PrevX-icoon ingedrukt, kies <strong>App-info</strong> en zet <strong>Meldingen</strong> aan. Of via <strong>Instellingen &rsaquo; Apps &rsaquo; PrevX &rsaquo; Meldingen</strong>.') +
+      '</p><p style="' + p + '">Kom daarna hier terug om te controleren.</p>';
+    return;
+  }
+
+  el.innerHTML = '<p style="' + p + '">Meldingen staan <strong>uit</strong>. PrevX waarschuwt je dan niet wanneer er iets van je verwacht wordt, zoals de controle na heet werk.</p>' +
+    '<button class="btn-primair" style="width:100%" onclick="zetMeldingenAanVanuitScherm()">Meldingen aanzetten</button>';
+}
+
+function zetMeldingenAanVanuitScherm() {
+  // De pincode is na het inloggen weggegooid en het abonnement moet ondertekend
+  // worden, dus die wordt hier opnieuw gevraagd -- zelfde weg als wijzigPincode.
+  var pin = prompt('Je pincode, om meldingen aan dit account te koppelen:');
+  if (!pin) return;
+  Notification.requestPermission().then(function(keuze) {
+    if (keuze !== 'granted') { tekenMeldingen(); return; }
+    return zetPushAan(pin).then(function() {
+      showToast('Meldingen staan aan.');
+      tekenMeldingen();
+    });
+  }).catch(function(e) {
+    console.error('Meldingen aanzetten mislukt:', e);
+    showToast('Aanzetten mislukt. Klopt je pincode?');
+    tekenMeldingen();
+  });
+}
+
+function zetMeldingenUit() {
+  navigator.serviceWorker.ready.then(function(reg) {
+    return reg.pushManager.getSubscription();
+  }).then(function(abo) {
+    if (!abo) return null;
+    var endpoint = abo.endpoint;
+    return abo.unsubscribe().then(function() {
+      return sb.rpc('rpc_push_afmelden', { p_endpoint: endpoint });
+    });
+  }).then(function() {
+    // De toestemming zelf blijft staan -- die kan een website niet intrekken.
+    // Wat we wel doen is het abonnement opzeggen, zodat er niets meer vertrekt.
+    showToast('Er worden geen meldingen meer verstuurd naar dit toestel.');
+    tekenMeldingen();
+  }).catch(function(e) {
+    console.error('Meldingen uitzetten mislukt:', e);
+    showToast('Uitzetten mislukt.');
+  });
+}
+
 function toonPushVraag(pin, klaar) {
   showScreen('push');
   var aan = document.getElementById('pushAanKnop');
@@ -969,7 +1082,7 @@ function laadVergunningen() {
   stopPolling();
   showScreen('vergunningen');
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
-  document.getElementById('headerUserVv').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  document.getElementById('headerUserVv').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel + meldingenLink();
   var lijst = document.getElementById('vergunningenLijst');
   lijst.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
@@ -1613,7 +1726,7 @@ function laadVoertuigen() {
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
   document.getElementById('headerUser').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel +
     (beschikbareModules.length > 1 ? '<button class="pincode-wijzig-link" onclick="laadModules()">Andere module</button>' : '') +
-    '<button class="pincode-wijzig-link" onclick="wijzigPincode()">Pincode wijzigen</button>';
+    '<button class="pincode-wijzig-link" onclick="wijzigPincode()">Pincode wijzigen</button>' + meldingenLink();
   var grid = document.getElementById('voertuigGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
