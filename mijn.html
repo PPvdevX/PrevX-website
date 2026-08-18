@@ -1293,6 +1293,57 @@ function toonTab(naam){
 }
 
 
+// ---------------------------------------------------------------------------
+// Privé opgeslagen bestanden tonen
+// ---------------------------------------------------------------------------
+// Sinds 0070 zijn vier buckets privé: een opgeslagen URL werkt niet meer
+// rechtstreeks. In plaats van elke renderfunctie asynchroon te maken, zetten we
+// het adres in data-prive-src / data-prive-href en halen we er achteraf in één
+// doorloop een tijdelijke link voor op. Zo blijft het opbouwen van de HTML
+// onveranderd en is er maar één plaats die van ondertekende links weet.
+var PRIVE_BUCKETS=['inspectie-media','documenten','kennisbank','actiepunt-bewijsstukken'];
+
+function priveVerwijzing(url){
+  if(!url)return null;
+  var m=/\/storage\/v1\/object\/(?:public\/|sign\/)?([^\/?]+)\/([^?]+)/.exec(url);
+  if(!m||PRIVE_BUCKETS.indexOf(m[1])===-1)return null;
+  return {bucket:m[1],pad:decodeURIComponent(m[2])};
+}
+
+// Een uur is ruim voor bekijken of downloaden, en kort genoeg dat een
+// doorgestuurde link niet blijft leven.
+function verversPriveMedia(root){
+  var el=(root||document).querySelectorAll('[data-prive-src],[data-prive-href]');
+  Array.prototype.forEach.call(el,function(node){
+    var attr=node.hasAttribute('data-prive-src')?'src':'href';
+    var ruw=node.getAttribute('data-prive-'+attr);
+    node.removeAttribute('data-prive-'+attr);
+    var v=priveVerwijzing(ruw);
+    if(!v){node.setAttribute(attr,ruw||'');return;}
+    sb.storage.from(v.bucket).createSignedUrl(v.pad,3600).then(function(r){
+      if(r.error||!r.data){
+        // Terugval op het opgeslagen adres. Zolang de bucket nog publiek is
+        // (vóór migratie 0070) werkt dat gewoon, en daarna levert het een
+        // zichtbare 404 op i.p.v. een leeg kader zonder spoor. Zo maakt de
+        // volgorde van uitrollen niet uit.
+        console.error('Ondertekende link mislukt voor',ruw,r.error);
+        node.setAttribute(attr,ruw);
+        return;
+      }
+      node.setAttribute(attr,r.data.signedUrl);
+    });
+  });
+}
+
+// Meekijken in plaats van na elke renderfunctie een aanroep zetten. Het portaal
+// bouwt op tientallen plaatsen HTML op; één vergeten aanroep zou een stille
+// gebroken afbeelding opleveren die niemand meldt. Zo geldt het ook meteen voor
+// alles wat er later bij komt.
+if(window.MutationObserver){
+  new MutationObserver(function(){verversPriveMedia();})
+    .observe(document.documentElement,{childList:true,subtree:true});
+}
+
 function laadActiepunten(){
   if(!huidigeBedrijfId)return;
   document.getElementById('actiepuntenNieuwKnop').style.display=isSuperbeheerder?'':'none';
@@ -1310,7 +1361,7 @@ function renderActiepunten(data){
   tbody.innerHTML='';
   data.forEach(function(a){
     var tr=document.createElement('tr');
-    var bewijs=a.bewijsstuk_url?'<img src="'+a.bewijsstuk_url+'" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openLightbox(this.src)">':'-';
+    var bewijs=a.bewijsstuk_url?'<img data-prive-src="'+a.bewijsstuk_url+'" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="openLightbox(this.src)">':'-';
     var actie='-';
     if(a.status==='open'){
       actie='<label class="btn-add-sm" style="display:inline-block">Bewijs opladen'+
@@ -1396,7 +1447,7 @@ function renderDocumenten(data){
     tbody.innerHTML='';
     rows.forEach(function(d){
       var tr=document.createElement('tr');
-      var bekijk=d.bestand_url?'<a href="'+d.bestand_url+'" target="_blank" rel="noopener">Bekijk</a>':'-';
+      var bekijk=d.bestand_url?'<a data-prive-href="'+d.bestand_url+'" target="_blank" rel="noopener">Bekijk</a>':'-';
       tr.innerHTML='<td><span class="badge onvolledig">'+(typeLabels[d.type]||d.type)+'</span></td>'+
         '<td>'+d.titel+'</td><td>'+(d.versie||'-')+'</td><td>'+formatDatum(d.geupload_op.slice(0,10))+'</td>'+
         '<td>'+bekijk+'</td>';
@@ -1619,7 +1670,7 @@ function renderKennisbankToegewezen(){
   tbody.innerHTML='';
   items.forEach(function(item){
     var tr=document.createElement('tr');
-    var bekijk=item.bestand_url?'<a href="'+item.bestand_url+'" target="_blank" rel="noopener">Bekijk</a>':'-';
+    var bekijk=item.bestand_url?'<a data-prive-href="'+item.bestand_url+'" target="_blank" rel="noopener">Bekijk</a>':'-';
     tr.innerHTML='<td>'+item.titel+'</td><td>'+(item.categorie||'-')+'</td><td>'+bekijk+'</td>';
     tbody.appendChild(tr);
   });
@@ -2342,12 +2393,12 @@ function renderDetail(ins,resultaten){
       var niveauTag='<span class="punt-niveau '+(niveau==='informatief'?'informatief':'kritisch')+'">'+(niveau==='informatief'?'Informatief':'Kritisch')+'</span>';
       html+='<div class="punt-rij"><span class="punt-badge '+st+'">'+(bl[st]||'-')+'</span><div class="punt-tekst">'+(r.inspectie_punten?r.inspectie_punten.omschrijving:'-')+niveauTag;
       if(r.opmerking)html+='<div class="punt-opm">&#128172; '+r.opmerking+'</div>';
-      if(r.fotos&&r.fotos.length>0){html+='<div class="punt-fotos">';r.fotos.forEach(function(src){html+='<img class="punt-foto" src="'+src+'" onclick="openLightbox(this.src)">';});html+='</div>';}
+      if(r.fotos&&r.fotos.length>0){html+='<div class="punt-fotos">';r.fotos.forEach(function(src){html+='<img class="punt-foto" data-prive-src="'+src+'" onclick="openLightbox(this.src)">';});html+='</div>';}
       html+='</div></div>';
     });
     html+='</div>';
   });
-  if(ins.handtekening)html+='<div class="sig-sectie"><div class="sig-label">Handtekening chauffeur</div><img class="sig-img" src="'+ins.handtekening+'" alt="Handtekening"></div>';
+  if(ins.handtekening)html+='<div class="sig-sectie"><div class="sig-label">Handtekening chauffeur</div><img class="sig-img" data-prive-src="'+ins.handtekening+'" alt="Handtekening"></div>';
   document.getElementById('detailBody').innerHTML=html;
 }
 
