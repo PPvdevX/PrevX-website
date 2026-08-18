@@ -209,6 +209,16 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
   body.aan-het-printen .detail-overlay { position:static !important; background:none !important; display:block !important }
   body.aan-het-printen .detail-panel { width:100% !important; max-width:none !important; height:auto !important; overflow:visible !important; box-shadow:none !important }
   body.aan-het-printen .detail-panel-header { position:static !important }
+  /* Op het scherm zijn de foto's miniaturen van 64px met object-fit:cover --
+     klein én bijgesneden. Dat werkt om te zien dát er een foto is; je klikt
+     hem open om te kijken. Op papier kan dat niet, dus daar staat de foto
+     volledig en groot. object-fit:contain i.p.v. cover, want een bijgesneden
+     vaststelling in een dossier toont net niet waar het om gaat.
+     Twee per rij, zodat een punt met vier foto's geen vier bladzijden wordt. */
+  body.aan-het-printen .punt-foto { width:auto !important; height:auto !important; max-width:48% !important; max-height:80mm !important; object-fit:contain !important; cursor:default }
+  body.aan-het-printen .punt-fotos { gap:8px }
+  body.aan-het-printen .sig-img { max-width:70mm !important }
+  .punt-fotos, .sig-sectie { break-inside:avoid }
   .table-card, .sectie-blok, .vraag-kaart, .stat-card, .defect-balk-rij, tr { break-inside:avoid }
 }
 .enkel-printen{display:none}
