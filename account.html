@@ -432,7 +432,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
           <div class="table-header"><span class="table-title">Vervalkalender</span>
             <span class="table-count" id="keuringenCount">0</span>
           </div>
-          <table><thead><tr><th>Omschrijving</th><th>Aantal</th><th>Uitvoerder</th><th>Laatste keuring</th><th>Vervaldatum</th><th>Status</th><th></th></tr></thead>
+          <table><thead><tr><th>Wat</th><th>Asset</th><th>Uitvoerder</th><th>Laatste keuring</th><th>Vervaldatum</th><th>Status</th><th></th></tr></thead>
           <tbody id="keuringenTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
@@ -587,9 +587,21 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     <div id="tab-codelijsten" style="display:none">
       <div class="page-header">
         <div class="page-title">Codelijsten</div>
-        <div class="page-subtitle">Sectorcodes, paritaire comit&eacute;s en pakketten &mdash; gedeeld over alle klanten</div>
+        <div class="page-subtitle">Keuringstypes, sectorcodes, paritaire comit&eacute;s en pakketten &mdash; gedeeld over alle klanten</div>
       </div>
       <div class="content-area">
+        <div class="table-card inklapbaar dicht" style="margin-bottom:12px">
+          <div class="table-header">
+            <span class="table-title">Keuringstypes</span>
+            <span style="display:flex;align-items:center;gap:10px">
+              <span class="table-count" id="keuringTypesCount">0</span>
+              <button class="btn-add-sm" onclick="nieuwKeuringType()">+ Nieuw keuringstype</button>
+            </span>
+          </div>
+          <table><thead><tr><th>Type</th><th>Domein</th><th>Wettelijke basis</th><th>Interval</th><th>Status</th><th></th></tr></thead>
+          <tbody id="keuringTypesTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+        </div>
+
         <div class="table-card inklapbaar dicht" style="margin-bottom:12px">
           <div class="table-header">
             <span class="table-title">Sectorcodes (NACE)</span>
@@ -1385,10 +1397,18 @@ if(window.MutationObserver){
 // keuring over iets dat geldig is tót een datum. Vandaar de sortering op
 // vervaldatum en niet op aanmaakdatum -- wat het eerst vervalt, staat bovenaan.
 
+var keuringAssets=[];
+
 function laadKeuringen(){
   if(!huidigeBedrijfId)return;
   document.getElementById('keuringenNieuwKnop').style.display=isSuperbeheerder?'':'none';
-  sb.from('keuringen').select('*').eq('bedrijf_id',huidigeBedrijfId).eq('actief',true)
+  // Types en assets vooraf ophalen: het formulier heeft ze nodig om voor te
+  // stellen, en de tabel om namen te tonen i.p.v. id's.
+  laadKeuringTypes();
+  sb.from('voertuigen').select('id,nummerplaat,omschrijving').eq('bedrijf_id',huidigeBedrijfId)
+    .eq('actief',true).order('nummerplaat').then(function(vr){ keuringAssets=vr.data||[]; });
+  sb.from('keuringen').select('*,keuring_types(naam,domein,wettelijke_basis),voertuigen(nummerplaat,omschrijving)')
+    .eq('bedrijf_id',huidigeBedrijfId).eq('actief',true)
     .order('vervaldatum',{ascending:true}).then(function(r){
       if(r.error){showToast('Fout: '+r.error.message);return;}
       renderKeuringen(r.data||[]);
@@ -1428,8 +1448,19 @@ function renderKeuringen(data){
     var actie=isSuperbeheerder
       ? '<button class="btn-add-sm" onclick="keuringUitgevoerd(\''+k.id+'\','+(k.periodiciteit_maanden||'null')+')">Keuring uitgevoerd</button>'
       : '-';
-    tr.innerHTML='<td>'+k.omschrijving+(k.categorie?'<div style="font-size:11px;color:var(--gray-500)">'+k.categorie+'</div>':'')+'</td>'+
-      '<td>'+(k.aantal||'-')+'</td><td>'+(k.uitvoerder||'-')+'</td>'+
+    var t=k.keuring_types;
+    var onder=[];
+    // Het type alleen tonen als het iets toevoegt. De omschrijving wordt uit
+    // het type voorgesteld, dus zonder asset zijn ze vaak identiek en zou het
+    // er twee keer staan.
+    if(t&&k.omschrijving.indexOf(t.naam)===-1)onder.push(t.naam);
+    if(t&&t.wettelijke_basis)onder.push(t.wettelijke_basis);
+    var asset=k.voertuigen
+      ? k.voertuigen.nummerplaat+(k.voertuigen.omschrijving?'<div style="font-size:11px;color:var(--gray-500)">'+k.voertuigen.omschrijving+'</div>':'')
+      : '-';
+    tr.innerHTML='<td>'+k.omschrijving+(k.aantal?' <span style="color:var(--gray-500)">('+k.aantal+')</span>':'')+
+      (onder.length?'<div style="font-size:11px;color:var(--gray-500)">'+onder.join(' &middot; ')+'</div>':'')+'</td>'+
+      '<td>'+asset+'</td><td>'+(k.uitvoerder||'-')+'</td>'+
       '<td>'+(k.laatste_keuring?formatDatum(k.laatste_keuring):'-')+'</td>'+
       '<td>'+formatDatum(k.vervaldatum)+'</td>'+
       '<td><span class="badge '+st.badge+'">'+st.tekst+'</span></td>'+
@@ -1438,24 +1469,61 @@ function renderKeuringen(data){
   });
 }
 
+// Kiezen uit een genummerde lijst in een prompt. Niet mooi, wel consequent met
+// de rest van dit scherm, en het houdt de keuze bij de beheerde lijst i.p.v.
+// bij wat iemand toevallig intypt.
+function kiesUitLijst(vraag,items,labelFn){
+  if(!items.length)return null;
+  var regels=items.map(function(it,i){return (i+1)+'. '+labelFn(it);}).join('\n');
+  var antwoord=prompt(vraag+'\n\n'+regels+'\n\nGeef het nummer (leeg = geen):');
+  if(!antwoord||!antwoord.trim())return null;
+  var n=parseInt(antwoord.trim(),10);
+  if(isNaN(n)||n<1||n>items.length){showToast('Ongeldig nummer.');return undefined;}
+  return items[n-1];
+}
+
 function nieuweKeuring(){
   if(!huidigeBedrijfId)return;
-  var omschrijving=prompt('Wat wordt gekeurd? (bv. "Keuring heftrucks")');
+
+  var types=alleKeuringTypes.filter(function(t){return t.actief;});
+  var type=kiesUitLijst('Welk type keuring?',types,function(t){
+    return t.naam+' ['+(t.domein==='milieu'?'milieu':'veiligheid')+']'+
+      (t.standaard_periodiciteit_maanden?' — '+t.standaard_periodiciteit_maanden+' mnd':'');
+  });
+  if(type===undefined)return;
+
+  var asset=kiesUitLijst('Aan welke asset? (leeg laten mag)',keuringAssets,function(v){
+    return v.nummerplaat+(v.omschrijving?' — '+v.omschrijving:'');
+  });
+  if(asset===undefined)return;
+
+  // Voorstel voor de omschrijving uit type en asset, zodat er altijd een
+  // leesbaar etiket staat -- ook nadat een asset ooit verwijderd wordt en de
+  // koppeling op null valt.
+  var voorstelOms=(type?type.naam:'')+(asset?' — '+asset.nummerplaat:'');
+  var omschrijving=prompt('Wat wordt er gekeurd?',voorstelOms);
   if(!omschrijving||!omschrijving.trim())return;
+
   var vervaldatum=prompt('Vervaldatum (JJJJ-MM-DD) — neem de datum die op het attest staat:');
   if(!vervaldatum)return;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(vervaldatum)){showToast('Vervaldatum moet het formaat JJJJ-MM-DD hebben.');return;}
-  var categorie=prompt('Categorie (optioneel, bv. "Periodieke keuring"):')||null;
+
   var aantalRuw=prompt('Aantal toestellen (optioneel):');
   var aantal=aantalRuw&&/^\d+$/.test(aantalRuw.trim())?parseInt(aantalRuw,10):null;
   var uitvoerder=prompt('Uitvoerder (optioneel, bv. "EDTC"):')||null;
-  var perRuw=prompt('Periodiciteit in maanden (optioneel, bv. 12 of 60):');
+
+  // Het interval komt uit het type, maar blijft overschrijfbaar: een klant met
+  // een strengere interne regel of een verzekeraar die vaker wil, komt voor.
+  var standaard=type&&type.standaard_periodiciteit_maanden?String(type.standaard_periodiciteit_maanden):'';
+  var perRuw=prompt('Periodiciteit in maanden:',standaard);
   var periodiciteit=perRuw&&/^\d+$/.test(perRuw.trim())?parseInt(perRuw,10):null;
+
   var laatste=prompt('Datum laatste keuring (JJJJ-MM-DD, optioneel):')||null;
   if(laatste&&!/^\d{4}-\d{2}-\d{2}$/.test(laatste)){showToast('Datum laatste keuring moet JJJJ-MM-DD zijn.');return;}
 
   sb.from('keuringen').insert({bedrijf_id:huidigeBedrijfId,omschrijving:omschrijving.trim(),
-    categorie:categorie,aantal:aantal,uitvoerder:uitvoerder,periodiciteit_maanden:periodiciteit,
+    keuring_type_id:type?type.id:null,voertuig_id:asset?asset.id:null,
+    aantal:aantal,uitvoerder:uitvoerder,periodiciteit_maanden:periodiciteit,
     laatste_keuring:laatste,vervaldatum:vervaldatum}).then(function(r){
       if(r.error){showToast('Fout: '+r.error.message);return;}
       laadKeuringen();
@@ -1927,6 +1995,7 @@ function laadKlanten(){
 // onder Instellingen i.p.v. onderaan de klantenlijst.
 function laadCodelijsten(){
   maakInklapbaar();
+  laadKeuringTypes(renderKeuringTypesTabel);
   laadSectorCodes(renderSectorCodesTabel);
   laadParitaireComites(renderParitaireComitesTabel);
   laadPakketten(renderPakkettenTabel);
@@ -1951,6 +2020,64 @@ function maakInklapbaar(){
     });
 
     kop.addEventListener('click',function(){kaart.classList.toggle('dicht');});
+  });
+}
+
+var alleKeuringTypes=[];
+
+function laadKeuringTypes(callback){
+  sb.from('keuring_types').select('*').order('volgorde').then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    alleKeuringTypes=r.data||[];
+    if(callback)callback();
+  });
+}
+
+function renderKeuringTypesTabel(){
+  document.getElementById('keuringTypesCount').textContent=alleKeuringTypes.length+' types';
+  var tbody=document.getElementById('keuringTypesTabel');
+  if(!alleKeuringTypes.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">Nog geen keuringstypes.</td></tr>';return;}
+  tbody.innerHTML='';
+  alleKeuringTypes.forEach(function(t){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+t.naam+'</td>'+
+      '<td><span class="badge '+(t.domein==='milieu'?'onvolledig':'rijklaar')+'">'+(t.domein==='milieu'?'Milieu':'Veiligheid')+'</span></td>'+
+      '<td>'+(t.wettelijke_basis||'-')+'</td>'+
+      '<td>'+(t.standaard_periodiciteit_maanden?t.standaard_periodiciteit_maanden+' mnd':'-')+'</td>'+
+      '<td><span class="badge '+(t.actief?'rijklaar':'niet_rijklaar')+'">'+(t.actief?'Actief':'Gearchiveerd')+'</span></td>'+
+      '<td><button class="btn-add-sm" onclick="toggleKeuringTypeActief(\''+t.id+'\','+(!t.actief)+')">'+(t.actief?'Archiveer':'Herstel')+'</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function nieuwKeuringType(){
+  var naam=prompt('Naam van het keuringstype:');
+  if(!naam||!naam.trim())return;
+  var domein=prompt('Domein — typ "veiligheid" of "milieu":','veiligheid');
+  if(!domein)return;
+  domein=domein.trim().toLowerCase();
+  if(domein!=='veiligheid'&&domein!=='milieu'){showToast('Domein moet "veiligheid" of "milieu" zijn.');return;}
+  var basis=prompt('Wettelijke basis (bv. AREI, VLAREM II, KB Arbeidsmiddelen):')||null;
+  var perRuw=prompt('Standaardinterval in maanden (optioneel, bv. 12):');
+  var per=perRuw&&/^\d+$/.test(perRuw.trim())?parseInt(perRuw,10):null;
+  sb.from('keuring_types').insert({naam:naam.trim(),domein:domein,wettelijke_basis:basis,
+    standaard_periodiciteit_maanden:per,volgorde:alleKeuringTypes.length*10}).then(function(r){
+      if(r.error){
+        if(r.error.code==='23505')showToast('Dit type bestaat al.');
+        else showToast('Fout: '+r.error.message);
+        return;
+      }
+      showToast('Keuringstype toegevoegd');
+      laadKeuringTypes(renderKeuringTypesTabel);
+    });
+}
+
+// Archiveren, nooit hard verwijderen: een type dat al aan keuringen hangt moet
+// leesbaar blijven nadat het uit de keuzelijst gehaald is.
+function toggleKeuringTypeActief(id,actief){
+  sb.from('keuring_types').update({actief:actief}).eq('id',id).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    laadKeuringTypes(renderKeuringTypesTabel);
   });
 }
 
