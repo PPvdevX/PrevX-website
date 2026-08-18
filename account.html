@@ -419,6 +419,26 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     </div>
 
 
+    <div id="tab-keuringen" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Keuringen</div>
+        <div class="page-subtitle">Wat wanneer vervalt, en wat er al verlopen is</div>
+      </div>
+      <div class="content-area">
+        <div id="keuringenNieuwKnop" style="margin-bottom:14px;display:none">
+          <button class="btn-add-sm" onclick="nieuweKeuring()">+ Nieuwe keuring</button>
+        </div>
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">Vervalkalender</span>
+            <span class="table-count" id="keuringenCount">0</span>
+          </div>
+          <table><thead><tr><th>Omschrijving</th><th>Aantal</th><th>Uitvoerder</th><th>Laatste keuring</th><th>Vervaldatum</th><th>Status</th><th></th></tr></thead>
+          <tbody id="keuringenTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+
     <div id="tab-documenten" style="display:none">
       <div class="page-header">
         <div class="page-title">Documenten</div>
@@ -1022,6 +1042,7 @@ var MENU=[
     {key:'actiepunten',naam:'Actiepunten',module:'actiepunten',laad:function(){laadActiepunten();}},
     {key:'documenten',naam:'Documenten',module:'documenten',laad:function(){laadDocumenten();}},
     {key:'planning',naam:'Planning',module:'planning',laad:function(){laadPlanning();}},
+    {key:'keuringen',naam:'Keuringen',module:'planning',laad:function(){laadKeuringen();}},
     {key:'kennisbank',naam:'Kennisbank',module:'kennisbank',laad:function(){laadKennisbank();}}
   ]},
   {groep:'Pre-inspectie',icoon:'inspecties',module:'preinspecties',items:[
@@ -1355,6 +1376,112 @@ function verversPriveMedia(root){
 if(window.MutationObserver){
   new MutationObserver(function(){verversPriveMedia();})
     .observe(document.documentElement,{childList:true,subtree:true});
+}
+
+// ---------------------------------------------------------------------------
+// Keuringen (vervalkalender)
+// ---------------------------------------------------------------------------
+// Verschil met Planning: planning gaat over een afspraak óp een datum, een
+// keuring over iets dat geldig is tót een datum. Vandaar de sortering op
+// vervaldatum en niet op aanmaakdatum -- wat het eerst vervalt, staat bovenaan.
+
+function laadKeuringen(){
+  if(!huidigeBedrijfId)return;
+  document.getElementById('keuringenNieuwKnop').style.display=isSuperbeheerder?'':'none';
+  sb.from('keuringen').select('*').eq('bedrijf_id',huidigeBedrijfId).eq('actief',true)
+    .order('vervaldatum',{ascending:true}).then(function(r){
+      if(r.error){showToast('Fout: '+r.error.message);return;}
+      renderKeuringen(r.data||[]);
+    });
+}
+
+// Eén plaats die bepaalt hoe dringend iets is. Het klantgezicht gaat dit
+// hergebruiken, en twee verschillende berekeningen van "verlopen" is precies
+// hoe je een dossier krijgt dat zichzelf tegenspreekt.
+// toISOString() zet om naar UTC. Op middernacht lokale tijd levert dat in
+// onze tijdzone de dag ervóór op, dus een voorgestelde vervaldatum van
+// 2027-08-18 werd 2027-08-17. Eén dag lijkt niets, tot een attest daardoor een
+// dag te vroeg als verlopen staat.
+function datumTekst(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function keuringStand(vervaldatum){
+  var vandaag=new Date(); vandaag.setHours(0,0,0,0);
+  var verval=new Date(vervaldatum+'T00:00:00');
+  var dagen=Math.round((verval-vandaag)/86400000);
+  if(dagen<0)return {dagen:dagen,badge:'niet_rijklaar',tekst:'verlopen sinds '+formatDatum(vervaldatum)};
+  if(dagen===0)return {dagen:0,badge:'niet_rijklaar',tekst:'verloopt vandaag'};
+  if(dagen<=30)return {dagen:dagen,badge:'niet_rijklaar',tekst:'verloopt over '+dagen+' d'};
+  if(dagen<=90)return {dagen:dagen,badge:'onvolledig',tekst:'verloopt over '+dagen+' d'};
+  return {dagen:dagen,badge:'rijklaar',tekst:'in orde tot '+formatDatum(vervaldatum)};
+}
+
+function renderKeuringen(data){
+  document.getElementById('keuringenCount').textContent=data.length+' keuringen';
+  var tbody=document.getElementById('keuringenTabel');
+  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nog geen keuringen vastgelegd.</td></tr>';return;}
+  tbody.innerHTML='';
+  data.forEach(function(k){
+    var st=keuringStand(k.vervaldatum);
+    var tr=document.createElement('tr');
+    var actie=isSuperbeheerder
+      ? '<button class="btn-add-sm" onclick="keuringUitgevoerd(\''+k.id+'\','+(k.periodiciteit_maanden||'null')+')">Keuring uitgevoerd</button>'
+      : '-';
+    tr.innerHTML='<td>'+k.omschrijving+(k.categorie?'<div style="font-size:11px;color:var(--gray-500)">'+k.categorie+'</div>':'')+'</td>'+
+      '<td>'+(k.aantal||'-')+'</td><td>'+(k.uitvoerder||'-')+'</td>'+
+      '<td>'+(k.laatste_keuring?formatDatum(k.laatste_keuring):'-')+'</td>'+
+      '<td>'+formatDatum(k.vervaldatum)+'</td>'+
+      '<td><span class="badge '+st.badge+'">'+st.tekst+'</span></td>'+
+      '<td>'+actie+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function nieuweKeuring(){
+  if(!huidigeBedrijfId)return;
+  var omschrijving=prompt('Wat wordt gekeurd? (bv. "Keuring heftrucks")');
+  if(!omschrijving||!omschrijving.trim())return;
+  var vervaldatum=prompt('Vervaldatum (JJJJ-MM-DD) — neem de datum die op het attest staat:');
+  if(!vervaldatum)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(vervaldatum)){showToast('Vervaldatum moet het formaat JJJJ-MM-DD hebben.');return;}
+  var categorie=prompt('Categorie (optioneel, bv. "Periodieke keuring"):')||null;
+  var aantalRuw=prompt('Aantal toestellen (optioneel):');
+  var aantal=aantalRuw&&/^\d+$/.test(aantalRuw.trim())?parseInt(aantalRuw,10):null;
+  var uitvoerder=prompt('Uitvoerder (optioneel, bv. "EDTC"):')||null;
+  var perRuw=prompt('Periodiciteit in maanden (optioneel, bv. 12 of 60):');
+  var periodiciteit=perRuw&&/^\d+$/.test(perRuw.trim())?parseInt(perRuw,10):null;
+  var laatste=prompt('Datum laatste keuring (JJJJ-MM-DD, optioneel):')||null;
+  if(laatste&&!/^\d{4}-\d{2}-\d{2}$/.test(laatste)){showToast('Datum laatste keuring moet JJJJ-MM-DD zijn.');return;}
+
+  sb.from('keuringen').insert({bedrijf_id:huidigeBedrijfId,omschrijving:omschrijving.trim(),
+    categorie:categorie,aantal:aantal,uitvoerder:uitvoerder,periodiciteit_maanden:periodiciteit,
+    laatste_keuring:laatste,vervaldatum:vervaldatum}).then(function(r){
+      if(r.error){showToast('Fout: '+r.error.message);return;}
+      laadKeuringen();
+    });
+}
+
+// De nieuwe vervaldatum wordt VOORGESTELD uit de periodiciteit, niet opgelegd.
+// Op het attest staat een geldigheidsdatum en die valt lang niet altijd samen
+// met de rekensom; het papier is het bewijsstuk, de rekensom een hulpje.
+function keuringUitgevoerd(id,periodiciteit){
+  var uitgevoerd=prompt('Datum van de uitgevoerde keuring (JJJJ-MM-DD):',datumTekst(new Date()));
+  if(!uitgevoerd)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(uitgevoerd)){showToast('Datum moet JJJJ-MM-DD zijn.');return;}
+  var voorstel='';
+  if(periodiciteit){
+    var d=new Date(uitgevoerd+'T00:00:00');
+    d.setMonth(d.getMonth()+periodiciteit);
+    voorstel=datumTekst(d);
+  }
+  var verval=prompt('Nieuwe vervaldatum (JJJJ-MM-DD) — controleer dit tegen het attest:',voorstel);
+  if(!verval)return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(verval)){showToast('Vervaldatum moet JJJJ-MM-DD zijn.');return;}
+  sb.from('keuringen').update({laatste_keuring:uitgevoerd,vervaldatum:verval}).eq('id',id).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    laadKeuringen();
+  });
 }
 
 function laadActiepunten(){
@@ -2311,7 +2438,7 @@ function laadInspecties(){
 }
 
 function updateStats(){
-  var vandaag=new Date().toISOString().split('T')[0];
+  var vandaag=datumTekst(new Date());
   document.getElementById('statTotaal').textContent=alleInspecties.length;
   document.getElementById('statRijklaar').textContent=alleInspecties.filter(function(i){return i.verdict==='rijklaar';}).length;
   document.getElementById('statNietRijklaar').textContent=alleInspecties.filter(function(i){return i.verdict==='niet_rijklaar';}).length;
@@ -3934,7 +4061,7 @@ function verplaatsKpi(key,richting){
 }
 
 function berekenChauffeurDekking(chauffeurs,inspecties,resultaten,maandStart,maandEind){
-  var vandaag=new Date().toISOString().slice(0,10);
+  var vandaag=datumTekst(new Date());
   var effectiefEind=maandEind<vandaag?maandEind:vandaag;
   if(effectiefEind<maandStart)effectiefEind=maandStart;
   var werkdagen=telWerkdagen(maandStart,effectiefEind);
