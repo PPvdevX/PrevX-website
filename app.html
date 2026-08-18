@@ -910,6 +910,60 @@ function regelPush(pin, klaar) {
 }
 
 // ---------------------------------------------------------------------------
+// Uitloggen
+// ---------------------------------------------------------------------------
+// Ontbrak volledig. Dat viel lang niet op omdat de app na een herstart toch
+// weer op het inlogscherm begint -- behalve wanneer er een inspectie
+// openstaat: die wordt mét de gebruiker tot 12 uur in localStorage bewaard
+// (zie slaVoortgangOp). Op een gedeeld toestel kon de volgende persoon dus in
+// de sessie van zijn voorganger belanden en tekenen onder diens naam. Voor een
+// systeem dat een bewijsdossier moet opleveren is dat het ergste soort fout:
+// het dossier klopt dan wel, maar het wijst de verkeerde aan.
+
+function uitloggen() {
+  var openstaand = false;
+  try { openstaand = !!localStorage.getItem(VOORTGANG_KEY); } catch (e) {}
+  if (openstaand || (voertuig && Object.keys(resultaten || {}).length)) {
+    if (!confirm('Je hebt een inspectie openstaan die nog niet verzonden is. Die gaat verloren als je uitlogt.\n\nToch uitloggen?')) return;
+  }
+
+  // Het abonnement opzeggen hoort bij het uitloggen: anders blijven de
+  // herinneringen van deze persoon binnenkomen op een toestel dat hij net aan
+  // een collega heeft doorgegeven. Logt hij later zelf weer in, dan wordt het
+  // stil hersteld (regelPush bij 'granted').
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    navigator.serviceWorker.ready.then(function(reg) {
+      return reg.pushManager.getSubscription();
+    }).then(function(abo) {
+      if (!abo) return null;
+      var endpoint = abo.endpoint;
+      return abo.unsubscribe().then(function() {
+        return sb.rpc('rpc_push_afmelden', { p_endpoint: endpoint });
+      });
+    }).catch(function(e) { console.error('Push opzeggen bij uitloggen mislukt:', e); });
+  }
+
+  stopPolling();
+  wisVoortgang();
+  gebruiker = null;
+  voertuig = null;
+  resultaten = {};
+  gestartOp = null;
+  beschikbareModules = [];
+  vvHuidigeVergunning = null;
+  vvWerktype = null;
+  vvVragenLijst = [];
+  vvAntwoorden = {};
+  pin = '';
+  updatePinDisplay();
+  document.getElementById('loginError').style.display = 'none';
+
+  // De klantcode blijft staan: die hoort bij het toestel en bij de klant, niet
+  // bij de persoon. Wie van bedrijf wisselt, gebruikt "Ander bedrijf".
+  toonStartscherm();
+}
+
+// ---------------------------------------------------------------------------
 // Meldingenscherm: de stand bekijken en alsnog aan- of uitzetten
 // ---------------------------------------------------------------------------
 // Nodig omdat een browser maar één keer toestemming vraagt. Wie bij het
@@ -920,8 +974,9 @@ function regelPush(pin, klaar) {
 var meldingenTerug = null;
 
 function meldingenLink() {
-  if (!('Notification' in window)) return '';
-  return '<button class="pincode-wijzig-link" onclick="openMeldingen()">Meldingen</button>';
+  var uit = '<button class="pincode-wijzig-link" onclick="uitloggen()">Uitloggen</button>';
+  if (!('Notification' in window)) return uit;
+  return '<button class="pincode-wijzig-link" onclick="openMeldingen()">Meldingen</button>' + uit;
 }
 
 function openMeldingen() {
