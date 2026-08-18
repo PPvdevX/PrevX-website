@@ -844,6 +844,21 @@ function toonModules(modules) {
 // nooit.
 var VAPID_PUBLIEKE_SLEUTEL = 'BPa6Vdafb0L0V8IJ4MzREOHD6vVeSD7caQ4FBXNiEtPICBvzGdZ948J6BPgQaiv3Rehm8jTqOWnt2HvNge4LeHM';
 var PUSH_GEVRAAGD_KEY = 'prevx_push_gevraagd';
+// De browsertoestemming en de keuze van de gebruiker zijn twee verschillende
+// dingen. "Uitzetten" in de app zegt het abonnement op, maar de toestemming
+// blijft staan -- die kan een website niet intrekken. Zonder deze vlag zou de
+// stille herinschrijving bij het inloggen die keuze meteen weer ongedaan maken.
+var PUSH_UIT_KEY = 'prevx_push_uit';
+
+function pushUitgezet() {
+  try { return localStorage.getItem(PUSH_UIT_KEY) === '1'; } catch (e) { return false; }
+}
+function onthoudPushKeuze(uit) {
+  try {
+    if (uit) localStorage.setItem(PUSH_UIT_KEY, '1');
+    else localStorage.removeItem(PUSH_UIT_KEY);
+  } catch (e) {}
+}
 
 function pushMogelijk() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return false;
@@ -900,10 +915,13 @@ function regelPush(pin, klaar) {
   if (!pin || !pushMogelijk()) { klaar(); return; }
 
   if (Notification.permission === 'granted') {
-    // Stil bijwerken. Bij een herinstallatie is het abonnement op dit toestel
-    // nieuw terwijl de toestemming al gegeven was; zonder dit zou de gebruiker
+    // Stil bijwerken -- maar alleen als de gebruiker het niet zelf heeft
+    // uitgezet. Bij een herinstallatie is het abonnement op dit toestel nieuw
+    // terwijl de toestemming al gegeven was; zonder die herinschrijving zou hij
     // denken dat meldingen aanstaan terwijl de server hem niet kent.
-    zetPushAan(pin).catch(function(e) { console.error('Push bijwerken mislukt:', e); });
+    if (!pushUitgezet()) {
+      zetPushAan(pin).catch(function(e) { console.error('Push bijwerken mislukt:', e); });
+    }
     klaar();
     return;
   }
@@ -1010,8 +1028,8 @@ function tekenActies(containerId) {
 // meldingen aanstaan. Dat is precies de vraag die iemand hier heeft.
 function meldingenStand() {
   if (!pushMogelijk()) return 'niet beschikbaar';
-  if (Notification.permission === 'granted') return 'aan';
   if (Notification.permission === 'denied') return 'geweigerd';
+  if (Notification.permission === 'granted' && !pushUitgezet()) return 'aan';
   return 'uit';
 }
 
@@ -1038,9 +1056,17 @@ function tekenMeldingen() {
     return;
   }
 
-  if (Notification.permission === 'granted') {
+  if (Notification.permission === 'granted' && !pushUitgezet()) {
     el.innerHTML = '<p style="' + p + '">Meldingen staan <strong>aan</strong> op dit toestel.</p>' +
       '<button class="pincode-wijzig-link" onclick="zetMeldingenUit()">Meldingen uitzetten op dit toestel</button>';
+    return;
+  }
+
+  // Toestemming is er nog, maar de gebruiker heeft ze zelf uitgezet. Dan hoeft
+  // hij niets opnieuw toe te staan -- enkel opnieuw aan te melden.
+  if (Notification.permission === 'granted') {
+    el.innerHTML = '<p style="' + p + '">Meldingen staan <strong>uit</strong>. Je hebt ze zelf uitgezet op dit toestel.</p>' +
+      '<button class="btn-primair" style="width:100%" onclick="zetMeldingenAanVanuitScherm()">Meldingen weer aanzetten</button>';
     return;
   }
 
@@ -1069,6 +1095,7 @@ function zetMeldingenAanVanuitScherm() {
   Notification.requestPermission().then(function(keuze) {
     if (keuze !== 'granted') { tekenMeldingen(); return; }
     return zetPushAan(pin).then(function() {
+      onthoudPushKeuze(false);
       showToast('Meldingen staan aan.');
       tekenMeldingen();
     });
@@ -1090,7 +1117,9 @@ function zetMeldingenUit() {
     });
   }).then(function() {
     // De toestemming zelf blijft staan -- die kan een website niet intrekken.
-    // Wat we wel doen is het abonnement opzeggen, zodat er niets meer vertrekt.
+    // Wat we wel doen is het abonnement opzeggen én de keuze onthouden, zodat
+    // de herinschrijving bij het volgende inloggen ze niet overrijdt.
+    onthoudPushKeuze(true);
     showToast('Er worden geen meldingen meer verstuurd naar dit toestel.');
     tekenMeldingen();
   }).catch(function(e) {
@@ -1121,6 +1150,7 @@ function toonPushVraag(pin, klaar) {
       if (keuze !== 'granted') { onthoudGevraagd(); klaar(); return; }
       return zetPushAan(pin).then(function() {
         onthoudGevraagd();
+        onthoudPushKeuze(false);
         showToast('Meldingen staan aan.');
         klaar();
       });
