@@ -101,7 +101,15 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .filter-input:focus{outline:none;border-color:var(--navy)}
 .btn-reset{padding:7px 14px;background:var(--gray-100);border:2px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;white-space:nowrap}
 .btn-reset:hover{border-color:var(--gray-400);color:var(--gray-700)}
-.table-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--gray-300);overflow:hidden}
+/* overflow-x:auto i.p.v. hidden. Een brede tabel -- Gebruikers heeft acht
+   kolommen -- werd bij een smaller venster gewoon afgesneden: Status en de
+   knop erachter waren niet zichtbaar en ook niet te bereiken, want hidden
+   laat niet schuiven. Nu schuift de kaart zijwaarts zodra het niet past. */
+.table-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--gray-300);overflow-x:auto}
+/* De kopbalk draagt zelf knoppen (Nieuwe gebruiker, Sjabloon, Bulk importeren).
+   Zonder max-content worden die bij een smalle kaart platgedrukt of
+   afgesneden in plaats van bereikbaar via dezelfde zijwaartse schuif. */
+.table-card > .table-header{min-width:max-content}
 /* Inklapbare kaart: klik op de kop vouwt alles eronder weg. Gebruikt op de
    Codelijsten-tab, waar drie tabellen onder elkaar staan en je er meestal maar
    één nodig hebt. */
