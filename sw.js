@@ -8,7 +8,7 @@
 // starten daar nog en worden door een doorverwijzing naar /app gestuurd. Ze
 // mogen pas weg wanneer niemand nog een oude installatie heeft.
 
-var CACHE_NAME = 'prevx-app-v4';
+var CACHE_NAME = 'prevx-app-v5';
 var APP_SHELL = ['/app', '/app.html', '/pre-insp', '/pre-insp.html', '/manifest.json', '/Logo-PrevX.png'];
 
 self.addEventListener('install', function (event) {
@@ -37,8 +37,12 @@ self.addEventListener('fetch', function (event) {
   // Netwerk-eerst, cache enkel als offline-terugval -- anders blijft een
   // geïnstalleerde PWA na elke update van app.html de oude versie tonen
   // tot een tweede herlaad (precies de bug die dit moest oplossen).
+  // cache:'no-store' erbij: zonder dat gaat deze fetch alsnog door de
+  // HTTP-cache van de browser, die een oude kopie kan teruggeven. Dan is
+  // "netwerk-eerst" maar de helft waar en blijft een geinstalleerde app na een
+  // uitrol de vorige versie tonen -- precies de fout die dit moest oplossen.
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then(function (resp) {
         caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, resp.clone()); });
         return resp;
