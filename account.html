@@ -15,7 +15,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--gray-900)
 h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex;flex-direction:column}
-/* Zelfde vormtaal als de chauffeurs-app: volvlak navy, geen witte kaart,
+/* Zelfde vormtaal als de preventie-app: volvlak navy, geen witte kaart,
    omlijnde velden op een doorzichtige achtergrond. */
 #screen-login,#screen-nieuwwachtwoord,#screen-geenkoppeling{background:var(--navy);align-items:center;justify-content:flex-start;padding:40px 20px;overflow-y:auto}
 .login-box{background:transparent;padding:0;width:100%;max-width:340px}
@@ -877,14 +877,14 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     <div id="tab-gebruikers" style="display:none">
       <div class="page-header">
         <div class="page-title">Gebruikers</div>
-        <div class="page-subtitle">Chauffeurs, leidinggevenden en preventieadviseurs</div>
+        <div class="page-subtitle">Wie toegang heeft tot de preventie-app en het dossier</div>
       </div>
       <div class="content-area">
         <div class="table-card" style="margin-bottom:20px;padding:14px 22px">
-          <span style="font-size:13px;color:var(--gray-700)">Code van dit bedrijf voor de chauffeurs-app:
+          <span style="font-size:13px;color:var(--gray-700)">Code van dit bedrijf voor de preventie-app:
             <code id="gebruikersKlantcode" style="font-family:monospace;font-size:15px;letter-spacing:2px;background:var(--gray-100);padding:4px 10px;border-radius:5px;margin-left:6px">—</code>
           </span>
-          <div style="font-size:11px;color:var(--gray-500);margin-top:6px">Een chauffeur voert deze code één keer in op zijn toestel, daarna enkel nog zijn pincode.</div>
+          <div style="font-size:11px;color:var(--gray-500);margin-top:6px">Een gebruiker voert deze code één keer in op zijn toestel, daarna enkel nog zijn pincode.</div>
         </div>
         <div class="table-card">
           <div class="table-header"><span class="table-title">Gebruikers</span>
@@ -1004,7 +1004,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
           <div id="rapportDefectenLijst" style="text-align:center;padding:40px;color:var(--gray-400)"><div class="spinner-sm"></div>Laden...</div>
         </div>
         <div class="table-card" style="margin-bottom:20px">
-          <div class="table-header"><span class="table-title">Chauffeurs-activiteit</span><span class="table-count" id="rapportChauffeursCount">0</span></div>
+          <div class="table-header"><span class="table-title">Activiteit per gebruiker</span><span class="table-count" id="rapportChauffeursCount">0</span></div>
           <table><thead><tr><th>Chauffeur</th><th>Werkdagen</th><th>Inspecties ingediend</th><th>Dekking</th><th>NOK</th><th>Opmerkingen</th></tr></thead>
           <tbody id="rapportChauffeursTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
@@ -3068,7 +3068,7 @@ function renderDetail(ins,resultaten){
   html+='<div class="detail-meta"><div class="detail-meta-item"><div class="detail-meta-label">Asset</div><div class="detail-meta-value">'+(ins.voertuigen?ins.voertuigen.nummerplaat:'-')+'</div></div>';
   var detailType=ins.voertuigen?(ins.voertuigen.voertuig_types?ins.voertuigen.voertuig_types.naam:ins.voertuigen.type):'-';
   html+='<div class="detail-meta-item"><div class="detail-meta-label">Type</div><div class="detail-meta-value">'+detailType+'</div></div>';
-  html+='<div class="detail-meta-item"><div class="detail-meta-label">Chauffeur</div><div class="detail-meta-value">'+(ins.gebruikers?ins.gebruikers.naam:'-')+'</div></div>';
+  html+='<div class="detail-meta-item"><div class="detail-meta-label">Uitgevoerd door</div><div class="detail-meta-value">'+(ins.gebruikers?ins.gebruikers.naam:'-')+'</div></div>';
   html+='<div class="detail-meta-item"><div class="detail-meta-label">Datum &amp; tijd</div><div class="detail-meta-value">'+formatDatum(ins.datum)+' '+(ins.tijdstip?ins.tijdstip.slice(0,5):'')+'</div></div></div>';
   html+='<div class="detail-stats"><div class="detail-stat ok"><div class="detail-stat-n">'+ok+'</div><div class="detail-stat-l">JA</div></div><div class="detail-stat nok"><div class="detail-stat-n">'+nok+'</div><div class="detail-stat-l">NEE</div></div><div class="detail-stat open"><div class="detail-stat-n">'+open+'</div><div class="detail-stat-l">Open</div></div></div>';
   sectieArr.forEach(function(s){
@@ -3086,7 +3086,7 @@ function renderDetail(ins,resultaten){
     });
     html+='</div>';
   });
-  if(ins.handtekening)html+='<div class="sig-sectie"><div class="sig-label">Handtekening chauffeur</div><img class="sig-img" data-prive-src="'+ins.handtekening+'" alt="Handtekening"></div>';
+  if(ins.handtekening)html+='<div class="sig-sectie"><div class="sig-label">Handtekening uitvoerder</div><img class="sig-img" data-prive-src="'+ins.handtekening+'" alt="Handtekening"></div>';
   document.getElementById('detailBody').innerHTML=html;
 }
 
@@ -3450,7 +3450,7 @@ function nieuweGebruiker(){
     showToast('Ongeldige rol. Gebruik: chauffeur, leidinggevende, preventieadviseur of beheerder.');
     return;
   }
-  var pincode=prompt('Pincode (4 cijfers, voor inloggen in de chauffeurs-app):');
+  var pincode=prompt('Pincode (4 cijfers, voor inloggen in de preventie-app):');
   if(!pincode||!/^\d{4}$/.test(pincode.trim())){
     showToast('Pincode moet exact 4 cijfers zijn.');
     return;
@@ -3572,7 +3572,7 @@ function laadGebruikers(){
 
 function beheerVoertuigToewijzing(gebruikerId,naam){
   document.getElementById('detailTitel').textContent='Assets — '+naam;
-  document.getElementById('detailSub').textContent='Enkel aangevinkte assets zijn zichtbaar voor deze chauffeur';
+  document.getElementById('detailSub').textContent='Enkel aangevinkte assets zijn zichtbaar voor deze gebruiker';
   document.getElementById('detailBody').innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-400)"><div class="spinner-sm"></div>Laden...</div>';
   document.getElementById('detailOverlay').classList.add('active');
   document.getElementById('detailPrintKnop').style.display='none';
@@ -4433,7 +4433,7 @@ function renderRapportages(ctx){
 // Kleur verwijst naar de bestaande .stat-card-varianten.
 var KPI_CATALOGUS=[
   {key:'inspecties_totaal',label:'Inspecties deze maand',kleur:'totaal',bereken:function(d){return d.inspecties.length;}},
-  {key:'dekking_gemiddeld',label:'Chauffeursdekking',kleur:'rijklaar',bereken:function(d){
+  {key:'dekking_gemiddeld',label:'Dekking per gebruiker',kleur:'rijklaar',bereken:function(d){
     if(!d.dekkingArr.length)return '-';
     return Math.round(d.dekkingArr.reduce(function(s,c){return s+c.dekkingPct;},0)/d.dekkingArr.length)+'%';
   }},
@@ -4456,7 +4456,7 @@ var KPI_CATALOGUS=[
     var ok=d.inspecties.filter(function(i){return i.verdict==='rijklaar';}).length;
     return Math.round(ok/d.inspecties.length*100)+'%';
   }},
-  {key:'actieve_chauffeurs',label:'Chauffeurs actief',kleur:'totaal',bereken:function(d){
+  {key:'actieve_chauffeurs',label:'Gebruikers actief',kleur:'totaal',bereken:function(d){
     return d.dekkingArr.filter(function(c){return c.ingediend>0;}).length;
   }},
   {key:'voertuigen_geinspecteerd',label:'Assets gecontroleerd',kleur:'totaal',bereken:function(d){
@@ -4645,7 +4645,7 @@ function berekenChauffeurDekking(chauffeurs,inspecties,resultaten,maandStart,maa
 function renderChauffeursActiviteit(dekkingArr){
   document.getElementById('rapportChauffeursCount').textContent=dekkingArr.length;
   var tbody=document.getElementById('rapportChauffeursTabel');
-  if(!dekkingArr.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">Geen actieve chauffeurs.</td></tr>';return;}
+  if(!dekkingArr.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">Geen actieve gebruikers.</td></tr>';return;}
   tbody.innerHTML=dekkingArr.map(function(c){
     var badgeClass=c.dekkingPct>=90?'rijklaar':c.dekkingPct>=50?'onvolledig':'niet_rijklaar';
     return '<tr><td>'+c.naam+'</td><td>'+c.werkdagen+'</td><td>'+c.ingediend+'</td>'+
