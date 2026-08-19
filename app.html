@@ -47,6 +47,13 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .app-header { background: var(--navy); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .app-header-logo { display: flex; align-items: center; gap: 10px; }
 .logo-name { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px; color: var(--on-navy); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+/* De moduletitel stond naast het logo en concurreerde daar met het merk: op een
+   smal scherm lees je "PrevX NIEUWE AANVRAAG" als een geheel, en de naam van de
+   gebruiker ernaast verdringt allebei. Hij staat nu op een eigen strook onder de
+   kopbalk -- zodat het als context leest en niet als merknaam. De schermen die
+   nog geen module gekozen hebben (klantcode, login, modulekeuze) houden gewoon
+   "PrevX" naast het logo staan; daar is het wel de merknaam. */
+.module-balk { background: rgba(255,255,255,.10); color: var(--on-navy); padding: 7px 20px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
 .header-user { font-size: 12px; color: var(--gray-400); text-align: right; }
 .header-user strong { color: var(--on-navy); display: block; font-size: 13px; }
 .scherm-acties { margin-top: 28px; border-top: 1px solid var(--gray-200); padding-top: 6px; }
@@ -325,10 +332,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="app-header">
     <div class="app-header-logo">
       <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
-      <div class="logo-name">Pre-inspectie</div>
     </div>
     <div class="header-user" id="headerUser"></div>
   </div>
+  <div class="module-balk">Pre-inspectie</div>
   <div class="screen-content">
     <h2 class="screen-title">Kies uw asset</h2>
     <div class="voertuig-grid" id="voertuigGrid">
@@ -342,10 +349,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="app-header">
     <div class="app-header-logo">
       <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
-      <div class="logo-name">Pre-inspectie</div>
     </div>
     <div class="header-user" id="headerUser2"></div>
   </div>
+  <div class="module-balk">Pre-inspectie</div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="stap-tabs" id="stapTabs"></div>
   <div style="flex:1;overflow-y:auto;padding-bottom:80px;">
@@ -363,10 +370,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="app-header">
     <div class="app-header-logo">
       <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
-      <div class="logo-name">Pre-inspectie</div>
     </div>
     <div class="header-user" id="headerUser3"></div>
   </div>
+  <div class="module-balk">Pre-inspectie</div>
   <div style="flex:1;overflow-y:auto;padding-bottom:80px;">
     <div id="verdictBox"></div>
     <div class="stats-row">
@@ -395,10 +402,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="app-header">
     <div class="app-header-logo">
       <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
-      <div class="logo-name">Vuurvergunning</div>
     </div>
     <div class="header-user" id="headerUserVv"></div>
   </div>
+  <div class="module-balk">Vuurvergunning</div>
   <div class="screen-content">
     <button class="btn-primair" onclick="startNieuweVergunning()">+ Nieuwe aanvraag</button>
     <h2 class="screen-title" style="margin-top:22px">Lopende vergunningen</h2>
@@ -411,10 +418,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="app-header">
     <div class="app-header-logo">
       <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
-      <div class="logo-name">Nieuwe aanvraag</div>
     </div>
     <div class="header-user" id="headerUserVvNieuw"></div>
   </div>
+  <div class="module-balk">Nieuwe aanvraag</div>
   <div style="flex:1;overflow-y:auto;padding-bottom:90px">
     <div class="screen-content">
       <div id="vvStapWerktype">
@@ -460,10 +467,10 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="app-header">
     <div class="app-header-logo">
       <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
-      <div class="logo-name" id="vvDetailNummer">Vergunning</div>
     </div>
     <div class="header-user" id="headerUserVvDetail"></div>
   </div>
+  <div class="module-balk" id="vvDetailNummer">Vergunning</div>
   <div style="flex:1;overflow-y:auto;padding-bottom:90px">
     <div class="screen-content" id="vvDetailInhoud"></div>
   </div>
