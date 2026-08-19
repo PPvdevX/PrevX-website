@@ -2344,11 +2344,15 @@ function wijzigPincode() {
     });
 }
 
+// Niveaus in plaats van functietitels: een titel betekent bij de ene klant iets
+// anders dan bij de andere -- "chauffeur" klopt niet in een magazijn. Een klant
+// kan er in het portaal een eigen naam voor zetten (rol_label); dit is wat er
+// staat zolang hij dat niet doet. De sleutels blijven de rollen uit de databank.
 var STANDAARD_ROL_LABELS = {
-  chauffeur: 'Chauffeur',
-  leidinggevende: 'Leidinggevende',
-  preventieadviseur: 'Preventieadviseur',
-  beheerder: 'Beheerder'
+  beheerder: 'Niveau 1',
+  preventieadviseur: 'Niveau 2',
+  leidinggevende: 'Niveau 3',
+  chauffeur: 'Niveau 4'
 };
 
 function laadVoertuigen() {

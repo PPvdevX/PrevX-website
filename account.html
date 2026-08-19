@@ -1181,22 +1181,22 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
         <div class="table-card" style="max-width:480px;margin-top:24px">
           <div class="table-header"><span class="table-title">Rol-benamingen</span></div>
           <div style="padding:20px">
-            <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px">Optioneel: toon andere namen voor de vaste rollen bij dit bedrijf (bv. "Bestuurder" i.p.v. "Chauffeur"). Leeg = standaardnaam. De rol zelf blijft functioneel ongewijzigd.</p>
+            <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px">Optioneel: toon een eigen naam voor een niveau bij dit bedrijf (bv. "Ploegbaas" i.p.v. "Niveau 3"). Leeg = de standaardnaam. Het niveau zelf blijft functioneel ongewijzigd.</p>
             <div class="form-group">
-              <label class="form-label">Chauffeur</label>
-              <input type="text" class="form-input" id="rolLabelChauffeur" placeholder="Chauffeur">
+              <label class="form-label">Niveau 1 &mdash; beheer</label>
+              <input type="text" class="form-input" id="rolLabelBeheerder" placeholder="Niveau 1">
             </div>
             <div class="form-group">
-              <label class="form-label">Leidinggevende</label>
-              <input type="text" class="form-input" id="rolLabelLeidinggevende" placeholder="Leidinggevende">
+              <label class="form-label">Niveau 2 &mdash; preventie</label>
+              <input type="text" class="form-input" id="rolLabelPreventieadviseur" placeholder="Niveau 2">
             </div>
             <div class="form-group">
-              <label class="form-label">Preventieadviseur</label>
-              <input type="text" class="form-input" id="rolLabelPreventieadviseur" placeholder="Preventieadviseur">
+              <label class="form-label">Niveau 3 &mdash; toezicht</label>
+              <input type="text" class="form-input" id="rolLabelLeidinggevende" placeholder="Niveau 3">
             </div>
             <div class="form-group">
-              <label class="form-label">Beheerder</label>
-              <input type="text" class="form-input" id="rolLabelBeheerder" placeholder="Beheerder">
+              <label class="form-label">Niveau 4 &mdash; uitvoering</label>
+              <input type="text" class="form-input" id="rolLabelChauffeur" placeholder="Niveau 4">
             </div>
             <button class="btn-login" style="margin-top:4px" onclick="opslaanRolLabels()">Opslaan</button>
           </div>
@@ -3724,8 +3724,10 @@ function downloadCsvBestand(bestandsnaam,regels){
 }
 
 function downloadGebruikersSjabloon(){
-  alert('Rol moet exact een van deze zijn: chauffeur, leidinggevende, preventieadviseur of beheerder. Pincode = 4 cijfers. E-mail is optioneel.');
-  downloadCsvBestand('gebruikers-sjabloon.csv',['Naam,Rol,Pincode,E-mail','Jan Peeters,chauffeur,1234,']);
+  alert('In de kolom Niveau mag staan:\n\n'+niveauKeuzeTekst()+
+    '\n\nDe oude benamingen (beheerder, preventieadviseur, leidinggevende, chauffeur) blijven ook werken.'+
+    '\n\nPincode = 4 cijfers. E-mail is optioneel.');
+  downloadCsvBestand('gebruikers-sjabloon.csv',['Naam,Niveau,Pincode,E-mail','Jan Peeters,4,1234,']);
 }
 
 function downloadBedrijfsmiddelenSjabloon(){
@@ -3800,7 +3802,6 @@ function bevestigImport(type){
 function importGebruikersBestand(input){
   leesGeuploadBestand(input,function(rows){
     if(!rows.length){showToast('Geen rijen gevonden in het bestand.');return;}
-    var geldigeRollen=['chauffeur','leidinggevende','preventieadviseur','beheerder'];
     var gebruiktInBestand={};
     var voorlopig=rows.map(function(row){
       var naam=String(row.Naam||'').trim();
@@ -3809,7 +3810,7 @@ function importGebruikersBestand(input){
       var email=String(row['E-mail']||'').trim();
       var fout=null;
       if(!naam)fout='Naam ontbreekt';
-      else if(geldigeRollen.indexOf(rol)===-1)fout='Ongeldige rol: "'+rol+'"';
+      else if(!rolUitInvoer(rol))fout='Onbekend niveau: "'+rol+'"';
       else if(!/^\d{4}$/.test(pincode))fout='Pincode moet 4 cijfers zijn';
       else if(gebruiktInBestand[pincode])fout='Pincode dubbel in dit bestand';
       else if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fout='Ongeldig e-mailadres';
@@ -3943,11 +3944,11 @@ function nieuweGebruiker(){
   if(!huidigeBedrijfId)return;
   var naam=prompt('Naam van de nieuwe gebruiker:');
   if(!naam||!naam.trim())return;
-  var rol=prompt('Rol (chauffeur, leidinggevende, preventieadviseur of beheerder):','chauffeur');
-  if(!rol)return;
-  rol=rol.trim().toLowerCase();
-  if(['chauffeur','leidinggevende','preventieadviseur','beheerder'].indexOf(rol)===-1){
-    showToast('Ongeldige rol. Gebruik: chauffeur, leidinggevende, preventieadviseur of beheerder.');
+  var ingave=prompt('Niveau van '+naam.trim()+':\n\n'+niveauKeuzeTekst()+'\n\nTyp 1, 2, 3 of 4:','4');
+  if(!ingave)return;
+  var rol=rolUitInvoer(ingave);
+  if(!rol){
+    showToast('Onbekend niveau. Typ 1, 2, 3 of 4.');
     return;
   }
   var pincode=prompt('Pincode (4 cijfers, voor inloggen in de preventie-app):');
@@ -3957,7 +3958,7 @@ function nieuweGebruiker(){
   }
   sb.from('gebruikers').insert({bedrijf_id:huidigeBedrijfId,naam:naam.trim(),rol:rol,pincode:pincode.trim(),actief:true}).then(function(r){
     if(r.error){showToast('Fout: '+r.error.message);return;}
-    if(rol==='beheerder')showToast('Gebruiker aangemaakt. Voor toegang tot Mijn PrevX is nog een Supabase Auth-account + koppeling nodig (zie migratie-README).');
+    if(rol==='beheerder'||rol==='preventieadviseur')showToast('Gebruiker aangemaakt. Voor toegang tot Mijn PrevX moet u hem nog uitnodigen, in de kolom Mijn PrevX.');
     laadGebruikers();
   });
 }
@@ -4083,18 +4084,53 @@ function nodigGebruikerUit(id,naam,email){
   });
 }
 
+// Een plaats die bepaalt hoe de vier rollen heten en wat er bij het invullen
+// aanvaard wordt. In de databank blijven ze `beheerder`, `preventieadviseur`,
+// `leidinggevende` en `chauffeur`; op die waarden staan alle policies en RPC's.
+// Wat hier verandert is enkel wat een mens ziet en mag typen.
+//
+// Niveaus in plaats van functietitels omdat een titel bij de ene klant iets
+// anders betekent dan bij de andere -- "chauffeur" klopt niet in een magazijn
+// en "leidinggevende" niet in een ploeg van drie. Een rangorde klopt overal.
+var ROL_NIVEAUS = [
+  {rol:'beheerder',         niveau:1, label:'Niveau 1', omschrijving:'beheer',        invoer:['1','niveau 1','beheerder','directie','zaakvoerder']},
+  {rol:'preventieadviseur', niveau:2, label:'Niveau 2', omschrijving:'preventie',     invoer:['2','niveau 2','preventieadviseur']},
+  {rol:'leidinggevende',    niveau:3, label:'Niveau 3', omschrijving:'toezicht',      invoer:['3','niveau 3','leidinggevende','ploegbaas']},
+  {rol:'chauffeur',         niveau:4, label:'Niveau 4', omschrijving:'uitvoering',    invoer:['4','niveau 4','chauffeur','operator']}
+];
+
+function rolLabel(rol){
+  var eigen = huidigeRolLabels && huidigeRolLabels[rol];
+  if(eigen) return eigen;
+  for(var i=0;i<ROL_NIVEAUS.length;i++) if(ROL_NIVEAUS[i].rol===rol) return ROL_NIVEAUS[i].label;
+  return rol;
+}
+
+// Aanvaardt zowel het cijfer als de oude benaming: bestaande importbestanden en
+// ingesleten gewoontes hoeven niet te breken om een naam te veranderen.
+function rolUitInvoer(tekst){
+  var t = String(tekst||'').trim().toLowerCase();
+  for(var i=0;i<ROL_NIVEAUS.length;i++){
+    if(ROL_NIVEAUS[i].invoer.indexOf(t)!==-1) return ROL_NIVEAUS[i].rol;
+  }
+  return null;
+}
+
+function niveauKeuzeTekst(){
+  return ROL_NIVEAUS.map(function(n){
+    return '  ' + n.niveau + ' = ' + rolLabel(n.rol) + ' (' + n.omschrijving + ')';
+  }).join('\n');
+}
+
 function laadGebruikers(){
   if(!huidigeBedrijfId)return;
   document.getElementById('gebruikersKlantcode').textContent=(huidigeBedrijf&&huidigeBedrijf.klantcode)||'—';
   sb.from('gebruikers').select('id,naam,rol,bedrijf_id,actief,dossier_rol,email,auth_user_id').eq('bedrijf_id',huidigeBedrijfId).order('naam').then(function(r){
     var g=r.data||[];
     document.getElementById('gebruikersCount').textContent=g.length+' gebruikers';
-    var labels={
-      chauffeur:huidigeRolLabels.chauffeur||'Chauffeur',
-      leidinggevende:huidigeRolLabels.leidinggevende||'Leidinggevende',
-      preventieadviseur:huidigeRolLabels.preventieadviseur||'Preventieadviseur',
-      beheerder:huidigeRolLabels.beheerder||'Beheerder'
-    };
+    // Van hoog naar laag, zodat de keuzelijst de rangorde toont.
+    var labels={};
+    ROL_NIVEAUS.forEach(function(n){labels[n.rol]=rolLabel(n.rol);});
     var tbody=document.getElementById('gebruikersTabel');
     if(!g.length){tbody.innerHTML='<tr class="empty-row"><td colspan="9">Geen gebruikers.</td></tr>';return;}
     tbody.innerHTML='';
