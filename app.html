@@ -1715,11 +1715,17 @@ function vergunningFoto(vraagId, input) {
     vvAntwoorden[vraagId].antwoord = 'foto';
     vvAntwoorden[vraagId].foto_url = res.body.url;
     onthoudVoorbeeld(res.body.url, f);
+    // De maatvoering zit op '.foto-thumb img', niet op .foto-thumb zelf. De
+    // klasse hoort dus op het omhulsel, met de afbeelding erin -- net als bij
+    // de inspectiefoto's. Stond ze op de afbeelding, dan kreeg die geen enkele
+    // beperking en verscheen de foto op ware grootte.
     rij.innerHTML = '';
+    var vak = document.createElement('div');
+    vak.className = 'foto-thumb';
     var vb = document.createElement('img');
-    vb.className = 'foto-thumb';
     vb.src = fotoVoorbeelden[res.body.url] || '';
-    rij.appendChild(vb);
+    vak.appendChild(vb);
+    rij.appendChild(vak);
   }).catch(function () { rij.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; });
 }
 
