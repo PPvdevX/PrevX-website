@@ -220,6 +220,15 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
    een kaartendashboard voor in de plaats. Zo blijft er een plek waar elk
    scherm gedefinieerd is; een tweede portaal zou binnen de maand uiteenlopen
    met dit ene. */
+.sw-kaart{background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:18px}
+.sw-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500);margin-bottom:8px}
+.sw-cijfer{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:700;color:var(--navy-text)}
+.sw-cijfer small{font-family:'Poppins',sans-serif;font-size:13px;font-weight:400;color:var(--gray-500);margin-left:6px}
+.sw-balk{height:9px;border-radius:5px;background:var(--gray-200);margin:10px 0 8px;overflow:hidden}
+.sw-balk-vol{height:100%;border-radius:5px;background:var(--green);transition:width .3s}
+.sw-balk-vol.op{background:var(--orange)}
+.sw-balk-vol.over{background:var(--red)}
+.sw-inbegrepen{font-size:12px;color:var(--gray-500);line-height:1.6}
 .klantmodus .sidebar{display:none}
 .klantmodus .main-content{width:100%}
 .klant-topbar{background:var(--navy);color:var(--on-navy);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -501,6 +510,12 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       <h1 id="klantHeroNaam">&nbsp;</h1>
       <div class="klant-hero-sub" id="klantHeroSub"></div>
     </div>
+    <div class="sw-kaart" id="klantSamenwerking" style="display:none;margin:18px 32px 0">
+      <div class="sw-label">Uw samenwerking</div>
+      <div class="sw-cijfer"><span id="klantSwOpgenomen">0</span> van <span id="klantSwContract">0</span><small>bezoekdagen opgenomen in <span id="klantSwJaar"></span></small></div>
+      <div class="sw-balk"><div class="sw-balk-vol" id="klantSwBalk" style="width:0%"></div></div>
+      <div class="sw-inbegrepen" id="klantSwInbegrepen"></div>
+    </div>
     <div class="klant-bezoek" id="klantBezoek" style="display:none">
       <div class="klant-bezoek-label">Volgend bezoek</div>
       <div class="klant-bezoek-datum" id="klantBezoekDatum"></div>
@@ -625,6 +640,13 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
         <div class="page-subtitle">Bezoeken en rondgangen</div>
       </div>
       <div class="content-area">
+        <div class="sw-kaart" id="swBeheer" style="display:none">
+          <div class="sw-label">Samenwerking <span id="swJaar"></span></div>
+          <div class="sw-cijfer"><span id="swOpgenomen">0</span> van <span id="swContract">0</span><small>bezoekdagen opgenomen</small></div>
+          <div class="sw-balk"><div class="sw-balk-vol" id="swBalk" style="width:0%"></div></div>
+          <div class="sw-inbegrepen" id="swInbegrepen"></div>
+          <button class="btn-add-sm" style="margin-top:10px" id="swBewerkKnop" onclick="wijzigSamenwerking()">Afspraak bewerken</button>
+        </div>
         <div id="planningNieuwKnop" style="margin-bottom:14px;display:none">
           <button class="btn-add-sm" onclick="nieuweActiviteit()">+ Nieuwe activiteit</button>
         </div>
@@ -632,8 +654,8 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
           <div class="table-header"><span class="table-title">Activiteiten</span>
             <span class="table-count" id="planningCount">0</span>
           </div>
-          <table><thead><tr><th>Datum</th><th>Tijdstip</th><th>Type</th><th>Status</th><th>Verslag</th><th></th></tr></thead>
-          <tbody id="planningTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+          <table><thead><tr><th>Datum</th><th>Tijdstip</th><th>Type</th><th>Dagen</th><th>Status</th><th>Verslag</th><th></th></tr></thead>
+          <tbody id="planningTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -1632,6 +1654,7 @@ function laadKlantHome(){
       if(b.logo_url)document.getElementById('klantLogo').src=b.logo_url;
     });
 
+  laadSamenwerking(['klant']);
   laadVolgendBezoek();
   tekenKlantKaarten();
   laadKaartTellers();
@@ -2127,9 +2150,83 @@ function nieuwDocument(){
   });
 }
 
+// ---------------------------------------------------------------------------
+// Samenwerking: afspraak per jaar tegenover wat er opgenomen is
+// ---------------------------------------------------------------------------
+// Eén functie haalt het op en vult beide kanten -- de kaart bij de adviseur en
+// het blok op het klantendashboard. Twee berekeningen van hetzelfde cijfer is
+// hoe je een klant een ander getal laat zien dan jij, en dat merk je pas in een
+// gesprek waarin je het niet kan uitleggen.
+function laadSamenwerking(doelen){
+  if(!huidigeBedrijfId)return;
+  var jaar=new Date().getFullYear();
+  Promise.all([
+    sb.from('samenwerking').select('*').eq('bedrijf_id',huidigeBedrijfId).eq('jaar',jaar).maybeSingle(),
+    // Enkel afgeronde activiteiten tellen: "opgenomen" hoort te betekenen dat
+    // het ook echt gebeurd is.
+    sb.from('planning').select('bezoekdagen,datum,status').eq('bedrijf_id',huidigeBedrijfId).eq('status','afgerond')
+  ]).then(function(r){
+    var afspraak=r[0].data;
+    var rijen=(r[1].data||[]).filter(function(p){return p.datum&&p.datum.slice(0,4)===String(jaar);});
+    var opgenomen=rijen.reduce(function(t,p){return t+(parseFloat(p.bezoekdagen)||0);},0);
+    var contract=afspraak?parseFloat(afspraak.bezoekdagen_contract)||0:0;
+    var pct=contract>0?Math.min(100,Math.round(opgenomen/contract*100)):0;
+    var klasse=contract>0&&opgenomen>contract?'over':(pct>=80?'op':'');
+
+    function vul(pre,toonJaar){
+      var kaart=document.getElementById(pre==='sw'?'swBeheer':'klantSamenwerking');
+      if(!kaart)return;
+      // Bij de klant niets tonen zolang er geen afspraak vastligt: een blok met
+      // "0 van 0" zegt niets en roept alleen vragen op.
+      if(pre==='klantSw'&&!afspraak){kaart.style.display='none';return;}
+      kaart.style.display='';
+      document.getElementById(pre+'Opgenomen').textContent=Math.round(opgenomen*10)/10;
+      document.getElementById(pre+'Contract').textContent=Math.round(contract*10)/10;
+      var balk=document.getElementById(pre+'Balk');
+      balk.style.width=pct+'%';
+      balk.className='sw-balk-vol'+(klasse?' '+klasse:'');
+      document.getElementById(pre+'Inbegrepen').textContent=(afspraak&&afspraak.inbegrepen)?'Inbegrepen: '+afspraak.inbegrepen:'';
+      if(toonJaar)document.getElementById(pre+'Jaar').textContent=jaar;
+    }
+    if(doelen.indexOf('beheer')>-1){vul('sw',true);}
+    if(doelen.indexOf('klant')>-1){vul('klantSw',true);}
+  });
+}
+
+function wijzigSamenwerking(){
+  var jaar=new Date().getFullYear();
+  sb.from('samenwerking').select('*').eq('bedrijf_id',huidigeBedrijfId).eq('jaar',jaar).maybeSingle().then(function(r){
+    var a=r.data;
+    var dagenRuw=prompt('Aantal bezoekdagen in het contract voor '+jaar+':',a?a.bezoekdagen_contract:'');
+    if(dagenRuw===null)return;
+    var dagen=parseFloat(String(dagenRuw).replace(',','.'));
+    if(isNaN(dagen)||dagen<0){showToast('Geef een getal, bv. 6 of 6.5');return;}
+    var inbegrepen=prompt('Wat zit er in de formule? (komt zo bij de klant te staan)',a?(a.inbegrepen||''):'');
+    if(inbegrepen===null)return;
+    var rij={bedrijf_id:huidigeBedrijfId,jaar:jaar,bezoekdagen_contract:dagen,inbegrepen:inbegrepen.trim()||null};
+    var q=a?sb.from('samenwerking').update(rij).eq('id',a.id):sb.from('samenwerking').insert(rij);
+    q.then(function(res){
+      if(res.error){showToast('Fout: '+res.error.message);return;}
+      laadSamenwerking(['beheer']);
+  var swKnop=document.getElementById('swBewerkKnop');
+  if(swKnop)swKnop.style.display=isSuperbeheerder?'':'none';
+    });
+  });
+}
+
+function zetBezoekdagen(planningId,waarde){
+  var d=parseFloat(String(waarde).replace(',','.'));
+  if(isNaN(d)||d<0){showToast('Geef een getal, bv. 1 of 0.5');laadPlanning();return;}
+  sb.from('planning').update({bezoekdagen:d}).eq('id',planningId).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    laadSamenwerking(['beheer']);
+  });
+}
+
 function laadPlanning(){
   if(!huidigeBedrijfId)return;
   document.getElementById('planningNieuwKnop').style.display=isSuperbeheerder?'':'none';
+  laadSamenwerking(['beheer']);
   sb.from('planning').select('*').eq('bedrijf_id',huidigeBedrijfId).order('datum',{ascending:false}).then(function(pr){
     sb.from('documenten').select('id,titel').eq('bedrijf_id',huidigeBedrijfId).then(function(dr){
       renderPlanning(pr.data||[],dr.data||[]);
@@ -2141,7 +2238,7 @@ function renderPlanning(data,documenten){
   var typeLabels={bezoek:'Bezoek',rondgang:'Rondgang',comite:'Comité'};
   document.getElementById('planningCount').textContent=data.length+' activiteiten';
   var tbody=document.getElementById('planningTabel');
-  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">Nog geen activiteiten.</td></tr>';return;}
+  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nog geen activiteiten.</td></tr>';return;}
   tbody.innerHTML='';
   data.forEach(function(p){
     var tr=document.createElement('tr');
@@ -2161,8 +2258,12 @@ function renderPlanning(data,documenten){
       if(p.status==='gepland')actie+='<button class="btn-add-sm" onclick="markeerActiviteitAfgerond(\''+p.id+'\')">Markeer afgerond</button>';
       actie+='<button class="btn-add-sm" onclick="verwijderActiviteit(\''+p.id+'\')">Verwijder</button></span>';
     }
+    var dagen=isSuperbeheerder
+      ? '<input class="niveau-select" style="width:62px" type="number" step="0.5" min="0" value="'+(p.bezoekdagen==null?1:p.bezoekdagen)+'" onchange="zetBezoekdagen(\''+p.id+'\',this.value)">'
+      : (p.bezoekdagen==null?'1':p.bezoekdagen);
     tr.innerHTML='<td>'+formatDatum(p.datum)+'</td><td>'+(p.tijdstip?p.tijdstip.slice(0,5):'-')+'</td>'+
       '<td>'+(typeLabels[p.type]||p.type)+'</td>'+
+      '<td>'+dagen+'</td>'+
       '<td><span class="badge '+(p.status==='afgerond'?'rijklaar':'onvolledig')+'">'+(p.status==='afgerond'?'Afgerond':'Gepland')+'</span></td>'+
       '<td>'+verslag+'</td><td>'+actie+'</td>';
     tbody.appendChild(tr);
