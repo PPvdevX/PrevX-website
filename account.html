@@ -2489,12 +2489,31 @@ function nieuwBedrijf(){
   });
 }
 
+// Loopt via een Edge Function i.p.v. rechtstreeks via de RPC: de bestanden
+// moeten mee weg, en Supabase laat een rechtstreekse delete op storage.objects
+// niet meer toe. Die functie doet eerst de rijen, dan de bestanden.
 function verwijderBedrijf(bedrijfId,naam){
-  if(!confirm('Bedrijf "'+naam+'" en ALLES eronder (gebruikers, assets, checklist, inspecties, actiepunten, documenten, planning, meldingen) definitief verwijderen? Dit kan niet ongedaan gemaakt worden.'))return;
-  sb.rpc('rpc_verwijder_bedrijf_cascade',{p_bedrijf_id:bedrijfId}).then(function(r){
-    if(r.error){showToast('Fout: '+r.error.message);return;}
-    showToast('Bedrijf en alle bijhorende gegevens verwijderd');
-    laadKlanten();
+  if(!confirm('Bedrijf "'+naam+'" en ALLES eronder (gebruikers, assets, checklist, inspecties, actiepunten, documenten, planning, meldingen) definitief verwijderen?\n\nOok de opgeslagen bestanden \u2014 foto\'s, handtekeningen en documenten \u2014 worden gewist. Dit kan niet ongedaan gemaakt worden.'))return;
+  return sb.auth.getSession().then(function(sr){
+    var token=sr.data&&sr.data.session?sr.data.session.access_token:null;
+    if(!token){showToast('Sessie verlopen, log opnieuw in.');return;}
+    showToast('Bezig met verwijderen...');
+    return fetch(SUPABASE_URL+'/functions/v1/verwijder-bedrijf',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({bedrijf_id:bedrijfId,access_token:token})
+    }).then(function(res){return res.json().then(function(b){return {ok:res.ok,body:b};});})
+      .then(function(r){
+        if(!r.ok){showToast('Fout: '+(r.body.error||'verwijderen mislukt'));return;}
+        // Een waarschuwing betekent: rijen weg, bestanden niet allemaal. Dat mag
+        // niet als succes wegklikken -- vandaar een alert i.p.v. een toast die
+        // na drie seconden verdwenen is.
+        if(r.body.waarschuwing)alert(r.body.waarschuwing);
+        else showToast('Bedrijf en alle bijhorende gegevens verwijderd');
+        laadKlanten();
+      });
+  }).catch(function(e){
+    console.error('Verwijderen mislukt:',e);
+    showToast('Verwijderen mislukt. Probeer opnieuw.');
   });
 }
 
