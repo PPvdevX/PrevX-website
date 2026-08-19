@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@latest/dist/xlsx.full.min.js"></script>
 <style>
-:root{--navy:#003366;--navy2:#B7C7DA;--sidebar-bg:#E4E4E4;--accent:#40668C;--green:#3FBF3F;--green-bg:#e8f5e8;--red:#dc2626;--red-tekst:#dc2626;--red-bg:#fff1f2;--orange:#E97F02;--orange-bg:#fff7ed;--bg:#f5f7fa;--surface:#fff;--hairline:rgba(0,0,0,.1);--on-navy:#fff;--navy-text:#003366;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:10px;--radius-lg:16px;--shadow:0 1px 2px rgba(15,23,42,.04),0 4px 18px rgba(15,23,42,.06);--shadow-lg:0 20px 60px rgba(15,23,42,.18)}
+:root{color-scheme:light;--navy:#003366;--navy2:#B7C7DA;--sidebar-bg:#E4E4E4;--accent:#40668C;--green:#3FBF3F;--green-bg:#e8f5e8;--red:#dc2626;--red-tekst:#dc2626;--red-bg:#fff1f2;--orange:#E97F02;--orange-bg:#fff7ed;--bg:#f5f7fa;--surface:#fff;--hairline:rgba(0,0,0,.1);--on-navy:#fff;--navy-text:#003366;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:10px;--radius-lg:16px;--shadow:0 1px 2px rgba(15,23,42,.04),0 4px 18px rgba(15,23,42,.06);--shadow-lg:0 20px 60px rgba(15,23,42,.18)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--gray-900);min-height:100vh}
 h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
@@ -87,7 +87,7 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .filters-bar{background:var(--surface);border-radius:var(--radius-lg);padding:16px 20px;border:1px solid var(--gray-300);margin-bottom:22px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .filter-group{display:flex;flex-direction:column;gap:4px}
 .filter-label{font-size:12px;font-weight:400;color:var(--gray-500)}
-.filter-input{padding:7px 10px;border:2px solid var(--gray-200);border-radius:6px;font-family:'Poppins',sans-serif;font-size:13px;color:var(--gray-900);min-width:140px}
+.filter-input{padding:7px 10px;border:2px solid var(--gray-200);border-radius:6px;font-family:'Poppins',sans-serif;font-size:13px;color:var(--gray-900);background:var(--surface);min-width:140px}
 .filter-input:focus{outline:none;border-color:var(--navy)}
 .btn-reset{padding:7px 14px;background:var(--gray-100);border:2px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;white-space:nowrap}
 .btn-reset:hover{border-color:var(--gray-400);color:var(--gray-700)}
@@ -117,7 +117,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .badge.niet_rijklaar{background:var(--red-bg);color:var(--red-tekst)}
 .badge.onvolledig{background:var(--orange-bg);color:var(--orange)}
 .badge.rijklaar_met_opmerkingen{background:var(--orange-bg);color:var(--orange)}
-.niveau-select{padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px}
+.niveau-select{padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px;background:var(--surface);color:var(--gray-900)}
 .punt-rij-beheer{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;flex-wrap:wrap}
 .punt-rij-beheer:last-child{border-bottom:none}
 .punt-rij-beheer .punt-omschr{flex:1 1 240px;min-width:200px}
@@ -214,20 +214,28 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 */
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0f1620;
-    --surface:#18212e;
-    --sidebar-bg:#131b26;
+    color-scheme:dark;
+    /* Neutraal donkergrijs met een spoortje blauw, niet het navy van de
+       huisstijl. Een merkkleur als ondergrond werkt op een marketingpagina,
+       maar in een scherm waar je uren in zit wordt ze vermoeiend.
+       Geen puur zwart: dat geeft halatie -- lichte tekst lijkt uit te vloeien --
+       en je kan er geen hoogteverschil op tonen. Diepte komt van lagen:
+       achtergrond het donkerst, kaarten een stap lichter, panelen daarboven.
+       Tekst is bewust niet puur wit; dat contrast is te hard om lang te lezen. */
+    --bg:#131519;
+    --surface:#1c1f24;
+    --sidebar-bg:#17191e;
     --hairline:rgba(255,255,255,.08);
-    --navy2:#8fa6c0;
-    --navy-text:#cfdcea;
-    --gray-50:#141c27;
-    --gray-100:#1c2733;
-    --gray-200:#26323f;
-    --gray-300:#36434f;
-    --gray-400:#8492a3;
-    --gray-500:#a1aebd;
-    --gray-700:#ccd6e0;
-    --gray-900:#eaf0f6;
+    --navy2:#9aa7b5;
+    --navy-text:#d3d8de;
+    --gray-50:#16181c;
+    --gray-100:#1f2227;
+    --gray-200:#2a2e34;
+    --gray-300:#3b4048;
+    --gray-400:#8b9099;
+    --gray-500:#a7acb4;
+    --gray-700:#cdd1d6;
+    --gray-900:#e6e8eb;
     --red-tekst:#f28b82;
     --green-bg:#13291b;
     --red-bg:#2b1518;
@@ -243,6 +251,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
      toner. De lichte waarden staan hier opnieuw omdat een media-blok geen
      ander media-blok kan uitschakelen. */
   :root{
+    color-scheme:light;
     --bg:#f5f7fa;--surface:#fff;--sidebar-bg:#E4E4E4;--hairline:rgba(0,0,0,.1);
     --navy2:#B7C7DA;--navy-text:#003366;
     --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
@@ -298,7 +307,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .vraag-kaart.gearchiveerd{opacity:.55}
 .vraag-tekst{width:100%;border:1px solid var(--gray-300);border-radius:6px;padding:7px 9px;font-family:'Poppins',sans-serif;font-size:13px;margin-bottom:8px}
 .vraag-rij{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--gray-500)}
-.vraag-rij select,.vraag-toelichting{border:1px solid var(--gray-300);border-radius:6px;padding:4px 7px;font-family:'Poppins',sans-serif;font-size:12px}
+.vraag-rij select,.vraag-toelichting{border:1px solid var(--gray-300);border-radius:6px;padding:4px 7px;font-family:'Poppins',sans-serif;font-size:12px;background:var(--surface);color:var(--gray-900)}
 .vraag-toelichting{flex:1 1 220px;min-width:160px}
 .vraag-vink{display:inline-flex;align-items:center;gap:5px;color:var(--gray-700);cursor:pointer;white-space:nowrap}
 .vraag-vink input{accent-color:var(--navy)}
