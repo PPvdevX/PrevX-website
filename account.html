@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@latest/dist/xlsx.full.min.js"></script>
 <style>
-:root{--navy:#003366;--navy2:#B7C7DA;--sidebar-bg:#E4E4E4;--accent:#40668C;--green:#3FBF3F;--green-bg:#e8f5e8;--red:#dc2626;--red-bg:#fff1f2;--orange:#E97F02;--orange-bg:#fff7ed;--bg:#f5f7fa;--on-navy:#fff;--navy-text:#003366;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:10px;--radius-lg:16px;--shadow:0 1px 2px rgba(15,23,42,.04),0 4px 18px rgba(15,23,42,.06);--shadow-lg:0 20px 60px rgba(15,23,42,.18)}
+:root{--navy:#003366;--navy2:#B7C7DA;--sidebar-bg:#E4E4E4;--accent:#40668C;--green:#3FBF3F;--green-bg:#e8f5e8;--red:#dc2626;--red-tekst:#dc2626;--red-bg:#fff1f2;--orange:#E97F02;--orange-bg:#fff7ed;--bg:#f5f7fa;--surface:#fff;--hairline:rgba(0,0,0,.1);--on-navy:#fff;--navy-text:#003366;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:10px;--radius-lg:16px;--shadow:0 1px 2px rgba(15,23,42,.04),0 4px 18px rgba(15,23,42,.06);--shadow-lg:0 20px 60px rgba(15,23,42,.18)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--gray-900);min-height:100vh}
 h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
@@ -29,7 +29,7 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
    hieronder geldt enkel op de twee inlogschermen -- die uitzondering hoort
    gescopet te zijn, niet de regel. */
 .form-label{display:block;font-size:12px;font-weight:500;color:var(--gray-500);margin-bottom:6px}
-.form-input{width:100%;padding:10px 13px;border:1px solid var(--gray-300);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:14px;color:var(--gray-900);background:#fff;transition:border-color .2s}
+.form-input{width:100%;padding:10px 13px;border:1px solid var(--gray-300);border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:14px;color:var(--gray-900);background:var(--surface);transition:border-color .2s}
 .form-input::placeholder{color:var(--gray-400)}
 .form-input:focus{outline:none;border-color:var(--navy)}
 
@@ -40,13 +40,13 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .btn-login{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;margin-top:10px}
 .btn-login:hover{background:#fff;color:var(--navy)}
 .btn-login:disabled{opacity:.6;cursor:not-allowed}
-.login-error{background:var(--red-bg);color:var(--red);padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none}
+.login-error{background:var(--red-bg);color:var(--red-tekst);padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none}
 .login-melding{background:rgba(255,255,255,.12);color:#fff;padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:12px;display:none;line-height:1.5}
 .login-link{display:block;width:100%;margin-top:12px;background:none;border:none;color:rgba(255,255,255,.7);font-family:'Poppins',sans-serif;font-size:12px;text-decoration:underline;cursor:pointer}
 .login-link:hover{color:#fff}
 #screen-dashboard{flex-direction:row!important}
 .sidebar{width:240px;background:var(--sidebar-bg);flex-shrink:0;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0}
-.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(0,0,0,.1);display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--hairline);display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .sidebar-logo-text{font-family:'Montserrat',sans-serif;font-weight:600;font-size:15px;color:var(--gray-900)}
 .sidebar-logo-sub{font-size:10px;color:var(--gray-500);display:block}
 .sidebar-user{padding:16px 20px;border-bottom:1px solid rgba(0,0,0,.1)}
@@ -70,7 +70,7 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
 .btn-logout{width:100%;padding:9px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);border:1px solid rgba(0,0,0,.15);color:#fff;border-radius:var(--radius);cursor:pointer;font-size:12px;font-weight:700;font-family:'Poppins',sans-serif;transition:all .2s}
 .btn-logout:hover{background:#4d7aa3;border-color:rgba(0,0,0,.25)}
 .main-content{flex:1;overflow-y:auto}
-.page-header{background:#fff;padding:22px 32px;border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:10}
+.page-header{background:var(--surface);padding:22px 32px;border-bottom:1px solid var(--gray-200);position:sticky;top:0;z-index:10}
 .page-title{font-family:'Montserrat',sans-serif;font-size:19px;font-weight:600;color:var(--navy-text);letter-spacing:-.2px}
 .page-subtitle{font-size:12px;color:var(--gray-500);margin-top:2px}
 .content-area{padding:28px 32px}
@@ -79,19 +79,19 @@ h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
    vochten. Nu leest het als een regel gegevens, op dezelfde tekstgrootte als de
    rest van de pagina. De label-voor-cijfer-volgorde komt van `order`, zodat de
    HTML (cijfer, dan label) ongemoeid blijft op beide tabbladen. */
-.stats-grid{display:flex;flex-wrap:wrap;background:#fff;border:1px solid var(--gray-300);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
+.stats-grid{display:flex;flex-wrap:wrap;background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
 .stat-card{flex:1 1 auto;min-width:150px;display:flex;align-items:baseline;gap:8px;padding:13px 18px;border-right:1px solid var(--gray-200)}
 .stat-card:last-child{border-right:none}
 .stat-num{order:2;font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--gray-900);line-height:1.4}
 .stat-label{order:1;font-size:13px;color:var(--gray-500);font-weight:400;margin-top:0}
-.filters-bar{background:#fff;border-radius:var(--radius-lg);padding:16px 20px;border:1px solid var(--gray-300);margin-bottom:22px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filters-bar{background:var(--surface);border-radius:var(--radius-lg);padding:16px 20px;border:1px solid var(--gray-300);margin-bottom:22px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .filter-group{display:flex;flex-direction:column;gap:4px}
 .filter-label{font-size:12px;font-weight:400;color:var(--gray-500)}
 .filter-input{padding:7px 10px;border:2px solid var(--gray-200);border-radius:6px;font-family:'Poppins',sans-serif;font-size:13px;color:var(--gray-900);min-width:140px}
 .filter-input:focus{outline:none;border-color:var(--navy)}
 .btn-reset{padding:7px 14px;background:var(--gray-100);border:2px solid var(--gray-200);border-radius:6px;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;white-space:nowrap}
 .btn-reset:hover{border-color:var(--gray-400);color:var(--gray-700)}
-.table-card{background:#fff;border-radius:var(--radius-lg);border:1px solid var(--gray-300);overflow:hidden}
+.table-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--gray-300);overflow:hidden}
 /* Inklapbare kaart: klik op de kop vouwt alles eronder weg. Gebruikt op de
    Codelijsten-tab, waar drie tabellen onder elkaar staan en je er meestal maar
    één nodig hebt. */
@@ -114,21 +114,21 @@ tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--gray-50);cursor:pointer}
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;font-family:'Poppins',sans-serif;white-space:nowrap}
 .badge.rijklaar{background:var(--green-bg);color:var(--green)}
-.badge.niet_rijklaar{background:var(--red-bg);color:var(--red)}
+.badge.niet_rijklaar{background:var(--red-bg);color:var(--red-tekst)}
 .badge.onvolledig{background:var(--orange-bg);color:var(--orange)}
 .badge.rijklaar_met_opmerkingen{background:var(--orange-bg);color:var(--orange)}
 .niveau-select{padding:4px 8px;border:1px solid var(--gray-300);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px}
 .punt-rij-beheer{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;flex-wrap:wrap}
 .punt-rij-beheer:last-child{border-bottom:none}
 .punt-rij-beheer .punt-omschr{flex:1 1 240px;min-width:200px}
-.btn-add-sm{padding:6px 12px;background:#fff;border:1px solid var(--gray-300);border-radius:6px;font-size:12px;color:var(--gray-700);cursor:pointer;font-weight:500;transition:all .15s}
+.btn-add-sm{padding:6px 12px;background:var(--surface);border:1px solid var(--gray-300);border-radius:6px;font-size:12px;color:var(--gray-700);cursor:pointer;font-weight:500;transition:all .15s}
 .btn-add-sm:hover{border-color:var(--navy);color:var(--navy-text)}
 .btn-add-sm:hover{border-color:var(--navy);color:var(--navy-text)}
 .module-dot{width:14px;height:14px;border-radius:50%;border:none;padding:0;cursor:pointer;display:inline-block;transition:transform .15s,box-shadow .15s}
 .module-dot.aan{background:var(--green)}
 .module-dot.uit{background:var(--red)}
 .module-dot:hover{transform:scale(1.2);box-shadow:0 0 0 4px rgba(0,0,0,.06)}
-.type-tab{padding:7px 14px;border-radius:20px;border:1px solid var(--gray-300);background:#fff;font-size:12px;font-weight:600;color:var(--gray-700);cursor:pointer;white-space:nowrap}
+.type-tab{padding:7px 14px;border-radius:20px;border:1px solid var(--gray-300);background:var(--surface);font-size:12px;font-weight:600;color:var(--gray-700);cursor:pointer;white-space:nowrap}
 .type-tab.actief{background:var(--navy);border-color:var(--navy);color:#fff}
 .bg-page-title{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:600;color:var(--navy-text);margin-bottom:18px}
 .bg-card-grid{display:flex;gap:22px;align-items:flex-start}
@@ -138,17 +138,17 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .bg-row{display:flex;align-items:center;gap:14px;padding:5px 0}
 .bg-row-label{flex:1 1 48%;font-size:12px;color:var(--gray-700)}
 .bg-row-value{flex:1 1 48%}
-.bg-row-value input,.bg-row-value select,.bg-row-value textarea{width:100%;border:1px solid var(--gray-300);border-radius:8px;padding:6px 10px;font-size:12px;font-family:'Poppins',sans-serif;background:#fff;color:var(--gray-900)}
+.bg-row-value input,.bg-row-value select,.bg-row-value textarea{width:100%;border:1px solid var(--gray-300);border-radius:8px;padding:6px 10px;font-size:12px;font-family:'Poppins',sans-serif;background:var(--surface);color:var(--gray-900)}
 .bg-row-value textarea{resize:vertical;min-height:140px;font-family:'Poppins',sans-serif}
-.bg-static{background:#fff;border:1px solid var(--gray-300);border-radius:8px;padding:6px 10px;font-size:12px;min-height:16px;color:var(--gray-900)}
+.bg-static{background:var(--surface);border:1px solid var(--gray-300);border-radius:8px;padding:6px 10px;font-size:12px;min-height:16px;color:var(--gray-900)}
 @media (max-width:900px){.bg-card-grid{flex-direction:column}}
 .bg-verplicht-banner{background:var(--orange-bg);border:1px solid var(--orange);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px}
 .bg-verplicht-banner-titel{font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;color:var(--orange);margin-bottom:8px}
 .bg-verplicht-banner-lijst{display:flex;flex-wrap:wrap;gap:6px}
-.bg-verplicht-chip{background:#fff;border:1px solid var(--orange);color:var(--orange);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.bg-verplicht-chip{background:var(--surface);border:1px solid var(--orange);color:var(--orange);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
 .bg-verplicht-chip:hover{background:var(--orange);color:#fff}
 .quicklink-card{display:flex;align-items:center;gap:10px;padding:16px 18px;background:var(--gray-50);border:1px solid var(--gray-300);border-radius:var(--radius-lg);font-size:13px;font-weight:600;color:var(--navy-text);cursor:pointer;transition:all .2s}
-.quicklink-card:hover{border-color:var(--navy);background:#fff}
+.quicklink-card:hover{border-color:var(--navy);background:var(--surface)}
 .loading-row td{text-align:center;padding:40px;color:var(--gray-400)}
 .spinner-sm{display:inline-block;width:20px;height:20px;border:2px solid var(--gray-200);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -161,7 +161,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .defect-balk-fill{background:var(--red);height:100%;border-radius:6px}
 .detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100}
 .detail-overlay.active{display:flex;align-items:flex-start;justify-content:flex-end}
-.detail-panel{background:#fff;width:580px;max-width:90vw;height:100vh;overflow-y:auto;box-shadow:-4px 0 32px rgba(0,0,0,.2)}
+.detail-panel{background:var(--surface);width:580px;max-width:90vw;height:100vh;overflow-y:auto;box-shadow:-4px 0 32px rgba(0,0,0,.2)}
 .detail-panel-header{background:var(--navy);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 .detail-panel-title{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;color:var(--on-navy)}
 .detail-panel-sub{font-size:11px;color:var(--navy2);margin-top:2px}
@@ -170,11 +170,11 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .detail-body{padding:20px 24px}
 .detail-verdict{padding:12px 16px;border-radius:var(--radius);font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px}
 .detail-verdict.rijklaar{background:var(--green-bg);color:var(--green)}
-.detail-verdict.niet_rijklaar{background:var(--red-bg);color:var(--red)}
+.detail-verdict.niet_rijklaar{background:var(--red-bg);color:var(--red-tekst)}
 .detail-verdict.onvolledig{background:var(--orange-bg);color:var(--orange)}
 .detail-verdict.rijklaar_met_opmerkingen{background:var(--orange-bg);color:var(--orange)}
 .punt-niveau{display:inline-block;font-size:10px;font-weight:500;padding:1px 7px;border-radius:8px;margin-left:6px;vertical-align:middle}
-.punt-niveau.kritisch{background:var(--red-bg);color:var(--red)}
+.punt-niveau.kritisch{background:var(--red-bg);color:var(--red-tekst)}
 .punt-niveau.informatief{background:var(--orange-bg);color:var(--orange)}
 .detail-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .detail-meta-item{background:var(--gray-50);border-radius:6px;padding:10px 14px}
@@ -187,7 +187,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .detail-stat.open{background:var(--gray-100)}
 .detail-stat-n{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:800}
 .detail-stat.ok .detail-stat-n{color:var(--green)}
-.detail-stat.nok .detail-stat-n{color:var(--red)}
+.detail-stat.nok .detail-stat-n{color:var(--red-tekst)}
 .detail-stat.open .detail-stat-n{color:var(--gray-500)}
 .detail-stat-l{font-size:11px;font-weight:400;color:var(--gray-500);margin-top:3px}
 .sectie-blok{margin-bottom:14px;border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden}
@@ -196,7 +196,59 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
    gebruiker kiest zelf "Opslaan als PDF" in de printdialoog. Alles onzichtbaar
    maken en enkel .print-doel weer zichtbaar, zodat we niet per scherm hoeven te
    bepalen wat er allemaal weg moet. */
+/* ---------------------------------------------------------------------------
+   Donkere modus -- volgt de instelling van het toestel, geen knop.
+   ---------------------------------------------------------------------------
+   Bewust alleen de tokens herdefinieren en geen enkele regel dupliceren: elke
+   kleur in dit bestand loopt via var(), dus een tweede set waarden volstaat.
+   Zou ik hier selectors gaan overschrijven, dan moet elke toekomstige wijziging
+   op twee plaatsen gebeuren en loopt het na een maand uiteen.
+
+   De grijsschaal wordt omgekeerd: gray-50 is nu de donkerste en gray-900 de
+   lichtste. Daardoor blijft elke bestaande combinatie van achtergrond en tekst
+   kloppen zonder dat er iets aangepast hoeft te worden.
+
+   --navy blijft wat het is: die wordt als achtergrond gebruikt (actieve tab,
+   knoppen) en donkerblauw op donker werkt. --navy-text is het omgekeerde --
+   dat is tekst, en donkerblauwe tekst op een donkere kaart is onleesbaar.
+*/
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1620;
+    --surface:#18212e;
+    --sidebar-bg:#131b26;
+    --hairline:rgba(255,255,255,.08);
+    --navy2:#8fa6c0;
+    --navy-text:#cfdcea;
+    --gray-50:#141c27;
+    --gray-100:#1c2733;
+    --gray-200:#26323f;
+    --gray-300:#36434f;
+    --gray-400:#8492a3;
+    --gray-500:#a1aebd;
+    --gray-700:#ccd6e0;
+    --gray-900:#eaf0f6;
+    --red-tekst:#f28b82;
+    --green-bg:#13291b;
+    --red-bg:#2b1518;
+    --orange-bg:#2b1f11;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 18px rgba(0,0,0,.35);
+    --shadow-lg:0 20px 60px rgba(0,0,0,.6);
+  }
+}
+
 @media print {
+  /* Papier is wit, wat het scherm ook doet. Zonder deze regels drukt de
+     donkere modus donkere vlakken af -- onleesbaar en een verspilling van
+     toner. De lichte waarden staan hier opnieuw omdat een media-blok geen
+     ander media-blok kan uitschakelen. */
+  :root{
+    --bg:#f5f7fa;--surface:#fff;--sidebar-bg:#E4E4E4;--hairline:rgba(0,0,0,.1);
+    --navy2:#B7C7DA;--navy-text:#003366;
+    --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
+    --gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;
+    --red-tekst:#dc2626;--green-bg:#e8f5e8;--red-bg:#fff1f2;--orange-bg:#fff7ed;
+  }
   @page { margin: 14mm; }
   body.aan-het-printen { background:#fff }
   body.aan-het-printen * { visibility:hidden }
@@ -226,12 +278,12 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 }
 .enkel-printen{display:none}
 .rapport-print-kop{font-size:13px;color:var(--gray-700);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--gray-300)}
-.escalatie-kaart{background:#fff;border:1px solid var(--red);border-left:4px solid var(--red);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
-.escalatie-kop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--red)}
+.escalatie-kaart{background:var(--surface);border:1px solid var(--red);border-left:4px solid var(--red);border-radius:var(--radius-lg);margin-bottom:22px;overflow:hidden}
+.escalatie-kop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--red-tekst)}
 .escalatie-uitleg{padding:0 20px 12px;font-size:12px;color:var(--gray-500);line-height:1.55}
 .escalatie-rij{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px;border-top:1px solid var(--gray-100)}
 .escalatie-nummer{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--navy-text)}
-.escalatie-mist{font-size:12px;color:var(--red);margin-top:3px}
+.escalatie-mist{font-size:12px;color:var(--red-tekst);margin-top:3px}
 .detail-meta{display:grid;grid-template-columns:1fr;gap:8px;padding:16px 22px}
 .detail-meta-rij{display:flex;gap:12px;align-items:baseline}
 .detail-meta-rij>div:first-child{flex:0 0 150px}
@@ -242,7 +294,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .detail-punt .badge{flex:0 0 auto;min-width:64px;text-align:center}
 .detail-motivering{font-size:12px;color:var(--gray-500);font-style:italic;margin-top:3px}
 .detail-foto{max-width:160px;border-radius:8px;margin-top:8px;cursor:pointer;display:block}
-.vraag-kaart{background:#fff;border:1px solid var(--gray-300);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+.vraag-kaart{background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
 .vraag-kaart.gearchiveerd{opacity:.55}
 .vraag-tekst{width:100%;border:1px solid var(--gray-300);border-radius:6px;padding:7px 9px;font-family:'Poppins',sans-serif;font-size:13px;margin-bottom:8px}
 .vraag-rij{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--gray-500)}
@@ -253,7 +305,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .vraag-werktypes{margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-100);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--gray-500)}
 .vraag-werktypes strong{color:var(--gray-900)}
 .vraag-werktypes-editor{flex-basis:100%;display:flex;flex-wrap:wrap;gap:12px;padding-top:4px}
-.kpi-instel-kaart{background:#fff;border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:22px}
+.kpi-instel-kaart{background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:22px}
 .kpi-instel-kop{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:var(--navy-text);margin-bottom:10px}
 .kpi-instel-rij{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--gray-100)}
 .kpi-instel-rij:last-child{border-bottom:none}
@@ -2411,7 +2463,7 @@ function springNaarVeld(veld){
 
 function bgLabelHtml(label){
   var verplicht=/\*$/.test(label);
-  return {verplicht:verplicht,html:verplicht?label.slice(0,-1)+'<span style="color:var(--red)">*</span>':label};
+  return {verplicht:verplicht,html:verplicht?label.slice(0,-1)+'<span style="color:var(--red-tekst)">*</span>':label};
 }
 
 function bgVeld(veld,label,waarde){
@@ -2911,7 +2963,7 @@ function toonImportPreview(type,resultaten){
   document.getElementById('detailSub').textContent=geldige.length+' van '+resultaten.length+' rijen geldig';
   var rijenHtml=resultaten.map(function(r){
     var label=type==='gebruikers'?(r.naam||'(leeg)'):(r.id||'(leeg)');
-    var status=r.fout?'<span style="color:var(--red)">&#10007; '+r.fout+'</span>':'<span style="color:var(--green)">&#10004; geldig</span>';
+    var status=r.fout?'<span style="color:var(--red-tekst)">&#10007; '+r.fout+'</span>':'<span style="color:var(--green)">&#10004; geldig</span>';
     return '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px"><span>'+label+'</span>'+status+'</div>';
   }).join('');
   var knopTekst='Importeer '+geldige.length+' geldige rij'+(geldige.length===1?'':'en');
@@ -3678,10 +3730,10 @@ function renderVergunningDetail(v,antwoorden){
     h+=regel('Werk be&euml;indigd',formatDatumTijd(v.werk_beeindigd_op));
     h+=regel('Controle na 2 uur',v.nazorg_2u_bevestigd_op
       ? formatDatumTijd(v.nazorg_2u_bevestigd_op)+' door '+(vgNamen[v.nazorg_2u_door_id]||'onbekend')
-      : '<span style="color:var(--red)">niet bevestigd</span>');
+      : '<span style="color:var(--red-tekst)">niet bevestigd</span>');
     h+=regel('Controle na 24 uur',v.nazorg_24u_bevestigd_op
       ? formatDatumTijd(v.nazorg_24u_bevestigd_op)+' door '+(vgNamen[v.nazorg_24u_door_id]||'onbekend')
-      : '<span style="color:var(--red)">niet bevestigd</span>');
+      : '<span style="color:var(--red-tekst)">niet bevestigd</span>');
     h+='</div></div>';
   }
 
