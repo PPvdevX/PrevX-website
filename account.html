@@ -262,6 +262,19 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .klant-topbar-rechts button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:var(--on-navy);border-radius:var(--radius);padding:6px 12px;font-family:'Poppins',sans-serif;font-size:12px;cursor:pointer}
 .klant-hero{padding:26px 32px 6px}
 .klant-hero h1{font-size:26px;color:var(--navy-text);margin-bottom:4px}
+/* De formule stond mee in de grijze regel onder de naam, achter een
+   scheidingspunt na het adres en de contactpersoon. Drie ongelijksoortige
+   dingen op een rij lezen als een opsomming waarin niets opvalt, terwijl de
+   formule juist bepaalt wat de klant wel en niet ziet -- de vergrendelde
+   kaart verwijst ernaar. Ze staat nu naast de naam, als label. */
+.klant-hero-kop{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+.klant-hero-kop h1{margin-bottom:0}
+.klant-formule{display:inline-flex;align-items:center;gap:6px;background:var(--gray-100);color:var(--navy-text);border:1px solid var(--gray-300);font-size:11px;font-weight:700;letter-spacing:.3px;padding:4px 12px;border-radius:20px;white-space:nowrap}
+/* Gelijke afstanden i.p.v. scheidingspunten: bij een lang adres brak de regel
+   midden in de opsomming af en bleef er een punt aan het einde hangen. */
+.klant-hero-meta{display:flex;flex-wrap:wrap;gap:2px 22px}
+.klant-hero-meta span{font-size:13px;color:var(--gray-500)}
+.klant-hero-meta b{font-weight:600;color:var(--gray-700)}
 .klant-hero-sub{font-size:13px;color:var(--gray-500)}
 .klant-bezoek{background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:16px 20px;margin:18px 32px 0}
 .klant-bezoek-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500);margin-bottom:6px}
@@ -287,9 +300,14 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .kaart-vraag:hover{text-decoration:underline}
 .kaart-tellers{display:flex;gap:6px;flex-wrap:wrap}
 .kaart-teller{font-size:11px;font-weight:600;padding:2px 9px;border-radius:11px;white-space:nowrap}
-.kruimel{display:flex;align-items:center;gap:10px;padding:14px 32px 0}
-.kruimel button{width:30px;height:30px;border-radius:50%;border:1px solid var(--gray-300);background:var(--surface);color:var(--gray-700);cursor:pointer;font-size:15px;line-height:1}
-.kruimel-pad{font-size:12px;color:var(--gray-500)}
+/* Was een eigen strook met een rond knopje en 'Dashboard > Actiepunten',
+   met daar vlak onder een kop die 'Actiepunten' herhaalde. Twee balken en
+   twee keer dezelfde naam om een stap terug te zetten. Nu een enkele stille
+   terugkoppeling; de paginakop zegt zelf al waar je bent. */
+.kruimel{display:flex;align-items:center;padding:16px 32px 0}
+.kruimel button{display:inline-flex;align-items:center;gap:8px;padding:0;border:none;background:none;color:var(--gray-500);font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;cursor:pointer;line-height:1}
+.kruimel button:hover{color:var(--navy-text)}
+.kruimel button svg{flex-shrink:0}
 .fab-melding{position:fixed;right:26px;bottom:26px;z-index:60;display:none;align-items:center;gap:8px;background:var(--green);color:#fff;border:none;border-radius:26px;padding:13px 20px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-lg)}
 /* De knop staat buiten #screen-dashboard, dus .klantmodus .fab-melding
    bereikt hem niet -- zetKlantModus() schakelt hem rechtstreeks. */
@@ -540,14 +558,16 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
   </div>
 
   <div class="kruimel" id="klantKruimel" style="display:none">
-    <button onclick="toonTab('klanthome')" title="Terug naar dashboard">&#8592;</button>
-    <span class="kruimel-pad">Dashboard &rsaquo; <span id="klantKruimelNaam"></span></span>
+    <button onclick="toonTab('klanthome')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg> Terug naar dashboard</button>
   </div>
 
   <div id="tab-klanthome" style="display:none">
     <div class="klant-hero">
-      <h1 id="klantHeroNaam">&nbsp;</h1>
-      <div class="klant-hero-sub" id="klantHeroSub"></div>
+      <div class="klant-hero-kop">
+        <h1 id="klantHeroNaam">&nbsp;</h1>
+        <span class="klant-formule" id="klantFormule" style="display:none"></span>
+      </div>
+      <div class="klant-hero-meta" id="klantHeroSub"></div>
     </div>
     <div class="sw-kaart" id="klantSamenwerking" style="display:none;margin:18px 32px 0">
       <div class="sw-label">Uw samenwerking</div>
@@ -1751,13 +1771,11 @@ function zetKlantModus(aan){
   if(!aan)document.getElementById('klantKruimel').style.display='none';
 }
 
-// Het kruimelpad hoort bij het klantgezicht: zonder zijbalk moet er iets zijn
-// dat zegt waar je zit en hoe je terugkomt.
+// Hoort bij het klantgezicht: zonder zijbalk moet er een weg terug zijn.
+// Waar je bent zegt de paginakop; dit zegt enkel hoe je terugkomt.
 function werkKruimelBij(naam){
   var kruimel=document.getElementById('klantKruimel');
   if(!klantModus||naam==='klanthome'){kruimel.style.display='none';return;}
-  var item=menuItem(naam);
-  document.getElementById('klantKruimelNaam').textContent=item?item.naam:naam;
   kruimel.style.display='';
 }
 
@@ -1783,12 +1801,15 @@ function laadKlantHome(){
       var b=r.data||{};
       document.getElementById('klantHeroNaam').textContent=b.naam||'Uw dossier';
       document.getElementById('klantTopbarNaam').textContent=b.naam||'PrevX';
+      function tekst(v){var d=document.createElement('div');d.textContent=v==null?'':String(v);return d.innerHTML;}
       var delen=[];
-      if(b.adres)delen.push(b.adres);
-      if(b.contact_naam)delen.push('Contactpersoon: '+b.contact_naam);
-      if(b.aantal_werknemers)delen.push(b.aantal_werknemers+' werknemers');
-      if(b.pakket)delen.push(b.pakket);
-      document.getElementById('klantHeroSub').textContent=delen.join(' \u00b7 ');
+      if(b.adres)delen.push(tekst(b.adres));
+      if(b.aantal_werknemers)delen.push(tekst(b.aantal_werknemers)+' werknemers');
+      if(b.contact_naam)delen.push('Contactpersoon <b>'+tekst(b.contact_naam)+'</b>');
+      document.getElementById('klantHeroSub').innerHTML=delen.map(function(d){return '<span>'+d+'</span>';}).join('');
+      var formule=document.getElementById('klantFormule');
+      if(b.pakket){formule.textContent=b.pakket;formule.style.display='';}
+      else formule.style.display='none';
       if(b.logo_url)document.getElementById('klantLogo').src=b.logo_url;
     });
 
