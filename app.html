@@ -1796,7 +1796,11 @@ function pincodeVergeten() {
   sb.rpc('rpc_pincode_reset_aanvragen', { p_naam: naam, p_email: email })
     .then(function(result) {
       if (result.error) { showToast('Fout: ' + result.error.message); return; }
-      showToast('Indien dit klopt, is er een code verstuurd — check je mailbox, of vraag je beheerder.');
+      // Bewust nog steeds niet verraden of die naam bestaat -- anders is dit
+      // formulier een manier om uit te vissen wie er in het systeem staat. Maar
+      // wel zeggen wat je kan doen als er niets komt: de vorige tekst liet
+      // iemand op een werf achter zonder enig aanknopingspunt.
+      showToast('Als deze naam en dit e-mailadres bij ons bekend zijn, is er een code onderweg. Geen mail na een paar minuten? Controleer je gegevens, of vraag je leidinggevende om een nieuwe pincode.');
       pincodeResetBevestigen(naam, email);
     });
 }

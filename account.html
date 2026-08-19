@@ -3649,7 +3649,7 @@ function verwijderGebruiker(gebruikerId,naam){
 function laadGebruikers(){
   if(!huidigeBedrijfId)return;
   document.getElementById('gebruikersKlantcode').textContent=(huidigeBedrijf&&huidigeBedrijf.klantcode)||'—';
-  sb.from('gebruikers').select('id,naam,rol,bedrijf_id,actief,dossier_rol').eq('bedrijf_id',huidigeBedrijfId).order('naam').then(function(r){
+  sb.from('gebruikers').select('id,naam,rol,bedrijf_id,actief,dossier_rol,email').eq('bedrijf_id',huidigeBedrijfId).order('naam').then(function(r){
     var g=r.data||[];
     document.getElementById('gebruikersCount').textContent=g.length+' gebruikers';
     var labels={
@@ -3679,7 +3679,12 @@ function laadGebruikers(){
         '</select>';
       tr.innerHTML='<td><strong>'+u.naam+'</strong></td><td>'+rolSelect+'</td>'+
         '<td><button class="btn-add-sm" onclick="resetGebruikerPincode(\''+u.id+'\')">Reset pincode</button></td>'+
-        '<td><input type="email" value="" placeholder="nieuw e-mailadres" onchange="wijzigGebruikerEmail(\''+u.id+'\',this)" style="width:170px;border:1px solid var(--gray-300);border-radius:6px;padding:5px 7px;font-size:13px"></td>'+
+        // Dit veld toonde altijd een lege waarde: het adres werd niet eens
+        // opgehaald. Daardoor was nergens te zien wie er geen had -- en wie
+        // geen adres heeft, kan zijn pincode niet zelf herstellen en staat
+        // vast tot iemand hem een nieuwe geeft.
+        '<td><input type="email" value="'+(u.email||'').replace(/"/g,'&quot;')+'" placeholder="geen adres" onchange="wijzigGebruikerEmail(\''+u.id+'\',this)" style="width:170px;border:1px solid '+(u.email?'var(--gray-300)':'var(--orange)')+';border-radius:6px;padding:5px 7px;font-size:13px">'+
+        (u.email?'':'<div style="font-size:10px;color:var(--orange);margin-top:3px">Kan pincode niet zelf herstellen</div>')+'</td>'+
         '<td>'+assets+'</td>'+
         '<td>'+dossierRol+'</td>'+
         '<td><span class="badge '+(u.actief?'rijklaar':'niet_rijklaar')+'">'+(u.actief?'Actief':'Inactief')+'</span></td>'+
