@@ -1014,8 +1014,8 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
               <label class="btn-add-sm" style="display:inline-block">Bulk importeren<input type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importGebruikersBestand(this)"></label>
             </span>
           </div>
-          <table><thead><tr><th>Naam</th><th>Rol</th><th>Pincode</th><th>E-mail (rapport-notificaties)</th><th>Assets</th><th>Dossierrol</th><th>Status</th><th></th></tr></thead>
-          <tbody id="gebruikersTabel"><tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+          <table><thead><tr><th>Naam</th><th>Rol</th><th>Pincode</th><th>E-mail (rapport-notificaties)</th><th>Assets</th><th>Dossierrol</th><th>Mijn PrevX</th><th>Status</th><th></th></tr></thead>
+          <tbody id="gebruikersTabel"><tr class="loading-row"><td colspan="9"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -1515,7 +1515,7 @@ function bewaarNieuwWachtwoord(){
   var b=document.getElementById('nieuwWachtwoord2').value;
   var err=document.getElementById('nieuwWachtwoordError');
   var btn=document.getElementById('btnNieuwWachtwoord');
-  function fout(t){err.textContent=t;err.style.display='block';btn.disabled=false;btn.textContent='Wachtwoord instellen';}
+  function fout(t){err.textContent=t;err.style.display='block';btn.disabled=false;btn.textContent=uitnodigingsModus?'Account activeren':'Wachtwoord instellen';}
   err.style.display='none';
   if(a.length<8)return fout('Kies een wachtwoord van minstens 8 tekens.');
   if(a!==b)return fout('De twee wachtwoorden komen niet overeen.');
@@ -1536,8 +1536,17 @@ function bewaarNieuwWachtwoord(){
 // meteen uit de URL i.p.v. te wachten op de PASSWORD_RECOVERY-melding: die komt
 // asynchroon, en als getSession() eerder klaar is belandt iemand op het
 // dashboard zonder ooit een nieuw wachtwoord te kiezen.
-var herstelModus=/[#&]type=recovery/.test(location.hash);
-if(herstelModus)showScreen('nieuwwachtwoord');
+var uitnodigingsModus=/[#&]type=invite/.test(location.hash);
+var herstelModus=uitnodigingsModus||/[#&]type=recovery/.test(location.hash);
+if(herstelModus){
+  if(uitnodigingsModus){
+    document.querySelector('#screen-nieuwwachtwoord .login-logo h1').textContent='Welkom bij Mijn PrevX';
+    document.querySelector('#screen-nieuwwachtwoord .login-logo p').textContent='Kies een wachtwoord om uw account in gebruik te nemen';
+    document.querySelector('#screen-nieuwwachtwoord .form-label').textContent='Wachtwoord';
+    document.getElementById('btnNieuwWachtwoord').textContent='Account activeren';
+  }
+  showScreen('nieuwwachtwoord');
+}
 
 sb.auth.onAuthStateChange(function(event){
   if(event==='PASSWORD_RECOVERY'){
@@ -3969,10 +3978,67 @@ function verwijderGebruiker(gebruikerId,naam){
   });
 }
 
+// Toegang tot het portaal is iets anders dan toegang tot de app. De app werkt
+// met klantcode + pincode; Mijn PrevX draait op een echt Auth-account. Tot deze
+// knop bestond moest die koppeling met de hand in het Supabase-dashboard
+// gelegd worden, en stond dat nergens in beeld -- enkel in een toast die
+// voorbijging.
+function portaalToegangCel(u){
+  if(u.auth_user_id)return '<span class="badge rijklaar">Toegang</span>';
+  var reden=!u.email?'Eerst een e-mailadres invullen'
+           :!u.dossier_rol?'Eerst een dossierrol kiezen'
+           :!u.actief?'Gebruiker staat op inactief'
+           :null;
+  if(reden)return '<span style="font-size:11px;color:var(--gray-500)">'+reden+'</span>';
+  // Geen onclick met de naam erin: een apostrof in een naam (O'Brien) breekt
+  // zo'n attribuut. De klik wordt na het invoegen aangehecht, met de rij zelf
+  // in de closure.
+  return '<button class="btn-add-sm btn-uitnodigen">Uitnodigen</button>';
+}
+
+// Er wordt hier nergens een wachtwoord ingesteld of getoond. De uitnodiging is
+// een eenmalige link waarmee de ontvanger er zelf een kiest; anders zou jij het
+// wachtwoord van je klant kennen en stond het bovendien in een mail of een
+// telefoongesprek.
+function nodigGebruikerUit(id,naam,email){
+  if(!confirm('Uitnodiging sturen naar '+naam+'?\n\n'+email+'\n\n'+
+    'Hij krijgt een link waarmee hij zelf een wachtwoord kiest voor Mijn PrevX. '+
+    'U stelt geen wachtwoord in en krijgt het ook niet te zien.'))return;
+  return sb.auth.getSession().then(function(sr){
+    var token=sr.data&&sr.data.session?sr.data.session.access_token:null;
+    if(!token){showToast('Sessie verlopen, log opnieuw in.');return;}
+    showToast('Uitnodiging versturen...');
+    return fetch(SUPABASE_URL+'/functions/v1/nodig-gebruiker-uit',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({gebruiker_id:id,access_token:token})
+    }).then(function(res){return res.json().then(function(b){return {ok:res.ok,body:b};});})
+      .then(function(r){
+        if(!r.ok){
+          // Half gelukt hoort niet als toast voorbij te gaan: het account
+          // bestaat dan wel en de volgende poging gedraagt zich anders.
+          if(r.body.waarschuwing)alert(r.body.waarschuwing);
+          else showToast('Fout: '+(r.body.error||'uitnodigen mislukt'));
+          laadGebruikers();
+          return;
+        }
+        if(r.body.gekoppeld_aan_bestaand_account){
+          alert(naam+' had al een account op '+r.body.email+'. Dat is nu gekoppeld aan dit dossier, '+
+            'en er is een herstelmail gestuurd zodat hij een wachtwoord kan instellen.');
+        }else{
+          showToast('Uitnodiging verstuurd naar '+r.body.email);
+        }
+        laadGebruikers();
+      });
+  }).catch(function(e){
+    console.error('Uitnodigen mislukt:',e);
+    showToast('Uitnodigen mislukt. Probeer opnieuw.');
+  });
+}
+
 function laadGebruikers(){
   if(!huidigeBedrijfId)return;
   document.getElementById('gebruikersKlantcode').textContent=(huidigeBedrijf&&huidigeBedrijf.klantcode)||'—';
-  sb.from('gebruikers').select('id,naam,rol,bedrijf_id,actief,dossier_rol,email').eq('bedrijf_id',huidigeBedrijfId).order('naam').then(function(r){
+  sb.from('gebruikers').select('id,naam,rol,bedrijf_id,actief,dossier_rol,email,auth_user_id').eq('bedrijf_id',huidigeBedrijfId).order('naam').then(function(r){
     var g=r.data||[];
     document.getElementById('gebruikersCount').textContent=g.length+' gebruikers';
     var labels={
@@ -3982,7 +4048,7 @@ function laadGebruikers(){
       beheerder:huidigeRolLabels.beheerder||'Beheerder'
     };
     var tbody=document.getElementById('gebruikersTabel');
-    if(!g.length){tbody.innerHTML='<tr class="empty-row"><td colspan="8">Geen gebruikers.</td></tr>';return;}
+    if(!g.length){tbody.innerHTML='<tr class="empty-row"><td colspan="9">Geen gebruikers.</td></tr>';return;}
     tbody.innerHTML='';
     var dossierRolLabels={klant_beheerder:'Klant-beheerder',klant_medewerker:'Klant-medewerker'};
     g.forEach(function(u){
@@ -4010,9 +4076,12 @@ function laadGebruikers(){
         (u.email?'':'<div style="font-size:10px;color:var(--orange);margin-top:3px">Kan pincode niet zelf herstellen</div>')+'</td>'+
         '<td>'+assets+'</td>'+
         '<td>'+dossierRol+'</td>'+
+        '<td style="white-space:nowrap">'+portaalToegangCel(u)+'</td>'+
         '<td><span class="badge '+(u.actief?'rijklaar':'niet_rijklaar')+'">'+(u.actief?'Actief':'Inactief')+'</span></td>'+
         '<td style="white-space:nowrap"><button class="btn-add-sm" onclick="toggleGebruikerActief(\''+u.id+'\','+(!u.actief)+')">'+(u.actief?'Archiveer':'Herstel')+'</button> '+
           '<button class="btn-add-sm" onclick="verwijderGebruiker(\''+u.id+'\',\''+u.naam.replace(/'/g,"\\'")+'\')">Verwijder</button></td>';
+      var uitnodigKnop=tr.querySelector('.btn-uitnodigen');
+      if(uitnodigKnop)uitnodigKnop.onclick=function(){nodigGebruikerUit(u.id,u.naam,u.email);};
       tbody.appendChild(tr);
     });
   });
