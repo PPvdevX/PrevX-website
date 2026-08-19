@@ -1714,7 +1714,12 @@ function vergunningFoto(vraagId, input) {
     if (!res.ok) { rij.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; return; }
     vvAntwoorden[vraagId].antwoord = 'foto';
     vvAntwoorden[vraagId].foto_url = res.body.url;
-    rij.innerHTML = '<img src="' + res.body.url + '" class="foto-thumb">';
+    onthoudVoorbeeld(res.body.url, f);
+    rij.innerHTML = '';
+    var vb = document.createElement('img');
+    vb.className = 'foto-thumb';
+    vb.src = fotoVoorbeelden[res.body.url] || '';
+    rij.appendChild(vb);
   }).catch(function () { rij.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; });
 }
 
@@ -2021,6 +2026,7 @@ function addFoto(pid, input) {
       showToast('Foto uploaden mislukt, probeer opnieuw.');
       return;
     }
+    onthoudVoorbeeld(res.body.url, file);
     resultaten[pid].fotos.push(res.body.url);
     renderFotos(pid);
     slaVoortgangOp();
@@ -2032,6 +2038,27 @@ function addFoto(pid, input) {
   });
 }
 
+// Sinds de bucket inspectie-media privé is (migratie 0070) opent de opgeslagen
+// URL niet meer zomaar in een <img>. Voor het voorbeeld is dat ook helemaal
+// niet nodig: de foto staat al op dit toestel. We tonen dus het bestand zelf en
+// bewaren de opgeslagen URL apart -- dat blijft wat er naar de server gaat.
+//
+// Die voorbeelden leven alleen zolang de pagina open staat. Wordt de app
+// herladen met een halfafgewerkte inspectie (zie herstelVoortgangIndienMogelijk),
+// dan zijn ze weg en tonen we een vakje dat zegt dat de foto bijgevoegd is.
+// Beter dan een gebroken afbeelding, die eruitziet alsof het misgelopen is.
+var fotoVoorbeelden = {};
+
+function onthoudVoorbeeld(opgeslagenUrl, bestand) {
+  try { fotoVoorbeelden[opgeslagenUrl] = URL.createObjectURL(bestand); } catch (e) {}
+}
+
+function vergeetVoorbeeld(opgeslagenUrl) {
+  var u = fotoVoorbeelden[opgeslagenUrl];
+  if (u) { try { URL.revokeObjectURL(u); } catch (e) {} }
+  delete fotoVoorbeelden[opgeslagenUrl];
+}
+
 function renderFotos(pid) {
   var c = document.getElementById('fotos-' + pid);
   if (!c) return;
@@ -2039,8 +2066,16 @@ function renderFotos(pid) {
   resultaten[pid].fotos.forEach(function(src, i) {
     var w = document.createElement('div');
     w.className = 'foto-thumb';
-    var img = document.createElement('img');
-    img.src = src;
+    var voorbeeld = fotoVoorbeelden[src];
+    var img;
+    if (voorbeeld) {
+      img = document.createElement('img');
+      img.src = voorbeeld;
+    } else {
+      img = document.createElement('div');
+      img.style.cssText = 'width:60px;height:60px;border-radius:6px;border:2px solid var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gray-500);text-align:center;padding:2px';
+      img.textContent = 'Foto bijgevoegd';
+    }
     var btn = document.createElement('button');
     btn.className = 'foto-del';
     btn.textContent = 'x';
@@ -2052,6 +2087,7 @@ function renderFotos(pid) {
 }
 
 function delFoto(pid, i) {
+  vergeetVoorbeeld(resultaten[pid].fotos[i]);
   resultaten[pid].fotos.splice(i, 1);
   renderFotos(pid);
   slaVoortgangOp();
