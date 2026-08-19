@@ -353,6 +353,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   </div>
   <div class="module-balk">Pre-inspectie</div>
   <div class="screen-content">
+    <div id="inspPloeg"></div>
     <h2 class="screen-title">Kies uw asset</h2>
     <div class="voertuig-grid" id="voertuigGrid">
       <div class="loading"><div class="spinner"></div>Assets laden...</div>
@@ -457,6 +458,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="module-balk">Vuurvergunning</div>
   <div class="screen-content">
     <button class="btn-primair" onclick="startNieuweVergunning()">+ Nieuwe aanvraag</button>
+    <div id="vvPloeg"></div>
     <h2 class="screen-title" style="margin-top:22px">Lopende vergunningen</h2>
     <div id="vergunningenLijst"><div class="loading"><div class="spinner"></div>Laden...</div></div>
     <div class="scherm-acties" id="actiesVergunning"></div>
@@ -1238,6 +1240,90 @@ function kiesModule(key) {
   showToast('Deze module is nog niet beschikbaar.');
 }
 
+// ---- Overzichten voor de leidinggevende ----------------------------------
+// Zelfde vorm als het LMRA-ploegoverzicht: een korte lijst met het tijdstip of
+// de status vooraan, en wat aandacht vraagt bovenaan. Bewust geen knoppen om
+// hier meteen te beslissen -- goedkeuren gebeurt op het detail, waar je de
+// antwoorden en de foto van de werkzone ziet. Tekenen op basis van twee regels
+// samenvatting is precies wat het dossier niet mag suggereren.
+
+function ploegRij(kop, sub, cite, dringend, vlag) {
+  return '<div class="ploeg-rij' + (dringend ? ' gestopt' : '') + '">' +
+    '<div class="ploeg-inhoud">' +
+      '<div class="ploeg-naam">' + kop + (vlag ? ' <span class="ploeg-vlag">' + vlag + '</span>' : '') + '</div>' +
+      '<div class="ploeg-sub">' + sub + '</div>' +
+      (cite ? '<div class="ploeg-cite">' + cite + '</div>' : '') +
+    '</div></div>';
+}
+
+function laadVergunningPloeg() {
+  var vak = document.getElementById('vvPloeg');
+  if (!vak) return;
+  vak.innerHTML = '';
+  if (!magGoedkeuren()) return;
+
+  sb.rpc('rpc_vergunning_overzicht', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    if (r.error) { console.error('Vergunningoverzicht mislukt:', r.error); return; }
+    var rijen = r.data || [];
+    if (!rijen.length) return;
+
+    var aandacht = rijen.filter(function (v) { return v.escalatie || v.status === 'aangevraagd'; }).length;
+    var h = '<h2 class="screen-title" style="margin-top:22px">Op je terrein' +
+      (aandacht ? ' <span class="ploeg-vlag">&#9888; ' + aandacht + '</span>' : '') + '</h2>';
+
+    h += rijen.map(function (v) {
+      var vlag = v.escalatie ? 'nazorg uitgebleven'
+               : v.status === 'aangevraagd' ? 'wacht op jou'
+               : v.status === 'voorbehoud' ? 'voorwaarden' : '';
+      // Na het beëindigen van het werk is de vraag niet meer "loopt het" maar
+      // "is er nagekeken" -- dat is waar een vergunning stil blijft hangen.
+      var sub = v.werktype + ' &middot; ' + v.locatie + ' &middot; ' + v.aanvrager;
+      var cite = null;
+      if (v.werk_beeindigd_op) {
+        var open = [];
+        if (!v.nazorg_2u_ok) open.push('2 u');
+        if (!v.nazorg_24u_ok) open.push('24 u');
+        cite = open.length ? 'nazorg open: ' + open.join(' en ') : 'nazorg bevestigd';
+      }
+      return ploegRij(v.vergunningsnummer, sub, cite, v.escalatie, vlag);
+    }).join('');
+
+    vak.innerHTML = h;
+  });
+}
+
+function laadInspectiePloeg() {
+  var vak = document.getElementById('inspPloeg');
+  if (!vak) return;
+  vak.innerHTML = '';
+  if (!magGoedkeuren()) return;
+
+  sb.rpc('rpc_inspectie_overzicht', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    if (r.error) { console.error('Inspectieoverzicht mislukt:', r.error); return; }
+    var rijen = r.data || [];
+    if (!rijen.length) return;
+
+    var nok = rijen.filter(function (i) { return i.verdict === 'niet_rijklaar'; }).length;
+    var h = '<h2 class="screen-title">Vandaag gecontroleerd' +
+      (nok ? ' <span class="ploeg-vlag">&#9888; ' + nok + ' niet rijklaar</span>' : '') + '</h2>';
+
+    h += rijen.map(function (i) {
+      var label = i.verdict === 'niet_rijklaar' ? 'niet rijklaar'
+                : i.verdict === 'rijklaar_met_opmerkingen' ? 'met opmerkingen' : 'rijklaar';
+      return '<div class="ploeg-rij' + (i.verdict === 'niet_rijklaar' ? ' gestopt' : '') + '">' +
+        '<div class="ploeg-tijd">' + (i.tijdstip ? i.tijdstip.slice(0, 5) : '') + '</div>' +
+        '<div class="ploeg-inhoud">' +
+          '<div class="ploeg-naam">' + i.asset +
+            (i.verdict === 'niet_rijklaar' ? ' <span class="ploeg-vlag">niet rijklaar</span>' : '') + '</div>' +
+          '<div class="ploeg-sub">' + (i.omschrijving ? i.omschrijving + ' &middot; ' : '') + i.wie +
+            (i.verdict !== 'niet_rijklaar' ? ' &middot; ' + label : '') + '</div>' +
+        '</div></div>';
+    }).join('');
+
+    vak.innerHTML = h;
+  });
+}
+
 // ---- LMRA ----------------------------------------------------------------
 // Laatste-minuut-risicoanalyse. Het ontwerp draait om één ding: voorkomen dat
 // dit afvinkwerk wordt. Daarom meet de databank de duur (start en afronden zijn
@@ -1552,6 +1638,7 @@ function laadVergunningen() {
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
   document.getElementById('headerUserVv').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
   tekenActies('actiesVergunning');
+  laadVergunningPloeg();
   var lijst = document.getElementById('vergunningenLijst');
   lijst.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
@@ -2260,6 +2347,7 @@ function laadVoertuigen() {
   var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
   document.getElementById('headerUser').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
   tekenActies('actiesVoertuig');
+  laadInspectiePloeg();
   var grid = document.getElementById('voertuigGrid');
   grid.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
 
