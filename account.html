@@ -1051,6 +1051,12 @@ var MENU=[
     {key:'alleafspraken',naam:'Afspraken',laad:function(){laadAlleAfspraken();}}
   ]},
   {groep:'Klantendossier',icoon:'documenten',items:[
+    // Assets stonden onder Pre-inspectie, maar ze horen daar niet: keuringen
+    // verwijzen er evengoed naar. Erger dan onlogisch was het ook stuk -- die
+    // groep hangt aan de module preinspecties, dus bij een klant zonder
+    // pre-inspecties verdween Assets volledig terwijl zijn keuringen er wel
+    // aan gekoppeld konden staan. Stamgegevens horen niet achter een module.
+    {key:'voertuigen',naam:'Assets',laad:function(){laadVoertuigen();}},
     {key:'actiepunten',naam:'Actiepunten',module:'actiepunten',laad:function(){laadActiepunten();}},
     {key:'documenten',naam:'Documenten',module:'documenten',laad:function(){laadDocumenten();}},
     {key:'planning',naam:'Planning',module:'planning',laad:function(){laadPlanning();}},
@@ -1059,7 +1065,6 @@ var MENU=[
   ]},
   {groep:'Pre-inspectie',icoon:'inspecties',module:'preinspecties',items:[
     {key:'inspecties',naam:'Inspecties',laad:function(){laadInspecties();}},
-    {key:'voertuigen',naam:'Assets',laad:function(){laadVoertuigen();}},
     {key:'checklist',naam:'Checklist',laad:function(){laadChecklist();}}
   ]},
   {groep:'Vuurvergunning',icoon:'vuurvergunning',module:'vuurvergunning',optIn:true,items:[
