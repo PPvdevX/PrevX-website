@@ -823,7 +823,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
               <label class="btn-add-sm" style="display:inline-block">Bulk importeren<input type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importGebruikersBestand(this)"></label>
             </span>
           </div>
-          <table><thead><tr><th>Naam</th><th>Rol</th><th>Pincode</th><th>E-mail (rapport-notificaties)</th><th>Assets</th><th>Klantendossier-rol</th><th>Status</th><th></th></tr></thead>
+          <table><thead><tr><th>Naam</th><th>Rol</th><th>Pincode</th><th>E-mail (rapport-notificaties)</th><th>Assets</th><th>Dossierrol</th><th>Status</th><th></th></tr></thead>
           <tbody id="gebruikersTabel"><tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
@@ -1111,7 +1111,12 @@ var MENU=[
     {key:'klanten',naam:'Klantdossiers',laad:function(){laadKlanten();}},
     {key:'alleafspraken',naam:'Afspraken',laad:function(){laadAlleAfspraken();}}
   ]},
-  {groep:'Klantendossier',icoon:'documenten',items:[
+  // 'Klantendossier' heette dit eerder, maar alles onder Klanten ís het
+  // dossier -- dat label suggereerde dat pre-inspectie en vuurvergunning er
+  // niet bij hoorden. 'Dossier' zegt wat het is; die twee blijven apart omdat
+  // het modules zijn die een klant al dan niet afneemt, elk met eigen
+  // instellingen.
+  {groep:'Dossier',icoon:'documenten',items:[
     // Assets stonden onder Pre-inspectie, maar ze horen daar niet: keuringen
     // verwijzen er evengoed naar. Erger dan onlogisch was het ook stuk -- die
     // groep hangt aan de module preinspecties, dus bij een klant zonder
@@ -3201,7 +3206,7 @@ function wijzigGebruikerEmail(gebruikerId,input){
 function wijzigDossierRol(gebruikerId,waarde){
   sb.from('gebruikers').update({dossier_rol:waarde||null}).eq('id',gebruikerId).then(function(r){
     if(r.error){showToast('Fout: '+r.error.message);laadGebruikers();return;}
-    showToast('Klantendossier-rol bijgewerkt');
+    showToast('Dossierrol bijgewerkt');
   });
 }
 
