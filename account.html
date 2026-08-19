@@ -642,11 +642,16 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
             <div class="form-group">
               <label class="form-label">Type</label>
               <select class="filter-input" id="documentType" style="width:100%">
-                <option value="GPP">GPP (Globaal preventieplan)</option>
-                <option value="JAP">JAP (Jaaractieplan)</option>
-                <option value="RIS">RIS (Risicoanalyse)</option>
-                <option value="ADV">ADV (Advies)</option>
-                <option value="AUD_RPT">AUD/RPT (Audit-/bezoekverslag)</option>
+                <option value="RPT">RPT &mdash; Rapport / bezoekverslag</option>
+                <option value="RIS">RIS &mdash; Risicoanalyse</option>
+                <option value="GPP">GPP &mdash; Globaal preventieplan</option>
+                <option value="JAP">JAP &mdash; Jaaractieplan</option>
+                <option value="ADV">ADV &mdash; Advies</option>
+                <option value="AUD">AUD &mdash; Audit</option>
+                <option value="CHL">CHL &mdash; Checklist</option>
+                <option value="TBX">TBX &mdash; Toolbox</option>
+                <option value="FOR">FOR &mdash; Formulier</option>
+                <option value="TPL">TPL &mdash; Template</option>
               </select>
             </div>
             <div class="form-group">
@@ -666,13 +671,13 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
         </div>
         <div class="table-card" style="margin-bottom:20px">
           <div class="table-header"><span class="table-title">Preventieplan</span></div>
-          <table><thead><tr><th>Type</th><th>Titel</th><th>Versie</th><th>Datum</th><th></th></tr></thead>
-          <tbody id="documentenPlanTabel"><tr class="loading-row"><td colspan="5"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+          <table><thead><tr><th>Code</th><th>Type</th><th>Titel</th><th>Versie</th><th>Datum</th><th></th></tr></thead>
+          <tbody id="documentenPlanTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
         <div class="table-card">
           <div class="table-header"><span class="table-title">Overige documenten</span></div>
-          <table><thead><tr><th>Type</th><th>Titel</th><th>Versie</th><th>Datum</th><th></th></tr></thead>
-          <tbody id="documentenOverigeTabel"><tr class="loading-row"><td colspan="5"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+          <table><thead><tr><th>Code</th><th>Type</th><th>Titel</th><th>Versie</th><th>Datum</th><th></th></tr></thead>
+          <tbody id="documentenOverigeTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -2157,17 +2162,20 @@ function laadDocumenten(){
 }
 
 function renderDocumenten(data){
-  var typeLabels={GPP:'GPP',JAP:'JAP',RIS:'RIS',ADV:'ADV',AUD_RPT:'AUD/RPT'};
+  var typeLabels={RPT:'Rapport',RIS:'Risicoanalyse',GPP:'GPP',JAP:'JAP',ADV:'Advies',AUD:'Audit',CHL:'Checklist',TBX:'Toolbox',FOR:'Formulier',TPL:'Template'};
   var plan=data.filter(function(d){return d.type==='GPP'||d.type==='JAP';});
   var overige=data.filter(function(d){return d.type!=='GPP'&&d.type!=='JAP';});
   function renderRijen(tbodyId,rows,leegText){
     var tbody=document.getElementById(tbodyId);
-    if(!rows.length){tbody.innerHTML='<tr class="empty-row"><td colspan="5">'+leegText+'</td></tr>';return;}
+    if(!rows.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">'+leegText+'</td></tr>';return;}
     tbody.innerHTML='';
     rows.forEach(function(d){
       var tr=document.createElement('tr');
       var bekijk=d.bestand_url?'<a data-prive-href="'+d.bestand_url+'" target="_blank" rel="noopener">Bekijk</a>':'-';
-      tr.innerHTML='<td><span class="badge onvolledig">'+(typeLabels[d.type]||d.type)+'</span></td>'+
+      // De code eerst: dat is waarnaar verwezen wordt vanuit actiepunten en
+      // verslagen, dus het is de kolom waarop je zoekt.
+      tr.innerHTML='<td><code style="font-family:monospace;font-size:12px;color:var(--gray-700)">'+(d.code||'&mdash;')+'</code></td>'+
+        '<td><span class="badge onvolledig">'+(typeLabels[d.type]||d.type)+'</span></td>'+
         '<td>'+d.titel+'</td><td>'+(d.versie||'-')+'</td><td>'+formatDatum(d.geupload_op.slice(0,10))+'</td>'+
         '<td>'+bekijk+'</td>';
       tbody.appendChild(tr);
@@ -2295,7 +2303,7 @@ function laadPlanning(){
   document.getElementById('planningNieuwKnop').style.display=isSuperbeheerder?'':'none';
   laadSamenwerking(['beheer']);
   sb.from('planning').select('*').eq('bedrijf_id',huidigeBedrijfId).order('datum',{ascending:false}).then(function(pr){
-    sb.from('documenten').select('id,titel').eq('bedrijf_id',huidigeBedrijfId).then(function(dr){
+    sb.from('documenten').select('id,titel,code').eq('bedrijf_id',huidigeBedrijfId).then(function(dr){
       renderPlanning(pr.data||[],dr.data||[]);
     });
   });
@@ -2312,7 +2320,7 @@ function renderPlanning(data,documenten){
     var verslag;
     if(isSuperbeheerder){
       var opties='<option value="">- geen -</option>'+documenten.map(function(d){
-        return '<option value="'+d.id+'"'+(d.id===p.document_id?' selected':'')+'>'+d.titel+'</option>';
+        return '<option value="'+d.id+'"'+(d.id===p.document_id?' selected':'')+'>'+(d.code?d.code+' — ':'')+d.titel+'</option>';
       }).join('');
       verslag='<select class="niveau-select" onchange="koppelVerslag(\''+p.id+'\',this.value)">'+opties+'</select>';
     }else{
