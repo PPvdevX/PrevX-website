@@ -204,7 +204,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
 .btn-verzend { background: var(--navy); color: var(--on-navy); flex: 2; max-width: 280px; }
 .btn-verzend:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-nieuw { background: var(--gray-100); color: var(--gray-500); }
-.toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--navy); color: var(--on-navy); padding: 11px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap; pointer-events: none; }
+.toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--navy); color: var(--on-navy); padding: 11px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 999; max-width: calc(100vw - 32px); width: max-content; text-align: center; line-height: 1.45; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .loading { display: flex; align-items: center; justify-content: center; min-height: 200px; flex-direction: column; gap: 12px; color: var(--gray-500); font-size: 14px; }
 .spinner { width: 36px; height: 36px; border: 3px solid var(--gray-200); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.8s linear infinite; }
