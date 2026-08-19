@@ -1795,6 +1795,18 @@ function pasBrandingToe(bedrijf) {
 }
 
 function pincodeVergeten() {
+  // De herstelmail werkt alleen met een e-mailadres, en veel chauffeurs hebben
+  // dat niet. Wie hier strandde, kreeg voordien alleen een vraag om een adres
+  // dat hij niet heeft -- zonder te weten dat zijn leidinggevende het ter
+  // plaatse kan oplossen. Die keuze staat nu vooraan.
+  var perMail = confirm(
+    'Je pincode herstellen kan op twee manieren.\n\n' +
+    'OK \u2014 Stuur mij een code per e-mail. Dit werkt alleen als je e-mailadres bij PrevX bekend is.\n\n' +
+    'Annuleren \u2014 Ik vraag het aan mijn leidinggevende.');
+  if (!perMail) {
+    showToast('Je leidinggevende kan in zijn eigen PrevX app een nieuwe pincode voor je aanmaken, onder "Pincode collega herstellen".');
+    return;
+  }
   var naam = prompt('Je naam (exact zoals bekend bij PrevX):');
   if (!naam) return;
   var email = prompt('Je e-mailadres:');
