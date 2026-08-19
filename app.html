@@ -1568,57 +1568,56 @@ function tekenBeslisBlok() {
     '<div class="vv-veld"><label class="vv-label">Toelichting (verplicht bij afwijzen of voorbehoud)</label>' +
     '<textarea class="opmerking" id="vvToelichting" placeholder="Bv. eerst de paletten verplaatsen"></textarea></div>' +
     '<div class="vv-veld"><label class="vv-label">Uw pincode</label>' +
-    '<input type="password" inputmode="numeric" maxlength="4" class="vv-input" id="vvPin" placeholder="4 cijfers"></div>' +
-    '<button class="btn-primair" id="vvCodeKnop" onclick="vraagGoedkeuringCode()">Stuur mij een code</button>' +
-    '<div id="vvCodeBlok" style="display:none;margin-top:14px">' +
-      '<div class="vv-melding wacht">Er is een code naar uw mailbox gestuurd. Die is 15 minuten geldig.</div>' +
-      '<div class="vv-veld"><label class="vv-label">Code uit de e-mail</label>' +
-      '<input type="text" inputmode="numeric" maxlength="6" class="vv-input" id="vvCode" placeholder="6 cijfers"></div>' +
-      '<button class="btn-primair" style="background:var(--green)" onclick="beslis(\'goedgekeurd\')">Goedkeuren</button>' +
-      '<button class="btn-primair" style="background:var(--orange);margin-top:8px" onclick="beslis(\'voorbehoud\')">Goedkeuren onder voorwaarden</button>' +
-      '<button class="btn-primair" style="background:var(--red);margin-top:8px" onclick="beslis(\'afgewezen\')">Afwijzen</button>' +
+    '<input type="password" inputmode="numeric" maxlength="4" class="vv-input" id="vvPin" placeholder="4 cijfers" oninput="werkBeslisKnoppenBij()"></div>' +
+    '<div id="vvBeslisKnoppen">' +
+      '<button class="btn-primair" id="vvKnopGoed" disabled style="background:var(--green)" onclick="beslis(\'goedgekeurd\')">Goedkeuren</button>' +
+      '<button class="btn-primair" id="vvKnopVoorbehoud" disabled style="background:var(--orange);margin-top:8px" onclick="beslis(\'voorbehoud\')">Goedkeuren onder voorwaarden</button>' +
+      '<button class="btn-primair" id="vvKnopAf" disabled style="background:var(--red);margin-top:8px" onclick="beslis(\'afgewezen\')">Afwijzen</button>' +
     '</div>';
+  werkBeslisKnoppenBij();
 }
 
-function vraagGoedkeuringCode() {
-  var pin = document.getElementById('vvPin').value.trim();
-  var knop = document.getElementById('vvCodeKnop');
-  if (pin.length !== 4) { showToast('Vul uw pincode van 4 cijfers in.'); return; }
-  knop.disabled = true; knop.textContent = 'Bezig...';
-  sb.rpc('rpc_goedkeuring_code_aanvragen', {
-    p_vergunning_id: vvHuidigeVergunning.id,
-    p_pincode: pin,
-    p_klantcode: klantBedrijf ? klantBedrijf.code : ''
-  }).then(function (r) {
-    knop.disabled = false; knop.textContent = 'Stuur mij een code';
-    if (r.error) { showToast('Fout: ' + r.error.message); return; }
-    if (r.data !== true) { showToast('Ongeldige pincode.'); return; }
-    document.getElementById('vvCodeBlok').style.display = '';
-    showToast('Code verstuurd.');
+// De knoppen komen pas vrij bij vier cijfers. Dat is gemak, geen beveiliging --
+// of die pincode ook klopt en of deze persoon uberhaupt mag goedkeuren, bepaalt
+// de databank in rpc_vergunning_beslissen. Wie de knop met een omweg zou
+// indrukken, komt daar niet langs.
+function werkBeslisKnoppenBij() {
+  var pin = (document.getElementById('vvPin').value || '').trim();
+  var klaar = /^\d{4}$/.test(pin);
+  ['vvKnopGoed', 'vvKnopVoorbehoud', 'vvKnopAf'].forEach(function (id) {
+    var k = document.getElementById(id);
+    if (!k) return;
+    k.disabled = !klaar;
+    k.style.opacity = klaar ? '' : '.45';
   });
 }
 
 function beslis(keuze) {
   var pin = document.getElementById('vvPin').value.trim();
-  var code = document.getElementById('vvCode').value.trim();
   var toelichting = document.getElementById('vvToelichting').value.trim();
-  if (code.length !== 6) { showToast('Vul de code van 6 cijfers in.'); return; }
+  if (!/^\d{4}$/.test(pin)) { showToast('Vul uw pincode van 4 cijfers in.'); return; }
   if ((keuze === 'afgewezen' || keuze === 'voorbehoud') && !toelichting) {
     showToast(keuze === 'afgewezen'
       ? 'Geef aan waarom u afwijst, anders weet de aanvrager niet wat hij moet aanpassen.'
       : 'Geef aan onder welke voorwaarden u goedkeurt.');
     return;
   }
+  // Dubbel indrukken zou een tweede aanroep geven op een vergunning die niet
+  // meer 'aangevraagd' is, met een verwarrende foutmelding tot gevolg.
+  werkBeslisKnoppenBij();
+  ['vvKnopGoed', 'vvKnopVoorbehoud', 'vvKnopAf'].forEach(function (id) {
+    var k = document.getElementById(id); if (k) k.disabled = true;
+  });
   sb.rpc('rpc_vergunning_beslissen', {
     p_vergunning_id: vvHuidigeVergunning.id,
     p_pincode: pin,
     p_klantcode: klantBedrijf ? klantBedrijf.code : '',
-    p_code: code,
+    p_code: null,
     p_beslissing: keuze,
     p_toelichting: toelichting || null,
     p_handtekening: null
   }).then(function (r) {
-    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    if (r.error) { showToast('Fout: ' + r.error.message); werkBeslisKnoppenBij(); return; }
     showToast('Beslissing vastgelegd.');
     laadVergunningen();
   });
