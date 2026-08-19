@@ -1049,6 +1049,14 @@ function uitloggen() {
   // De klantcode blijft staan: die hoort bij het toestel en bij de klant, niet
   // bij de persoon. Wie van bedrijf wisselt, gebruikt "Ander bedrijf".
   toonStartscherm();
+
+  // Doorsturen naar de website, maar NIET wanneer de app geinstalleerd op het
+  // beginscherm draait. Daar zou je in het app-venster op de marketingsite
+  // belanden, binnen dezelfde scope, en er alleen met een terugveeg uit raken.
+  // In een gewoon browsertabblad is doorsturen wel wat je verwacht.
+  var geinstalleerd = window.matchMedia('(display-mode: standalone)').matches
+    || navigator.standalone === true;
+  if (!geinstalleerd) window.location.href = 'https://prevx.be';
 }
 
 // ---------------------------------------------------------------------------

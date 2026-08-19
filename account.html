@@ -1433,11 +1433,15 @@ function doLogin(){
 
 function doLogout(){
   sb.auth.signOut().then(function(){
+    // Eerst het scherm opruimen, dan pas weg: gaat het doorsturen om welke reden
+    // dan ook niet door, dan sta je op een leeg inlogscherm en niet op een
+    // dashboard met de gegevens van iemand die net afgemeld is.
     showScreen('login');
     document.getElementById('loginEmail').value='';
     document.getElementById('loginPass').value='';
     document.getElementById('btnLogin').disabled=false;
     document.getElementById('btnLogin').textContent='Inloggen';
+    window.location.href='https://prevx.be';
   });
 }
 
