@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@latest/dist/xlsx.full.min.js"></script>
 <style>
-:root{color-scheme:light;--navy:#003366;--navy2:#B7C7DA;--sidebar-bg:#E4E4E4;--accent:#40668C;--green:#3FBF3F;--green-bg:#e8f5e8;--red:#dc2626;--red-tekst:#dc2626;--red-bg:#fff1f2;--orange:#E97F02;--orange-bg:#fff7ed;--bg:#f5f7fa;--surface:#fff;--hairline:rgba(0,0,0,.1);--on-navy:#fff;--navy-text:#003366;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:10px;--radius-lg:16px;--shadow:0 1px 2px rgba(15,23,42,.04),0 4px 18px rgba(15,23,42,.06);--shadow-lg:0 20px 60px rgba(15,23,42,.18)}
+:root{color-scheme:light;--navy:#003366;--navy2:#B7C7DA;--sidebar-bg:#E4E4E4;--accent:#40668C;--accent-tekst:#40668C;--green:#3FBF3F;--green-bg:#e8f5e8;--red:#dc2626;--red-tekst:#dc2626;--red-bg:#fff1f2;--orange:#E97F02;--orange-bg:#fff7ed;--bg:#f5f7fa;--surface:#fff;--hairline:rgba(0,0,0,.1);--on-navy:#fff;--navy-text:#003366;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;--radius:10px;--radius-lg:16px;--shadow:0 1px 2px rgba(15,23,42,.04),0 4px 18px rgba(15,23,42,.06);--shadow-lg:0 20px 60px rgba(15,23,42,.18)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--gray-900);min-height:100vh}
 h1,h2,h3,h4{font-family:'Montserrat',sans-serif}
@@ -266,6 +266,17 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
 .klant-kaart-icoon{width:38px;height:38px;border-radius:10px;background:var(--gray-100);color:var(--navy-text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .klant-kaart-naam{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:var(--navy-text)}
 .klant-kaart-sub{font-size:12px;color:var(--gray-500);line-height:1.5;margin-top:3px}
+/* Een vergrendelde kaart blijft leesbaar -- ze moet tonen wat er bestaat, niet
+   verstoppen dat er iets ontbreekt. Vandaar geen opacity op het geheel, maar
+   een grijze rand en een grijs icoon: zichtbaar anders, niet half onleesbaar. */
+.klant-kaart.vergrendeld{cursor:default;border-style:dashed;background:var(--gray-50)}
+.klant-kaart.vergrendeld:hover{border-color:var(--gray-300)}
+.klant-kaart.vergrendeld:active{transform:none}
+.klant-kaart.vergrendeld .klant-kaart-icoon{background:var(--gray-100);color:var(--gray-400)}
+.klant-kaart.vergrendeld .klant-kaart-naam{color:var(--gray-500)}
+.kaart-slot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 9px;border-radius:11px;background:var(--gray-100);color:var(--gray-700);white-space:nowrap}
+.kaart-vraag{display:inline-block;margin-top:10px;font-size:12px;font-weight:600;color:var(--accent-tekst);text-decoration:none}
+.kaart-vraag:hover{text-decoration:underline}
 .kaart-tellers{display:flex;gap:6px;flex-wrap:wrap}
 .kaart-teller{font-size:11px;font-weight:600;padding:2px 9px;border-radius:11px;white-space:nowrap}
 .kruimel{display:flex;align-items:center;gap:10px;padding:14px 32px 0}
@@ -295,6 +306,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     --hairline:rgba(255,255,255,.08);
     --navy2:#9aa7b5;
     --navy-text:#d3d8de;
+    --accent-tekst:#8fb3d9;
     --gray-50:#16181c;
     --gray-100:#1f2227;
     --gray-200:#2a2e34;
@@ -321,7 +333,7 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
      ander media-blok kan uitschakelen. */
   :root{
     color-scheme:light;
-    --bg:#f5f7fa;--surface:#fff;--sidebar-bg:#E4E4E4;--hairline:rgba(0,0,0,.1);
+    --bg:#f5f7fa;--surface:#fff;--sidebar-bg:#E4E4E4;--hairline:rgba(0,0,0,.1);--accent-tekst:#40668C;
     --navy2:#B7C7DA;--navy-text:#003366;
     --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;
     --gray-400:#94a3b8;--gray-500:#64748b;--gray-700:#334155;--gray-900:#0f172a;
@@ -1688,8 +1700,17 @@ var KLANT_KAARTEN=[
   {key:'inspecties',naam:'Pre-inspecties',module:'preinspecties',icoon:'inspecties',
    sub:'Controles vóór gebruik, uitgevoerd in de PrevX app.'},
   {key:'vergunningen',naam:'Vuurvergunningen',module:'vuurvergunning',icoon:'vuurvergunning',
-   sub:'Vergunningen voor brandgevaarlijk werk, aangevraagd in de app.'}
+   sub:'Vergunningen voor brandgevaarlijk werk, aangevraagd in de app.'},
+  // Staat er bewust bij zonder te werken. Een klant hoort te zien wat PrevX
+  // aanbiedt en wat er in zijn formule zit; een module die je gewoon weglaat,
+  // bestaat voor hem niet. De kaart gaat vanzelf open zodra de module actief
+  // staat en er een scherm achter zit -- zie kaartVergrendeld().
+  {key:'vorming',naam:'Vorming &amp; opleiding',module:'vorming',icoon:'vorming',
+   formule:'Formule Plus',
+   sub:'Toolboxen en opleidingen voor uw medewerkers, met attesten.'}
 ];
+
+var ADVISEUR_EMAIL='peter@prevx.be';
 
 var KAART_ICONEN={
   actiepunten:'<path d="M4 6h16M4 12h16M4 18h10"/>',
@@ -1699,7 +1720,8 @@ var KAART_ICONEN={
   assets:'<path d="M3 17h18M5 17V9l7-4 7 4v8"/><path d="M9 17v-4h6v4"/>',
   kennisbank:'<path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 7h7M9 11h7"/>',
   inspecties:'<rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/>',
-  vuurvergunning:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/>'
+  vuurvergunning:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/>',
+  vorming:'<path d="M3 9l9-4 9 4-9 4z"/><path d="M7 11.2V16c0 1.1 2.2 2 5 2s5-.9 5-2v-4.8"/><path d="M21 9v5"/>'
 };
 
 function zetKlantModus(aan){
@@ -1723,8 +1745,18 @@ function werkKruimelBij(naam){
 }
 
 function klantKaartZichtbaar(k){
+  if(k.formule)return true;
   if(!k.module)return true;
   return actieveModules[k.module]!==false;
+}
+
+// Een kaart met een formule blijft op slot tot de module aanstaat en er ook
+// echt een scherm achter zit. Die tweede voorwaarde is geen overdaad: staat de
+// module aan voor er iets gebouwd is, dan klikt de klant zich naar een lege
+// pagina, en dat is erger dan een slotje.
+function kaartVergrendeld(k){
+  if(!k.formule)return false;
+  return actieveModules[k.module]!==true || !document.getElementById('tab-'+k.key);
 }
 
 function laadKlantHome(){
@@ -1762,25 +1794,34 @@ function laadVolgendBezoek(){
     });
 }
 
+function onthtml(t){var d=document.createElement('div');d.innerHTML=t;return d.textContent;}
+
 function tekenKlantKaarten(){
   var grid=document.getElementById('klantKaarten');
   grid.innerHTML='';
   KLANT_KAARTEN.filter(klantKaartZichtbaar).forEach(function(k){
+    var opSlot=kaartVergrendeld(k);
     var el=document.createElement('div');
-    el.className='klant-kaart';
+    el.className='klant-kaart'+(opSlot?' vergrendeld':'');
+    var rechtsboven=opSlot
+      ? '<span class="kaart-slot"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>'+k.formule+'</span>'
+      : '<span class="kaart-tellers" id="teller-'+k.key+'"></span>';
     el.innerHTML='<div class="klant-kaart-kop">'+
       '<div class="klant-kaart-icoon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(KAART_ICONEN[k.icoon]||'')+'</svg></div>'+
-      '<span class="kaart-tellers" id="teller-'+k.key+'"></span></div>'+
+      rechtsboven+'</div>'+
       '<div class="klant-kaart-naam">'+k.naam+'</div>'+
-      '<div class="klant-kaart-sub">'+k.sub+'</div>';
-    el.onclick=function(){toonTab(k.key);};
+      '<div class="klant-kaart-sub">'+k.sub+'</div>'+
+      // In klantmodus is er geen zijbalk, dus ook geen knop om de adviseur te
+      // bereiken. Zonder deze link toont de kaart een slot zonder sleutel.
+      (opSlot?'<a class="kaart-vraag" href="mailto:'+ADVISEUR_EMAIL+'?subject='+encodeURIComponent('Vraag over '+onthtml(k.naam))+'">Vraag ernaar bij uw adviseur</a>':'');
+    if(!opSlot)el.onclick=function(){toonTab(k.key);};
     grid.appendChild(el);
   });
 }
 
 function zetTeller(key,tellers){
   var el=document.getElementById('teller-'+key);
-  if(!el||!tellers.length)return;
+  if(!el||!tellers.length)return;  // vergrendelde kaarten hebben geen tellervak
   el.innerHTML=tellers.map(function(t){
     var kleur=t.kleur==='rood'?'background:var(--red-bg);color:var(--red-tekst)'
              :t.kleur==='oranje'?'background:var(--orange-bg);color:var(--orange)'
@@ -3292,7 +3333,7 @@ function laadOverzicht(){
     huidigBedrijfData=b;
     document.getElementById('overzichtTitel').textContent=b.naam?'Overzicht — '+b.naam:'Overzicht';
     document.getElementById('sidebarBedrijfsnaam').textContent=b.naam||'Mijn PrevX';
-    document.getElementById('contacteerAdviseurLink').href='mailto:peter@prevx.be?subject='+encodeURIComponent('Contactverzoek klant '+(b.naam||''));
+    document.getElementById('contacteerAdviseurLink').href='mailto:'+ADVISEUR_EMAIL+'?subject='+encodeURIComponent('Contactverzoek klant '+(b.naam||''));
 
     document.getElementById('bgIdentificatie').innerHTML=
       bgVeld('juridische_benaming','Juridische benaming en rechtsvorm*',b.juridische_benaming)+
