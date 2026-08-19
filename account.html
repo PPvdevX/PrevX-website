@@ -680,8 +680,8 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
           <div class="table-header"><span class="table-title">Vervalkalender</span>
             <span class="table-count" id="keuringenCount">0</span>
           </div>
-          <table><thead><tr><th>Wat</th><th>Asset</th><th>Uitvoerder</th><th>Laatste keuring</th><th>Vervaldatum</th><th>Status</th><th></th></tr></thead>
-          <tbody id="keuringenTabel"><tr class="loading-row"><td colspan="7"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+          <table><thead><tr><th>Wat</th><th>Asset</th><th>Uitvoerder</th><th>Laatste keuring</th><th>Vervaldatum</th><th>Ingevoerd door</th><th>Status</th><th></th></tr></thead>
+          <tbody id="keuringenTabel"><tr class="loading-row"><td colspan="8"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
         </div>
       </div>
     </div>
@@ -1473,6 +1473,9 @@ var checklistOpenTypesEditor=null;
 var rapportKpiConfig=[];
 var rapportLaatsteData=null;
 var actieveModules={};
+// De eigen gebruikersrij van wie er inlogt. Nodig om te bepalen wat hij mag:
+// de rol staat erin, en die stuurt meer dan alleen het menu.
+var eigenGebruiker=null;
 var isSuperbeheerder=false;
 var eigenBedrijfId=null;
 var alleAfspraken=[];
@@ -1584,7 +1587,7 @@ function laadDashboard(user){
   document.getElementById('sidebarEmail').textContent=user.email;
   sb.from('gebruikers').select('*').eq('auth_user_id',user.id).eq('actief',true).maybeSingle().then(function(r){
     var gevonden=r.data;
-    if(gevonden){document.getElementById('sidebarNaam').textContent=gevonden.naam;huidigeBedrijfId=gevonden.bedrijf_id;eigenBedrijfId=gevonden.bedrijf_id;}
+    if(gevonden){eigenGebruiker=gevonden;document.getElementById('sidebarNaam').textContent=gevonden.naam;huidigeBedrijfId=gevonden.bedrijf_id;eigenBedrijfId=gevonden.bedrijf_id;}
     else{
       document.getElementById('geenKoppelingEmail').textContent=user.email;
       showScreen('geenkoppeling');
@@ -1949,9 +1952,18 @@ function meldingMaken(){
   });
 }
 
+// Dezelfde regel als in migratie 0087, maar de databank blijft de scheidsrechter:
+// dit toont of verbergt alleen een knop. Beheerder, preventieadviseur en
+// leidinggevende gaan over keuringen; een chauffeur niet.
+function magKeuringenBeheren(){
+  if(isSuperbeheerder)return true;
+  if(!eigenGebruiker)return false;
+  return ['beheerder','preventieadviseur','leidinggevende'].indexOf(eigenGebruiker.rol)!==-1;
+}
+
 function laadKeuringen(){
   if(!huidigeBedrijfId)return;
-  document.getElementById('keuringenNieuwKnop').style.display=isSuperbeheerder?'':'none';
+  document.getElementById('keuringenNieuwKnop').style.display=magKeuringenBeheren()?'':'none';
   // Types en assets vooraf ophalen: het formulier heeft ze nodig om voor te
   // stellen, en de tabel om namen te tonen i.p.v. id's.
   laadKeuringTypes();
@@ -1987,16 +1999,30 @@ function keuringStand(vervaldatum){
   return {dagen:dagen,badge:'rijklaar',tekst:'in orde tot '+formatDatum(vervaldatum)};
 }
 
+// Wie een regel invoerde en wie ze laatst aanraakte. Sinds een klant zelf
+// keuringen mag invoeren en afvinken, is dat het verschil tussen een
+// vervalkalender en een verzameling data zonder afzender. De databank vult
+// deze velden met een trigger; de browser stuurt ze niet mee.
+function herkomstCel(k){
+  var wie=k.ingevoerd_door||'-';
+  var uit='<span style="font-size:12px">'+wie+'</span>';
+  if(k.gewijzigd_door&&k.gewijzigd_op){
+    uit+='<div style="font-size:11px;color:var(--gray-500)">gewijzigd door '+k.gewijzigd_door+
+         ' op '+formatDatum(k.gewijzigd_op.slice(0,10))+'</div>';
+  }
+  return uit;
+}
+
 function renderKeuringen(data){
   laatsteKeuringen=data;
   document.getElementById('keuringenCount').textContent=data.length+' keuringen';
   var tbody=document.getElementById('keuringenTabel');
-  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nog geen keuringen vastgelegd.</td></tr>';return;}
+  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="8">Nog geen keuringen vastgelegd.</td></tr>';return;}
   tbody.innerHTML='';
   data.forEach(function(k){
     var st=keuringStand(k.vervaldatum);
     var tr=document.createElement('tr');
-    var actie=isSuperbeheerder
+    var actie=magKeuringenBeheren()
       ? '<span style="display:flex;gap:6px;justify-content:flex-end">'+
         '<button class="btn-add-sm" onclick="keuringUitgevoerd(\''+k.id+'\','+(k.periodiciteit_maanden||'null')+')">Keuring uitgevoerd</button>'+
         '<button class="btn-add-sm" style="background:var(--gray-100);color:var(--gray-700)" onclick="openKeuringForm(\''+k.id+'\')">Bewerken</button></span>'
@@ -2016,6 +2042,7 @@ function renderKeuringen(data){
       '<td>'+asset+'</td><td>'+(k.uitvoerder||'-')+'</td>'+
       '<td>'+(k.laatste_keuring?formatDatum(k.laatste_keuring):'-')+'</td>'+
       '<td>'+formatDatum(k.vervaldatum)+'</td>'+
+      '<td>'+herkomstCel(k)+'</td>'+
       '<td><span class="badge '+st.badge+'">'+st.tekst+'</span></td>'+
       '<td>'+actie+'</td>';
     tbody.appendChild(tr);
