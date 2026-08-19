@@ -409,6 +409,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="screen-content">
     <button class="btn-primair" onclick="startNieuweLmra()">+ Nieuwe LMRA</button>
     <div id="lmraHervat"></div>
+    <div id="lmraPloeg"></div>
     <h2 class="screen-title" style="margin-top:22px">Vandaag al gedaan</h2>
     <div id="lmraVandaag"><div class="loading"><div class="spinner"></div>Laden...</div></div>
     <div class="scherm-acties" id="actiesLmra"></div>
@@ -1237,6 +1238,7 @@ function laadLmra() {
   document.getElementById('headerUserLmra').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
   tekenActies('actiesLmra');
   document.getElementById('lmraHervat').innerHTML = '';
+  laadLmraPloeg();
 
   sb.rpc('rpc_lmra_vandaag', { p_gebruiker_id: gebruiker.id }).then(function (r) {
     var el = document.getElementById('lmraVandaag');
@@ -1255,6 +1257,60 @@ function laadLmra() {
         '<div class="module-sub">' + x.locatie + ' &middot; opnieuw bevestigen</div></div></div>';
     }).join('');
     window.lmraVandaagRijen = rijen;
+  });
+}
+
+// Wat de ploeg vandaag vaststelde. Alleen voor wie een leidinggevende rol heeft
+// -- de databank bewaakt dat ook (rpc_lmra_overzicht), dit is enkel om geen leeg
+// blok te tonen aan wie er toch niets in te zien krijgt.
+//
+// Hij kreeg al een pushmelding wanneer iemand stopte, maar de gewone
+// vaststellingen bereikten hem nergens. Dat is de helft van de waarde: niet elke
+// opmerking is een stop, maar samen tekenen ze het beeld van de werkdag.
+function laadLmraPloeg() {
+  var vak = document.getElementById('lmraPloeg');
+  if (!vak) return;
+  vak.innerHTML = '';
+  if (!magGoedkeuren()) return;
+
+  sb.rpc('rpc_lmra_overzicht', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    if (r.error) { console.error('Ploegoverzicht mislukt:', r.error); return; }
+    var rijen = r.data || [];
+    if (!rijen.length) {
+      vak.innerHTML = '<h2 class="screen-title" style="margin-top:22px">Vandaag bij je ploeg</h2>' +
+        '<p class="vv-regel">Nog geen LMRA\'s vandaag.</p>';
+      return;
+    }
+    var open = rijen.filter(function (x) { return x.status === 'gestopt' && !x.hervat_op; }).length;
+    var h = '<h2 class="screen-title" style="margin-top:22px">Vandaag bij je ploeg</h2>';
+    if (open) {
+      h += '<div class="vv-melding wacht" style="margin-bottom:12px"><strong>' +
+        (open === 1 ? '1 collega staat stil' : open + ' collega\'s staan stil') +
+        '</strong><div style="margin-top:4px">Zij wachten tot het veilig is.</div></div>';
+    }
+    h += rijen.map(function (x) {
+      var gestopt = x.status === 'gestopt' && !x.hervat_op;
+      var hervat = x.status === 'gestopt' && x.hervat_op;
+      // De duur erbij: een volledige LMRA van een paar seconden zegt iets, en
+      // een leidinggevende hoort dat op de werf te zien en niet pas in een
+      // maandrapport.
+      var duur = (x.seconden === null || x.seconden === undefined) ? '' :
+        (x.seconden < 60 ? x.seconden + ' s' : Math.floor(x.seconden / 60) + ' m');
+      var snel = x.soort === 'volledig' && x.seconden !== null && x.seconden < 20;
+      return '<div class="module-card" style="cursor:default' +
+        (gestopt ? ';border-color:var(--red)' : '') + '">' +
+        '<div style="flex:1">' +
+        '<div class="module-naam">' + x.wie +
+          (gestopt ? ' <span style="color:var(--red)">&#9888; gestopt</span>' :
+           hervat ? ' <span style="color:var(--gray-500)">hervat</span>' : '') + '</div>' +
+        '<div class="module-sub">' + x.taak + ' &middot; ' + x.locatie +
+          (duur ? ' &middot; <span' + (snel ? ' style="color:var(--orange);font-weight:600"' : '') + '>' + duur + '</span>' : '') +
+        '</div>' +
+        (x.stop_reden ? '<div class="module-sub" style="color:var(--red)">' + x.stop_reden + '</div>' : '') +
+        (x.vaststelling ? '<div class="module-sub">&ldquo;' + x.vaststelling + '&rdquo;</div>' : '') +
+        '</div></div>';
+    }).join('');
+    vak.innerHTML = h;
   });
 }
 
