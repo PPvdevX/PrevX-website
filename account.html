@@ -567,6 +567,47 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     </div>
 
 
+    <div id="tab-lmrarisicos" style="display:none">
+      <div class="page-header">
+        <div class="page-title">LMRA-risico's</div>
+        <div class="page-subtitle">Welke risico's deze klant in de app te zien krijgt</div>
+      </div>
+      <div class="content-area">
+        <div class="table-card" id="lmraActiveerKaart" style="display:none;margin-bottom:18px;border-color:var(--orange)">
+          <div style="padding:16px 20px">
+            <div style="font-weight:600;color:var(--navy-text);margin-bottom:6px">De LMRA-module staat niet aan voor deze klant</div>
+            <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px">Na het activeren zien de medewerkers van deze klant de LMRA in de app. Kies daarna hieronder welke risico's ze te zien krijgen.</p>
+            <button class="btn-add-sm" onclick="activeerLmra()">Module activeren</button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title">Risico's voor deze klant</span>
+            <span class="table-count" id="lmraKeuzeCount">0</span>
+          </div>
+          <div style="padding:14px 20px" id="lmraKeuzeLijst">
+            <div class="loading-row"><div class="spinner-sm"></div>Laden...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-lmra" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Uitgevoerde LMRA's</div>
+        <div class="page-subtitle">Wat er op de werkvloer is nagekeken, en hoe lang erover gedaan is</div>
+      </div>
+      <div class="content-area">
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">Uitgevoerde LMRA's</span>
+            <span class="table-count" id="lmraCount">0</span>
+          </div>
+          <table><thead><tr><th>Wanneer</th><th>Wie</th><th>Taak</th><th>Plek</th><th>Duur</th><th>Status</th></tr></thead>
+          <tbody id="lmraTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
     <div id="tab-keuringen" style="display:none">
       <div class="page-header">
         <div class="page-title">Keuringen</div>
@@ -742,9 +783,21 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
     <div id="tab-codelijsten" style="display:none">
       <div class="page-header">
         <div class="page-title">Codelijsten</div>
-        <div class="page-subtitle">Keuringstypes, sectorcodes, paritaire comit&eacute;s en pakketten &mdash; gedeeld over alle klanten</div>
+        <div class="page-subtitle">LMRA-risico's, keuringstypes, sectorcodes, paritaire comit&eacute;s en pakketten &mdash; gedeeld over alle klanten</div>
       </div>
       <div class="content-area">
+        <div class="table-card inklapbaar dicht" style="margin-bottom:12px">
+          <div class="table-header">
+            <span class="table-title">LMRA-risico's</span>
+            <span style="display:flex;align-items:center;gap:10px">
+              <span class="table-count" id="lmraRisicosCount">0</span>
+              <button class="btn-add-sm" onclick="nieuwLmraRisico()">+ Nieuw risico</button>
+            </span>
+          </div>
+          <table><thead><tr><th>Risico</th><th>Categorie</th><th>Toelichting</th><th>Status</th><th></th></tr></thead>
+          <tbody id="lmraRisicosTabel"><tr class="loading-row"><td colspan="5"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+        </div>
+
         <div class="table-card inklapbaar dicht" style="margin-bottom:12px">
           <div class="table-header">
             <span class="table-title">Keuringstypes</span>
@@ -1183,6 +1236,7 @@ function icoonOptiesHtml(huidig){
 // Per groep: naam, module (welke bedrijf_modules-sleutel hem aanstuurt), en
 // optioneel optIn (standaard uit i.p.v. standaard aan) of superbeheerder.
 var MENU_ICOON={
+  lmra:'<path d="M12 2 2 7v6c0 5 4 8 10 9 6-1 10-4 10-9V7z"/><path d="M12 9v3M12 16h.01"/>',
   overzicht:'<path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   rapportages:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
   klanten:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/>',
@@ -1231,6 +1285,13 @@ var MENU=[
   {groep:'Pre-inspectie',icoon:'inspecties',module:'preinspecties',items:[
     {key:'inspecties',naam:'Inspecties',laad:function(){laadInspecties();}},
     {key:'checklist',naam:'Checklist',laad:function(){laadChecklist();}}
+  ]},
+  // Eigen groep met optIn, niet als item onder Dossier: LMRA is een module die
+  // een klant afneemt, geen vast onderdeel van elk dossier. Zonder optIn zou hij
+  // bij iedereen verschijnen -- ook bij klanten die er niet voor betalen.
+  {groep:'LMRA',icoon:'lmra',module:'lmra',optIn:true,items:[
+    {key:'lmra',naam:"Uitgevoerde LMRA's",laad:function(){laadLmra();}},
+    {key:'lmrarisicos',naam:'Risico\'s',laad:function(){laadLmraRisicoKeuze();}}
   ]},
   {groep:'Vuurvergunning',icoon:'vuurvergunning',module:'vuurvergunning',optIn:true,items:[
     {key:'vergunningen',naam:'Vergunningen',laad:function(){laadVergunningenBeheer();}},
@@ -2536,6 +2597,7 @@ function laadKlanten(){
 // onder Instellingen i.p.v. onderaan de klantenlijst.
 function laadCodelijsten(){
   maakInklapbaar();
+  laadLmraRisicos(renderLmraRisicosTabel);
   laadKeuringTypes(renderKeuringTypesTabel);
   laadSectorCodes(renderSectorCodesTabel);
   laadParitaireComites(renderParitaireComitesTabel);
@@ -2565,6 +2627,152 @@ function maakInklapbaar(){
 }
 
 var alleKeuringTypes=[];
+
+var alleLmraRisicos=[];
+
+function laadLmraRisicos(callback){
+  sb.from('lmra_risicos').select('*').order('volgorde').then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    alleLmraRisicos=r.data||[];
+    if(callback)callback();
+  });
+}
+
+function renderLmraRisicosTabel(){
+  document.getElementById('lmraRisicosCount').textContent=alleLmraRisicos.length+" risico's";
+  var tbody=document.getElementById('lmraRisicosTabel');
+  if(!alleLmraRisicos.length){tbody.innerHTML='<tr class="empty-row"><td colspan="5">Nog geen risico\'s.</td></tr>';return;}
+  tbody.innerHTML='';
+  alleLmraRisicos.forEach(function(x){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+x.naam+'</td><td>'+(x.categorie||'-')+'</td><td>'+(x.toelichting||'-')+'</td>'+
+      '<td><span class="badge '+(x.actief?'rijklaar':'niet_rijklaar')+'">'+(x.actief?'Actief':'Gearchiveerd')+'</span></td>'+
+      '<td><button class="btn-add-sm" onclick="toggleLmraRisicoActief(\''+x.id+'\','+(!x.actief)+')">'+(x.actief?'Archiveer':'Herstel')+'</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function nieuwLmraRisico(){
+  var naam=prompt('Naam van het risico (bv. "Vallen van hoogte"):');
+  if(!naam||!naam.trim())return;
+  var categorie=prompt('Categorie (optioneel, bv. "Val en struikel"):')||null;
+  var toelichting=prompt('Korte toelichting (optioneel) — dit leest de arbeider in de app:')||null;
+  sb.from('lmra_risicos').insert({naam:naam.trim(),categorie:categorie,toelichting:toelichting,
+    volgorde:alleLmraRisicos.length*10}).then(function(r){
+      if(r.error){
+        if(r.error.code==='23505')showToast('Dit risico bestaat al.');
+        else showToast('Fout: '+r.error.message);
+        return;
+      }
+      showToast('Risico toegevoegd');
+      laadLmraRisicos(renderLmraRisicosTabel);
+    });
+}
+
+// Archiveren, nooit verwijderen: een risico dat al aan uitgevoerde LMRA's hangt
+// moet leesbaar blijven nadat het uit de keuzelijst gehaald is.
+function toggleLmraRisicoActief(id,actief){
+  sb.from('lmra_risicos').update({actief:actief}).eq('id',id).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    laadLmraRisicos(renderLmraRisicosTabel);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// LMRA per klant
+// ---------------------------------------------------------------------------
+function laadLmra(){
+  if(!huidigeBedrijfId)return;
+  laadUitgevoerdeLmras();
+}
+
+function laadLmraRisicoKeuze(){
+  if(!huidigeBedrijfId)return;
+  // De kaart hangt aan de module-status, niet aan een aparte vlag: zo kan hij
+  // niet uit elkaar lopen met wat de zijbalk en de app tonen.
+  var kaart=document.getElementById('lmraActiveerKaart');
+  if(kaart)kaart.style.display=(isSuperbeheerder&&actieveModules.lmra!==true)?'':'none';
+  laadLmraRisicos(function(){ laadLmraKeuze(); });
+}
+
+function activeerLmra(){
+  if(!huidigeBedrijfId)return;
+  if(!confirm('De LMRA-module activeren voor deze klant?\n\nZijn medewerkers zien hem daarna in de app.'))return;
+  sb.from('bedrijf_modules').upsert({bedrijf_id:huidigeBedrijfId,module_key:'lmra',actief:true},
+    {onConflict:'bedrijf_id,module_key'}).then(function(r){
+      if(r.error){showToast('Fout: '+r.error.message);return;}
+      showToast('LMRA geactiveerd');
+      // Modules opnieuw inlezen zodat de zijbalk en deze kaart meteen kloppen.
+      laadModuleToegang();
+      laadLmraRisicoKeuze();
+    });
+}
+
+function laadLmraKeuze(){
+  sb.from('bedrijf_lmra_risicos').select('risico_id').eq('bedrijf_id',huidigeBedrijfId).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    var gekozen={};
+    (r.data||[]).forEach(function(x){gekozen[x.risico_id]=true;});
+    var actief=alleLmraRisicos.filter(function(x){return x.actief||gekozen[x.id];});
+    document.getElementById('lmraKeuzeCount').textContent=Object.keys(gekozen).length+' van '+actief.length+' gekozen';
+    var el=document.getElementById('lmraKeuzeLijst');
+    if(!actief.length){el.innerHTML='<div style="color:var(--gray-500);font-size:13px">Nog geen risico\'s in de lijst. Voeg ze toe onder Instellingen &rsaquo; Codelijsten.</div>';return;}
+    // Een korte lijst is het punt: hoe langer, hoe minder mensen echt kijken.
+    el.innerHTML='<div style="font-size:12px;color:var(--gray-500);margin-bottom:12px">Alleen wat je hier aanvinkt, ziet de arbeider in de app. Houd het kort — een lijst van veertig vinkjes leest niemand.</div>'+
+      actief.map(function(x){
+        return '<label style="display:flex;align-items:flex-start;gap:9px;padding:6px 0;cursor:pointer">'+
+          '<input type="checkbox" '+(gekozen[x.id]?'checked':'')+' '+(isSuperbeheerder?'':'disabled')+
+          ' onchange="zetLmraRisico(\''+x.id+'\',this.checked)" style="margin-top:3px">'+
+          '<span><span style="font-size:13px;color:var(--gray-900)">'+x.naam+'</span>'+
+          (x.categorie?'<span style="font-size:11px;color:var(--gray-500)"> &middot; '+x.categorie+'</span>':'')+
+          (x.toelichting?'<div style="font-size:11px;color:var(--gray-500)">'+x.toelichting+'</div>':'')+
+          '</span></label>';
+      }).join('');
+  });
+}
+
+function zetLmraRisico(risicoId,aan){
+  var q=aan
+    ? sb.from('bedrijf_lmra_risicos').insert({bedrijf_id:huidigeBedrijfId,risico_id:risicoId})
+    : sb.from('bedrijf_lmra_risicos').delete().eq('bedrijf_id',huidigeBedrijfId).eq('risico_id',risicoId);
+  q.then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);laadLmraKeuze();return;}
+    laadLmraKeuze();
+  });
+}
+
+function laadUitgevoerdeLmras(){
+  sb.from('lmras').select('*,gebruikers(naam)').eq('bedrijf_id',huidigeBedrijfId)
+    .order('gestart_op',{ascending:false}).limit(100).then(function(r){
+      if(r.error){showToast('Fout: '+r.error.message);return;}
+      renderLmras(r.data||[]);
+    });
+}
+
+function renderLmras(data){
+  document.getElementById('lmraCount').textContent=data.length+" LMRA's";
+  var tbody=document.getElementById('lmraTabel');
+  if(!data.length){tbody.innerHTML='<tr class="empty-row"><td colspan="6">Nog geen LMRA\'s uitgevoerd.</td></tr>';return;}
+  tbody.innerHTML='';
+  data.forEach(function(l){
+    var duur='-';
+    if(l.afgerond_op&&l.gestart_op){
+      var sec=Math.round((new Date(l.afgerond_op)-new Date(l.gestart_op))/1000);
+      duur=sec<60?sec+' s':Math.floor(sec/60)+' m '+(sec%60)+' s';
+    }
+    // Onder de twintig seconden is een volledige LMRA niet geloofwaardig. Niet
+    // verbergen maar markeren: het is een vaststelling, geen beschuldiging.
+    var snel=l.soort==='volledig'&&l.afgerond_op&&(new Date(l.afgerond_op)-new Date(l.gestart_op))<20000;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+formatDatum(l.gestart_op.slice(0,10))+' '+l.gestart_op.slice(11,16)+'</td>'+
+      '<td>'+(l.gebruikers?l.gebruikers.naam:'-')+'</td>'+
+      '<td>'+l.taak+(l.soort==='bevestiging'?'<div style="font-size:11px;color:var(--gray-500)">bevestiging</div>':'')+'</td>'+
+      '<td>'+l.locatie+'</td>'+
+      '<td'+(snel?' style="color:var(--orange);font-weight:600"':'')+'>'+duur+(snel?' &#9888;':'')+'</td>'+
+      '<td><span class="badge '+(l.status==='gestopt'?'niet_rijklaar':'rijklaar')+'">'+(l.status==='gestopt'?'Gestopt':'Veilig')+'</span></td>';
+    tbody.appendChild(tr);
+  });
+}
 
 function laadKeuringTypes(callback){
   sb.from('keuring_types').select('*').order('volgorde').then(function(r){
