@@ -1016,6 +1016,12 @@ function tekenActies(containerId) {
     rijen.push({ tekst: 'Meldingen', actie: 'openMeldingen()', stand: meldingenStand() });
   }
   rijen.push({ tekst: 'Pincode wijzigen', actie: 'wijzigPincode()' });
+  // Dezelfde rollen die een vergunning mogen goedkeuren. Een chauffeur heeft
+  // zelden een werkmailadres, dus "Pincode vergeten" werkt voor hem niet -- dit
+  // is de weg die wel werkt, zonder dat er iemand met portaaltoegang bij moet.
+  if (magGoedkeuren()) {
+    rijen.push({ tekst: 'Pincode collega herstellen', actie: 'herstelCollegaPincode()' });
+  }
   rijen.push({ tekst: 'Uitloggen', actie: 'uitloggen()' });
 
   el.innerHTML = rijen.map(function(r) {
@@ -1824,6 +1830,45 @@ function pincodeResetBevestigen(naam, email) {
       if (result.error) { showToast('Fout: ' + result.error.message); return; }
       showToast('Pincode gereset! Je kan nu inloggen met je nieuwe pincode.');
     });
+}
+
+// Herstelt de pincode van een chauffeur. Alleen chauffeurs: kon dit ook bij
+// iemand die vergunningen mag goedkeuren, dan kent de hersteller diens code en
+// kan hij in zijn naam tekenen -- en sinds 0078 is die pincode de enige factor.
+// De databank bewaakt dat (0080); hieronder wordt de lijst alvast beperkt
+// zodat je niet iets kan kiezen dat toch geweigerd wordt.
+function herstelCollegaPincode() {
+  sb.rpc('rpc_collegas', { p_gebruiker_id: gebruiker.id }).then(function (r) {
+    if (r.error) { showToast('Fout: ' + r.error.message); return; }
+    var chauffeurs = (r.data || []).filter(function (c) {
+      return c.rol === 'chauffeur' && c.id !== gebruiker.id;
+    });
+    if (!chauffeurs.length) {
+      showToast('Er zijn geen chauffeurs om een pincode voor te herstellen.');
+      return;
+    }
+    var lijst = chauffeurs.map(function (c, i) { return (i + 1) + '. ' + c.naam; }).join('\n');
+    var keuze = prompt('Voor wie herstel je de pincode?\n\n' + lijst + '\n\nGeef het nummer:');
+    if (!keuze) return;
+    var n = parseInt(keuze.trim(), 10);
+    if (isNaN(n) || n < 1 || n > chauffeurs.length) { showToast('Ongeldig nummer.'); return; }
+    var doel = chauffeurs[n - 1];
+
+    var pin = prompt('Je eigen pincode, ter bevestiging:');
+    if (!pin) return;
+    if (!/^\d{4}$/.test(pin.trim())) { showToast('Pincode is 4 cijfers.'); return; }
+
+    sb.rpc('rpc_pincode_herstellen_collega', {
+      p_klantcode: klantBedrijf ? klantBedrijf.code : '',
+      p_pincode: pin.trim(),
+      p_gebruiker_id: doel.id
+    }).then(function (res) {
+      if (res.error) { showToast('Fout: ' + res.error.message); return; }
+      // Een alert en geen toast: dit is de enige keer dat deze code te zien is.
+      alert('Nieuwe pincode voor ' + doel.naam + ':\n\n' + res.data +
+            '\n\nGeef dit persoonlijk door. Deze code wordt nergens opnieuw getoond.');
+    });
+  });
 }
 
 function wijzigPincode() {
