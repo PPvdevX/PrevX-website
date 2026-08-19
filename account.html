@@ -109,7 +109,12 @@ thead{background:var(--gray-50)}
    Vandaar geen kapitalen en geen spatiëring meer -- die schreeuwden harder dan
    de gegevens eronder. */
 th{padding:10px 16px;text-align:left;font-size:12px;font-weight:500;color:var(--gray-400);border-bottom:1px solid var(--gray-200);white-space:nowrap}
-td{padding:10px 16px;font-size:13px;color:var(--gray-700);border-bottom:1px solid var(--gray-100);vertical-align:middle}
+/* top i.p.v. middle: zodra een cel twee regels heeft -- een ondertitel bij een
+   keuring, een knop bij een document -- zweven de eenregelige cellen ernaast in
+   het midden en lijkt de rij scheef. Met top begint elke cel op dezelfde lijn. */
+td{padding:11px 16px;font-size:13px;color:var(--gray-700);border-bottom:1px solid var(--gray-100);vertical-align:top}
+/* De kop hoort op dezelfde lijn te beginnen als de inhoud eronder. */
+th{vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--gray-50);cursor:pointer}
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;font-family:'Poppins',sans-serif;white-space:nowrap}
@@ -2161,6 +2166,35 @@ function laadDocumenten(){
   });
 }
 
+// Loopt via een Edge Function omdat het bestand in Storage mee moet: de rij mag
+// het portaal zelf weghalen, het bestand niet -- de Storage-API werkt hier niet
+// vanuit de browser. Zou je enkel de rij wissen, dan blijft het bestand staan
+// zonder pad om het nog terug te vinden.
+function verwijderDocument(id,code,titel){
+  if(!confirm('Document definitief verwijderen?\n\n'+(code?code+' — ':'')+titel+
+    '\n\nHet bestand wordt mee gewist. Dit kan niet ongedaan gemaakt worden.\n\n'+
+    'Wil je enkel een nieuwe versie? Upload het document dan opnieuw met een hoger versienummer.'))return;
+  return sb.auth.getSession().then(function(sr){
+    var token=sr.data&&sr.data.session?sr.data.session.access_token:null;
+    if(!token){showToast('Sessie verlopen, log opnieuw in.');return;}
+    return fetch(SUPABASE_URL+'/functions/v1/verwijder-document',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({document_id:id,access_token:token})
+    }).then(function(res){return res.json().then(function(b){return {ok:res.ok,body:b};});})
+      .then(function(r){
+        if(!r.ok){showToast('Fout: '+(r.body.error||'verwijderen mislukt'));return;}
+        // Half gelukt mag niet als een toast voorbijgaan: dan staat er een
+        // bestand minder maar de rij nog wel.
+        if(r.body.waarschuwing)alert(r.body.waarschuwing);
+        else showToast('Document verwijderd');
+        laadDocumenten();
+      });
+  }).catch(function(e){
+    console.error('Verwijderen mislukt:',e);
+    showToast('Verwijderen mislukt. Probeer opnieuw.');
+  });
+}
+
 function renderDocumenten(data){
   var typeLabels={RPT:'Rapport',RIS:'Risicoanalyse',GPP:'GPP',JAP:'JAP',ADV:'Advies',AUD:'Audit',CHL:'Checklist',TBX:'Toolbox',FOR:'Formulier',TPL:'Template'};
   var plan=data.filter(function(d){return d.type==='GPP'||d.type==='JAP';});
@@ -2172,6 +2206,12 @@ function renderDocumenten(data){
     rows.forEach(function(d){
       var tr=document.createElement('tr');
       var bekijk=d.bestand_url?'<a data-prive-href="'+d.bestand_url+'" target="_blank" rel="noopener">Bekijk</a>':'-';
+      // Verwijderen is definitief en niet hetzelfde als vervangen: een nieuwe
+      // versie van een bestaand document upload je gewoon opnieuw, met een hoger
+      // versienummer. Deze knop is er voor wat er niet had mogen staan.
+      if(isSuperbeheerder){
+        bekijk+=' <button class="btn-add-sm" style="margin-left:8px" onclick="verwijderDocument(\''+d.id+'\',\''+(d.code||'').replace(/'/g,"\\'")+'\',\''+d.titel.replace(/'/g,"\\'")+'\')">Verwijder</button>';
+      }
       // De code eerst: dat is waarnaar verwezen wordt vanuit actiepunten en
       // verslagen, dus het is de kolom waarop je zoekt.
       tr.innerHTML='<td><code style="font-family:monospace;font-size:12px;color:var(--gray-700)">'+(d.code||'&mdash;')+'</code></td>'+
