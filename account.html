@@ -212,6 +212,49 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
    knoppen) en donkerblauw op donker werkt. --navy-text is het omgekeerde --
    dat is tekst, en donkerblauwe tekst op een donkere kaart is onleesbaar.
 */
+/* ---------------------------------------------------------------------------
+   Klantgezicht
+   ---------------------------------------------------------------------------
+   Zelfde toepassing, andere omlijsting. De tabbladen eronder zijn exact
+   dezelfde als die de adviseur ziet -- alleen de zijbalk verdwijnt en er komt
+   een kaartendashboard voor in de plaats. Zo blijft er een plek waar elk
+   scherm gedefinieerd is; een tweede portaal zou binnen de maand uiteenlopen
+   met dit ene. */
+.klantmodus .sidebar{display:none}
+.klantmodus .main-content{width:100%}
+.klant-topbar{background:var(--navy);color:var(--on-navy);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.klant-topbar-links{display:flex;align-items:center;gap:12px}
+.klant-topbar img{height:30px;object-fit:contain}
+.klant-topbar-naam{font-family:'Montserrat',sans-serif;font-weight:700;font-size:15px}
+.klant-topbar-rechts{display:flex;align-items:center;gap:14px;font-size:13px}
+.klant-topbar-rechts button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:var(--on-navy);border-radius:var(--radius);padding:6px 12px;font-family:'Poppins',sans-serif;font-size:12px;cursor:pointer}
+.klant-hero{padding:26px 32px 6px}
+.klant-hero h1{font-size:26px;color:var(--navy-text);margin-bottom:4px}
+.klant-hero-sub{font-size:13px;color:var(--gray-500)}
+.klant-bezoek{background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:16px 20px;margin:18px 32px 0}
+.klant-bezoek-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500);margin-bottom:6px}
+.klant-bezoek-datum{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--navy-text)}
+.kaart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;padding:18px 32px 32px}
+.klant-kaart{background:var(--surface);border:1px solid var(--gray-300);border-radius:var(--radius-lg);padding:18px 20px;cursor:pointer;transition:border-color .15s,transform .15s;text-align:left;position:relative}
+.klant-kaart:hover{border-color:var(--navy)}
+.klant-kaart:active{transform:scale(.995)}
+.klant-kaart-kop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.klant-kaart-icoon{width:38px;height:38px;border-radius:10px;background:var(--gray-100);color:var(--navy-text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.klant-kaart-naam{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:var(--navy-text)}
+.klant-kaart-sub{font-size:12px;color:var(--gray-500);line-height:1.5;margin-top:3px}
+.kaart-tellers{display:flex;gap:6px;flex-wrap:wrap}
+.kaart-teller{font-size:11px;font-weight:600;padding:2px 9px;border-radius:11px;white-space:nowrap}
+.kruimel{display:flex;align-items:center;gap:10px;padding:14px 32px 0}
+.kruimel button{width:30px;height:30px;border-radius:50%;border:1px solid var(--gray-300);background:var(--surface);color:var(--gray-700);cursor:pointer;font-size:15px;line-height:1}
+.kruimel-pad{font-size:12px;color:var(--gray-500)}
+.fab-melding{position:fixed;right:26px;bottom:26px;z-index:60;display:none;align-items:center;gap:8px;background:var(--green);color:#fff;border:none;border-radius:26px;padding:13px 20px;font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-lg)}
+/* De knop staat buiten #screen-dashboard, dus .klantmodus .fab-melding
+   bereikt hem niet -- zetKlantModus() schakelt hem rechtstreeks. */
+@media (max-width:640px){
+  .klant-topbar,.klant-hero,.kaart-grid,.kruimel{padding-left:16px;padding-right:16px}
+  .klant-bezoek{margin-left:16px;margin-right:16px}
+}
+
 @media (prefers-color-scheme: dark){
   :root{
     color-scheme:dark;
@@ -437,6 +480,35 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       <span>U bekijkt het klantdossier van <strong id="contextBannerNaam"></strong></span>
       <button onclick="terugNaarEigenDossier()" style="background:#003366;color:#fff;border:none;border-radius:var(--radius);padding:7px 14px;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer">Terug naar superbeheerdersmodus</button>
     </div>
+  <div class="klant-topbar" id="klantTopbar" style="display:none">
+    <div class="klant-topbar-links">
+      <img src="Logo-PrevX.png" alt="" id="klantLogo" onerror="this.style.display='none'">
+      <span class="klant-topbar-naam" id="klantTopbarNaam"></span>
+    </div>
+    <div class="klant-topbar-rechts">
+      <span id="klantTopbarGebruiker"></span>
+      <button onclick="doLogout()">Afmelden</button>
+    </div>
+  </div>
+
+  <div class="kruimel" id="klantKruimel" style="display:none">
+    <button onclick="toonTab('klanthome')" title="Terug naar dashboard">&#8592;</button>
+    <span class="kruimel-pad">Dashboard &rsaquo; <span id="klantKruimelNaam"></span></span>
+  </div>
+
+  <div id="tab-klanthome" style="display:none">
+    <div class="klant-hero">
+      <h1 id="klantHeroNaam">&nbsp;</h1>
+      <div class="klant-hero-sub" id="klantHeroSub"></div>
+    </div>
+    <div class="klant-bezoek" id="klantBezoek" style="display:none">
+      <div class="klant-bezoek-label">Volgend bezoek</div>
+      <div class="klant-bezoek-datum" id="klantBezoekDatum"></div>
+      <div class="klant-hero-sub" id="klantBezoekSub"></div>
+    </div>
+    <div class="kaart-grid" id="klantKaarten"></div>
+  </div>
+
     <div id="tab-overzicht">
       <div class="page-header">
         <div class="page-title" id="overzichtTitel">Overzicht</div>
@@ -1013,6 +1085,8 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
   <img id="lightboxImg" src="" alt="">
 </div>
 
+<button class="fab-melding" onclick="meldingMaken()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Melding maken</button>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1105,6 +1179,9 @@ var MENU_ICOON={
 };
 
 var MENU=[
+  // Bestaat alleen voor het klantgezicht; verborgen in de zijbalk van de
+  // adviseur, maar wel in MENU zodat toonTab() er gewoon mee werkt.
+  {key:'klanthome',naam:'Dashboard',verborgen:true,laad:function(){laadKlantHome();}},
   {key:'overzicht',naam:'Overzicht',laad:function(){laadOverzicht();}},
   {key:'rapportages',naam:'Rapportages',laad:function(){laadRapportages();}},
   {groep:'Klanten',icoon:'klanten',superbeheerder:true,items:[
@@ -1160,6 +1237,7 @@ function bouwMenu(){
   nav.innerHTML='';
 
   MENU.forEach(function(e){
+    if(e.verborgen)return;
     if(!e.items){
       var el=document.createElement('div');
       el.className='nav-item'+(menuActieveTab===e.key?' active':'');
@@ -1353,13 +1431,16 @@ function laadDashboard(user){
       return;
     }
     showScreen('dashboard');
-    toonTab('overzicht');
+    document.getElementById('klantTopbarGebruiker').textContent=gevonden.naam;
     if(huidigeBedrijfId){laadEnPasBrandingToe();laadModuleToegang();}
+    // Bewust pas een tabblad kiezen wanneer we weten wie er inlogt: een klant
+    // even de adviseurszijbalk tonen en die dan wegtrekken oogt als een fout.
     sb.rpc('is_superbeheerder').then(function(r){
+      if(r.error)console.error('is_superbeheerder faalde, klantgezicht als terugval:',r.error);
       isSuperbeheerder=r.data===true;
-      // Komt binnen ná laadModuleToegang(); het menu opnieuw tekenen, want de
-      // superbeheerder-groep en de opt-in-modules hangen hiervan af.
+      zetKlantModus(!isSuperbeheerder);
       bouwMenu();
+      toonTab(isSuperbeheerder?'overzicht':'klanthome');
     });
   });
 }
@@ -1406,6 +1487,7 @@ function toonTab(naam){
   menuOpenGroep=groep?groep.groep:null;
   menuActieveTab=naam;
   bouwMenu();
+  werkKruimelBij(naam);
   if(item.laad)item.laad();
 }
 
@@ -1469,6 +1551,212 @@ if(window.MutationObserver){
 // vervaldatum en niet op aanmaakdatum -- wat het eerst vervalt, staat bovenaan.
 
 var keuringAssets=[];
+
+// ---------------------------------------------------------------------------
+// Klantgezicht
+// ---------------------------------------------------------------------------
+// Wie geen superbeheerder is, krijgt het kaartendashboard i.p.v. de zijbalk.
+// De tabbladen eronder zijn dezelfde; alleen de omlijsting verschilt. De
+// superbeheerder kan er via de contextbalk in kijken om te zien wat zijn klant
+// ziet -- anders beoordeel je een scherm dat je zelf nooit voor ogen krijgt.
+var klantModus=false;
+
+var KLANT_KAARTEN=[
+  {key:'actiepunten',naam:'Actiepunten',module:'actiepunten',icoon:'actiepunten',
+   sub:'Adviezen en vaststellingen uit onze bezoeken, met opvolging.'},
+  {key:'keuringen',naam:'Keuringen',module:'planning',icoon:'keuringen',
+   sub:'Wat wanneer vervalt, en wat er al verlopen is.'},
+  {key:'documenten',naam:'Documenten',module:'documenten',icoon:'documenten',
+   sub:'Risicoanalyses, verslagen, preventieplan — altijd de recentste versie.'},
+  {key:'planning',naam:'Planning',module:'planning',icoon:'planning',
+   sub:'Geplande bezoeken, toolboxen en afspraken.'},
+  {key:'voertuigen',naam:'Assets',icoon:'assets',
+   sub:'Uw machines, voertuigen en installaties.'},
+  {key:'kennisbank',naam:'Kennisbank',module:'kennisbank',icoon:'kennisbank',
+   sub:'Checklists en toolboxfiches voor uw sector.'},
+  {key:'inspecties',naam:'Pre-inspecties',module:'preinspecties',icoon:'inspecties',
+   sub:'Controles vóór gebruik, uitgevoerd in de PrevX app.'},
+  {key:'vergunningen',naam:'Vuurvergunningen',module:'vuurvergunning',icoon:'vuurvergunning',
+   sub:'Vergunningen voor brandgevaarlijk werk, aangevraagd in de app.'}
+];
+
+var KAART_ICONEN={
+  actiepunten:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+  keuringen:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  documenten:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+  planning:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
+  assets:'<path d="M3 17h18M5 17V9l7-4 7 4v8"/><path d="M9 17v-4h6v4"/>',
+  kennisbank:'<path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 7h7M9 11h7"/>',
+  inspecties:'<rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/>',
+  vuurvergunning:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/>'
+};
+
+function zetKlantModus(aan){
+  klantModus=aan;
+  var scherm=document.getElementById('screen-dashboard');
+  scherm.classList.toggle('klantmodus',aan);
+  document.getElementById('klantTopbar').style.display=aan?'':'none';
+  var fab=document.querySelector('.fab-melding');
+  if(fab)fab.style.display=aan?'flex':'none';
+  if(!aan)document.getElementById('klantKruimel').style.display='none';
+}
+
+// Het kruimelpad hoort bij het klantgezicht: zonder zijbalk moet er iets zijn
+// dat zegt waar je zit en hoe je terugkomt.
+function werkKruimelBij(naam){
+  var kruimel=document.getElementById('klantKruimel');
+  if(!klantModus||naam==='klanthome'){kruimel.style.display='none';return;}
+  var item=menuItem(naam);
+  document.getElementById('klantKruimelNaam').textContent=item?item.naam:naam;
+  kruimel.style.display='';
+}
+
+function klantKaartZichtbaar(k){
+  if(!k.module)return true;
+  return actieveModules[k.module]!==false;
+}
+
+function laadKlantHome(){
+  if(!huidigeBedrijfId)return;
+  sb.from('bedrijven').select('naam,logo_url,contact_naam,adres,aantal_werknemers,pakket')
+    .eq('id',huidigeBedrijfId).maybeSingle().then(function(r){
+      var b=r.data||{};
+      document.getElementById('klantHeroNaam').textContent=b.naam||'Uw dossier';
+      document.getElementById('klantTopbarNaam').textContent=b.naam||'PrevX';
+      var delen=[];
+      if(b.adres)delen.push(b.adres);
+      if(b.contact_naam)delen.push('Contactpersoon: '+b.contact_naam);
+      if(b.aantal_werknemers)delen.push(b.aantal_werknemers+' werknemers');
+      if(b.pakket)delen.push(b.pakket);
+      document.getElementById('klantHeroSub').textContent=delen.join(' \u00b7 ');
+      if(b.logo_url)document.getElementById('klantLogo').src=b.logo_url;
+    });
+
+  laadVolgendBezoek();
+  tekenKlantKaarten();
+  laadKaartTellers();
+}
+
+function laadVolgendBezoek(){
+  var vandaag=datumTekst(new Date());
+  sb.from('planning').select('type,datum,tijdstip').eq('bedrijf_id',huidigeBedrijfId)
+    .gte('datum',vandaag).order('datum').limit(1).then(function(r){
+      var vak=document.getElementById('klantBezoek');
+      var p=(r.data||[])[0];
+      if(!p){vak.style.display='none';return;}
+      vak.style.display='';
+      document.getElementById('klantBezoekDatum').textContent=formatDatum(p.datum);
+      document.getElementById('klantBezoekSub').textContent=p.type||'';
+    });
+}
+
+function tekenKlantKaarten(){
+  var grid=document.getElementById('klantKaarten');
+  grid.innerHTML='';
+  KLANT_KAARTEN.filter(klantKaartZichtbaar).forEach(function(k){
+    var el=document.createElement('div');
+    el.className='klant-kaart';
+    el.innerHTML='<div class="klant-kaart-kop">'+
+      '<div class="klant-kaart-icoon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(KAART_ICONEN[k.icoon]||'')+'</svg></div>'+
+      '<span class="kaart-tellers" id="teller-'+k.key+'"></span></div>'+
+      '<div class="klant-kaart-naam">'+k.naam+'</div>'+
+      '<div class="klant-kaart-sub">'+k.sub+'</div>';
+    el.onclick=function(){toonTab(k.key);};
+    grid.appendChild(el);
+  });
+}
+
+function zetTeller(key,tellers){
+  var el=document.getElementById('teller-'+key);
+  if(!el||!tellers.length)return;
+  el.innerHTML=tellers.map(function(t){
+    var kleur=t.kleur==='rood'?'background:var(--red-bg);color:var(--red-tekst)'
+             :t.kleur==='oranje'?'background:var(--orange-bg);color:var(--orange)'
+             :'background:var(--gray-100);color:var(--gray-700)';
+    return '<span class="kaart-teller" style="'+kleur+'">'+t.tekst+'</span>';
+  }).join('');
+}
+
+// Tellers worden apart opgehaald en per kaart ingevuld zodra ze binnen zijn.
+// Eén gebundelde query zou sneller ogen maar laat het hele dashboard wachten op
+// de traagste tabel; zo vult het scherm zich op.
+function laadKaartTellers(){
+  var vandaag=datumTekst(new Date());
+  var over90=new Date(); over90.setDate(over90.getDate()+90);
+
+  sb.from('actiepunten').select('deadline,status').eq('bedrijf_id',huidigeBedrijfId)
+    .neq('status','afgesloten').then(function(r){
+      var rijen=r.data||[]; if(!rijen.length)return;
+      var teLaat=rijen.filter(function(a){return a.deadline&&a.deadline<vandaag;}).length;
+      var t=[];
+      if(teLaat)t.push({tekst:teLaat+' over deadline',kleur:'rood'});
+      t.push({tekst:rijen.length+' open',kleur:'grijs'});
+      zetTeller('actiepunten',t);
+    });
+
+  sb.from('keuringen').select('vervaldatum').eq('bedrijf_id',huidigeBedrijfId).eq('actief',true)
+    .lte('vervaldatum',datumTekst(over90)).then(function(r){
+      var rijen=r.data||[]; if(!rijen.length)return;
+      var verlopen=rijen.filter(function(k){return k.vervaldatum<vandaag;}).length;
+      var t=[];
+      if(verlopen)t.push({tekst:verlopen+' verlopen',kleur:'rood'});
+      var binnenkort=rijen.length-verlopen;
+      if(binnenkort)t.push({tekst:binnenkort+' vervalt binnen 90 d',kleur:'oranje'});
+      zetTeller('keuringen',t);
+    });
+
+  telEnZet('documenten','documenten',{},'document','documenten');
+  telEnZet('voertuigen','voertuigen',{actief:true},'asset','assets');
+  telEnZet('bedrijf_kennisbank','kennisbank',{},'item','items');
+
+  sb.from('vuurvergunningen').select('status,escalatie_vereist').eq('bedrijf_id',huidigeBedrijfId)
+    .in('status',['aangevraagd','voorbehoud','actief']).then(function(r){
+      var rijen=r.data||[]; if(!rijen.length)return;
+      var esc=rijen.filter(function(v){return v.escalatie_vereist;}).length;
+      var t=[];
+      if(esc)t.push({tekst:esc+' escalatie',kleur:'rood'});
+      t.push({tekst:rijen.length+' lopend',kleur:'grijs'});
+      zetTeller('vergunningen',t);
+    });
+
+  var maandStart=datumTekst(new Date(new Date().getFullYear(),new Date().getMonth(),1));
+  sb.from('inspecties').select('verdict').eq('bedrijf_id',huidigeBedrijfId)
+    .gte('datum',maandStart).then(function(r){
+      var rijen=r.data||[]; if(!rijen.length)return;
+      var nok=rijen.filter(function(i){return i.verdict==='niet_rijklaar';}).length;
+      var t=[];
+      if(nok)t.push({tekst:nok+' niet rijklaar',kleur:'rood'});
+      t.push({tekst:rijen.length+' deze maand',kleur:'grijs'});
+      zetTeller('inspecties',t);
+    });
+}
+
+function telEnZet(tabel,kaartKey,filters,enkelvoud,meervoud){
+  var q=sb.from(tabel).select('id',{count:'exact',head:true}).eq('bedrijf_id',huidigeBedrijfId);
+  Object.keys(filters).forEach(function(k){q=q.eq(k,filters[k]);});
+  q.then(function(r){
+    if(r.error||!r.count)return;
+    zetTeller(kaartKey,[{tekst:r.count+' '+(r.count===1?enkelvoud:meervoud),kleur:'grijs'}]);
+  });
+}
+
+// Het meldformulier uit de teaser. Bewust een aparte RPC (0022) en niet een
+// insert: een melding mag ook binnenkomen van iemand die verder niets in het
+// dossier mag schrijven.
+function meldingMaken(){
+  var type=prompt('Wat wil je melden?\n\nTyp: ongeval, bijna-ongeval, of vraag');
+  if(!type)return;
+  type=type.trim().toLowerCase();
+  if(['ongeval','bijna-ongeval','vraag'].indexOf(type)===-1){
+    showToast('Kies: ongeval, bijna-ongeval of vraag.');return;
+  }
+  var omschrijving=prompt('Beschrijf kort wat er gebeurd is:');
+  if(!omschrijving||!omschrijving.trim())return;
+  sb.rpc('rpc_meld_incident',{p_type:type,p_omschrijving:omschrijving.trim()}).then(function(r){
+    if(r.error){showToast('Fout: '+r.error.message);return;}
+    showToast('Melding verstuurd naar uw adviseur.');
+  });
+}
 
 function laadKeuringen(){
   if(!huidigeBedrijfId)return;
