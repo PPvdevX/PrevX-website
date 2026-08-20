@@ -4,3 +4,9 @@
 # blijven bestaan tot niemand nog een oude installatie heeft.
 /pre-insp       /app    301
 /pre-insp.html  /app    301
+
+# Het portaal heette /mijn tot het Mijn PrevX werd en op /account belandde.
+# Oude bookmarks en mails uit die periode blijven werken; zonder deze regel
+# kwamen ze op de homepage terecht, met een 200, alsof dat de bedoeling was.
+/mijn       /account    301
+/mijn.html  /account    301
