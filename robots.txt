@@ -4,8 +4,17 @@ Allow: /
 # Afgeschermde toepassingen: horen niet in zoekresultaten thuis.
 # Dit regelt enkel indexering, niet de toegang -- die loopt via
 # Supabase Auth (portaal) en de klantcode + pincode (app).
-Disallow: /account
-Disallow: /account.html
+#
+# /account staat hier bewust NIET bij, en dat is geen vergetelheid. Elke
+# publieke pagina linkt ernaar met de Klantenportaal-knop, dus Google vindt
+# die URL hoe dan ook. Blokkeren zou enkel beletten dat hij de pagina ophaalt
+# en de noindex erin leest -- gevolg: het adres verschijnt kaal in de
+# resultaten, zonder titel, met "geen informatie beschikbaar". De noindex in
+# account.html doet het werk; robots.txt zou het tegenhouden.
+#
+# Voor /app en /pre-insp ligt het anders: daar linkt niets naar, dus er valt
+# niets te vinden en de regel kan geen kwaad. Komt er ooit een link naar de
+# app op de site, dan moeten deze twee mee weg, om dezelfde reden.
 Disallow: /app
 Disallow: /app.html
 Disallow: /pre-insp
