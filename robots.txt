@@ -6,6 +6,8 @@ Allow: /
 # Supabase Auth (portaal) en de klantcode + pincode (app).
 Disallow: /mijn
 Disallow: /mijn.html
+Disallow: /account
+Disallow: /account.html
 Disallow: /app
 Disallow: /app.html
 Disallow: /pre-insp
