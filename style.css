@@ -14,7 +14,11 @@
   --shadow: 0 2px 16px rgba(0,0,0,0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--gray-900); line-height: 1.6; }
+/* Zonder dit duwen twee dingen de pagina breder dan een telefoonscherm: de
+   kop "beschermingsmiddelen" bij 30px, en een uitgeschreven link als
+   support.google.com/chrome/answer/95647 die nergens mag breken. */
+body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--gray-900); line-height: 1.6;
+  overflow-wrap: break-word; }
 h1, h2, h3, h4 { font-family: 'Montserrat', sans-serif; color: var(--navy); }
 a { color: var(--navy); }
 img { max-width: 100%; }
@@ -147,4 +151,28 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
   .foto-band::after { background: linear-gradient(180deg, rgba(0,51,102,.92) 0%, rgba(0,51,102,.72) 100%); }
   .foto-band-inner { padding: 52px 24px; }
   .foto-band-tekst { max-width: none; }
+}
+
+
+/* --- Foto als achtergrond in een pillar-kaart -------------------------------
+   De kaart heeft donkere tekst op wit, dus hier moet het beeld juist wegvallen
+   in plaats van op te komen: een witte sluier die links vrijwel dicht is waar
+   de tekst staat en rechts openbreekt. Omgekeerd van de navy banden. */
+.pillar-foto { position: relative; overflow: hidden; }
+/* Duotoon in twee stappen. Op de navy banden volstaat luminosity, want daar
+   ligt het navy er al onder. Hier is de kaart wit, dus krijgt de foto eerst een
+   eigen navy ondergrond om tegenaan te blenden -- grijswaarden eerst, zodat er
+   geen groenzweem overblijft -- en pas daarna de witte sluier die het geheel
+   licht genoeg maakt voor donkere tekst. */
+.pillar-achtergrond { position: absolute; inset: 0; z-index: 0; background: var(--navy); }
+.pillar-achtergrond img { width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1) brightness(1.45) contrast(1.05); mix-blend-mode: luminosity; }
+.pillar-achtergrond::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,.95) 42%, rgba(255,255,255,.62) 100%); }
+/* Het volgnummer is een watermerk op wit; boven een foto wordt het rommel.
+   Zelfde rol, minder aanwezig. */
+.pillar-foto .pillar-num { z-index: 0; color: rgba(255,255,255,.55); }
+
+@media (max-width: 800px) {
+  .pillar-achtergrond::after { background: linear-gradient(180deg, rgba(255,255,255,.97) 0%, rgba(255,255,255,.88) 100%); }
 }
