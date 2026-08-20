@@ -112,3 +112,39 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
   .hero .btn { display: block; width: 100%; max-width: 320px; margin: 0 auto 12px; }
   .hero .btn-outline { margin-left: 0; }
 }
+
+/* --- Fotoband --------------------------------------------------------------
+   Staat bewust buiten <main>, zodat hij vanzelf de volle breedte heeft en er
+   geen negatieve marges aan te pas komen.
+
+   De kleur wordt afgedwongen, niet gehoopt: mix-blend-mode luminosity gooit de
+   eigen kleur van de foto weg en houdt enkel licht en donker over, bovenop een
+   navy vlak. Een oranje hesje of een gele helm komt er dus in huisstijl uit.
+   Het verloop erbovenop is er voor de leesbaarheid -- links dicht waar de tekst
+   staat, rechts open waar het beeld mag spreken. */
+/* min-height is geen opsmuk: bij een lage band snijdt object-fit cover een
+   smalle horizontale strook uit het midden van de foto, en dat is bij een
+   staande compositie net de lucht. object-position schuift de uitsnede naar
+   waar het onderwerp zit. */
+.foto-band { position: relative; background: var(--navy); overflow: hidden; min-height: 420px;
+  display: flex; align-items: center; }
+.foto-band > img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 42%; mix-blend-mode: luminosity; }
+.foto-band::after { content: ""; position: absolute; inset: 0;
+  /* Moet aan de rechterkant echt tot nul gaan. Alles daarboven telt op bij de
+     navy achtergrond eronder en dan blijft er van de foto niets over -- dat
+     kostte me drie pogingen. */
+  background: linear-gradient(90deg, rgba(0,51,102,.92) 0%, rgba(0,51,102,.55) 40%, rgba(0,51,102,0) 78%); }
+.foto-band-inner { position: relative; z-index: 1; width: 100%; max-width: 1100px; margin: 0 auto;
+  padding: 76px 24px; }
+.foto-band-tekst { max-width: 520px; }
+.foto-band h2 { color: #fff; font-size: 26px; margin-bottom: 14px; }
+.foto-band p { color: rgba(255,255,255,0.82); font-size: 15px; margin-bottom: 20px; }
+
+@media (max-width: 800px) {
+  /* Op smal scherm staat de tekst over de volle breedte, dus moet het verloop
+     van boven naar onder lopen in plaats van van links naar rechts. */
+  .foto-band::after { background: linear-gradient(180deg, rgba(0,51,102,.92) 0%, rgba(0,51,102,.72) 100%); }
+  .foto-band-inner { padding: 52px 24px; }
+  .foto-band-tekst { max-width: none; }
+}
