@@ -7,6 +7,13 @@
   <url><loc>https://prevx.be/preventieplan</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://prevx.be/onthaalbrochure</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://prevx.be/alcohol-en-drugsbeleid</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/arbeidsongevallen</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/psychosociale-risicos</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/ehbo</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/persoonlijke-beschermingsmiddelen</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/werken-met-derden</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/noodplan-evacuatie</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://prevx.be/keuringsmatrix</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
   <url><loc>https://prevx.be/over-ons</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://prevx.be/faq</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://prevx.be/contact</loc><changefreq>yearly</changefreq><priority>0.8</priority></url>
