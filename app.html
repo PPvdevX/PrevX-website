@@ -297,17 +297,17 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
       <div class="module-icon" style="width:64px;height:64px;margin:0 auto 18px">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
       </div>
-      <h2 class="screen-title" style="margin-bottom:10px">Meldingen aanzetten</h2>
+      <h2 class="screen-title" style="margin-bottom:10px">Pushberichten aanzetten</h2>
       <p style="font-size:14px;color:var(--gray-500);line-height:1.6;margin-bottom:8px">
         PrevX waarschuwt je wanneer er iets van je verwacht wordt op een moment dat telt.
         Zoals de controle 2 en 24 uur na heet werk: nagloeiend materiaal is een van de
         belangrijkste oorzaken van brand die pas uren later ontstaat.
       </p>
       <p style="font-size:14px;color:var(--gray-500);line-height:1.6;margin-bottom:24px">
-        Zonder meldingen kan de app je niet bereiken en moet je er zelf aan denken.
+        Zonder pushberichten kan de app je niet bereiken en moet je er zelf aan denken.
         Je kan dit later enkel nog wijzigen in de instellingen van je toestel.
       </p>
-      <button class="btn-primair" id="pushAanKnop" style="width:100%">Meldingen aanzetten</button>
+      <button class="btn-primair" id="pushAanKnop" style="width:100%">Pushberichten aanzetten</button>
       <button class="pincode-wijzig-link" id="pushNietNuKnop" style="margin-top:16px">Niet nu</button>
       <p id="pushFout" style="display:none;font-size:12px;color:var(--red);margin-top:14px"></p>
     </div>
@@ -322,7 +322,7 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
     </div>
   </div>
   <div class="screen-content">
-    <h2 class="screen-title" style="margin-bottom:16px">Meldingen</h2>
+    <h2 class="screen-title" style="margin-bottom:16px">Pushberichten</h2>
     <div id="meldingenInhoud"></div>
     <button class="pincode-wijzig-link" style="margin-top:22px" onclick="sluitMeldingen()">Terug</button>
   </div>
@@ -446,6 +446,50 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   <div class="bottom-nav">
     <button class="btn-nav btn-terug" onclick="showScreen('lmra')">&#8592; Terug</button>
     <button class="btn-nav btn-verzend" id="btnLmraKlaar" onclick="rondLmraAf()">Ik kan starten</button>
+  </div>
+</div>
+
+<div id="screen-melding" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+    </div>
+    <div class="header-user" id="headerUserMelding"></div>
+  </div>
+  <div class="module-balk">Melding</div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:90px">
+    <div class="screen-content">
+      <div class="vv-veld">
+        <label class="vv-label">Wat wilt u melden?</label>
+        <select id="meldType" class="vv-input" onchange="toonMeldWaarschuwing()">
+          <option value="onveilige-situatie">Onveilige situatie</option>
+          <option value="bijna-ongeval">Bijna-ongeval</option>
+          <option value="ongeval">Arbeidsongeval</option>
+          <option value="vraag">Vraag</option>
+        </select>
+      </div>
+      <!-- Een melding hier is geen aangifte. Dat moet op het scherm staan en
+           niet in een handleiding: wie net een ongeval meldt, denkt dat hij
+           klaar is. -->
+      <div id="meldWaarschuwing" style="display:none;background:var(--orange-bg);color:var(--orange);border-radius:var(--radius);padding:11px 13px;font-size:13px;line-height:1.5;margin-bottom:14px">
+        Deze melding gaat naar uw preventieadviseur. Ze vervangt de aangifte bij
+        de verzekeraar niet, en ook niet het verwittigen van uw leidinggevende.
+      </div>
+      <div class="vv-veld">
+        <label class="vv-label">Waar?</label>
+        <input type="text" id="meldLocatie" class="vv-input" placeholder="Bv. hal 2, laadkade">
+      </div>
+      <div class="vv-veld">
+        <label class="vv-label">Wat ziet u?</label>
+        <textarea id="meldOmschrijving" class="vv-input" rows="4" placeholder="Kort volstaat"></textarea>
+      </div>
+      <label class="foto-btn">&#128247; Foto toevoegen<input type="file" accept="image/*" capture="environment" style="display:none" onchange="meldingFoto(this)"></label>
+      <div id="meldFotoVak" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="btn-nav btn-terug" onclick="sluitMelding()">&#8592; Terug</button>
+    <button class="btn-nav btn-verzend" id="btnMeldVerstuur" onclick="verstuurMelding()">Versturen</button>
   </div>
 </div>
 
@@ -1073,6 +1117,84 @@ var meldingenTerug = null;
 // rechts uitgelijnd onder de naam. Met meer dan één actie werd dat een kolom
 // van 10px-linkjes die op een telefoon nauwelijks te raken zijn. Ze staan nu
 // onderaan het scherm zelf, als volwaardige regels.
+// ---------------------------------------------------------------------------
+// Melden vanaf de vloer
+// ---------------------------------------------------------------------------
+// De tabel en het portaal bestaan sinds 0022; wat ontbrak was de weg vanuit de
+// app. Dit is het enige scherm dat vanaf elk ander scherm bereikbaar is, want
+// een onveilige situatie kom je onderweg tegen, niet vanuit een menu.
+var meldTerugScherm = 'module';
+var meldFotoUrl = null;
+
+function openMelding() {
+  var actief = document.querySelector('.screen.active');
+  if (actief && actief.id) meldTerugScherm = actief.id.replace('screen-', '');
+  meldFotoUrl = null;
+  document.getElementById('meldType').value = 'onveilige-situatie';
+  document.getElementById('meldLocatie').value = '';
+  document.getElementById('meldOmschrijving').value = '';
+  document.getElementById('meldFotoVak').innerHTML = '';
+  document.getElementById('btnMeldVerstuur').disabled = false;
+  document.getElementById('btnMeldVerstuur').textContent = 'Versturen';
+  toonMeldWaarschuwing();
+  var rolLabel = gebruiker.rol_label || STANDAARD_ROL_LABELS[gebruiker.rol] || gebruiker.rol;
+  document.getElementById('headerUserMelding').innerHTML = '<strong>' + gebruiker.naam + '</strong>' + rolLabel;
+  showScreen('melding');
+}
+
+function sluitMelding() {
+  showScreen(meldTerugScherm);
+}
+
+function toonMeldWaarschuwing() {
+  var type = document.getElementById('meldType').value;
+  document.getElementById('meldWaarschuwing').style.display = (type === 'ongeval') ? '' : 'none';
+}
+
+function meldingFoto(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  var vak = document.getElementById('meldFotoVak');
+  vak.innerHTML = '<div class="loading"><div class="spinner"></div>Uploaden...</div>';
+  uploadInspectieMedia(f, f.name).then(function (res) {
+    if (!res.ok) { vak.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; return; }
+    meldFotoUrl = res.body.url;
+    onthoudVoorbeeld(res.body.url, f);
+    vak.innerHTML = '';
+    var w = document.createElement('div');
+    w.className = 'foto-thumb';
+    var img = document.createElement('img');
+    img.src = fotoVoorbeelden[res.body.url] || '';
+    w.appendChild(img);
+    vak.appendChild(w);
+  }).catch(function () { vak.innerHTML = '<span class="vv-regel">Upload mislukt</span>'; });
+}
+
+function verstuurMelding() {
+  var type = document.getElementById('meldType').value;
+  var omschrijving = document.getElementById('meldOmschrijving').value.trim();
+  if (!omschrijving) { showToast('Beschrijf kort wat u ziet.'); return; }
+  var btn = document.getElementById('btnMeldVerstuur');
+  btn.disabled = true;
+  btn.textContent = 'Bezig...';
+  sb.rpc('rpc_meld_incident_app', {
+    p_gebruiker_id: gebruiker.id,
+    p_type: type,
+    p_omschrijving: omschrijving,
+    p_locatie: document.getElementById('meldLocatie').value.trim() || null,
+    p_foto_url: meldFotoUrl
+  }).then(function (r) {
+    if (r.error) {
+      btn.disabled = false;
+      btn.textContent = 'Versturen';
+      showToast('Fout: ' + r.error.message);
+      return;
+    }
+    showToast('Melding verstuurd naar uw preventieadviseur.');
+    sluitMelding();
+  });
+}
+
 function tekenActies(containerId) {
   var el = document.getElementById(containerId);
   if (!el) return;
@@ -1082,8 +1204,13 @@ function tekenActies(containerId) {
     rijen.push({ tekst: 'Andere module', actie: 'laadModules()' });
   }
   if ('Notification' in window) {
-    rijen.push({ tekst: 'Meldingen', actie: 'openMeldingen()', stand: meldingenStand() });
+    rijen.push({ tekst: 'Pushberichten', actie: 'openMeldingen()', stand: meldingenStand() });
   }
+  // Bewust boven de accountzaken en op elk scherm: iemand die iets ziet, ziet
+  // het onderweg. Moet hij eerst terug naar een beginscherm, dan meldt hij het
+  // niet. "Melden" en niet "Melding" -- dat laatste betekent in deze app al
+  // een pushbericht.
+  rijen.push({ tekst: 'Onveilige situatie melden', actie: 'openMelding()' });
   rijen.push({ tekst: 'Pincode wijzigen', actie: 'wijzigPincode()' });
   // Dezelfde rollen die een vergunning mogen goedkeuren. Een chauffeur heeft
   // zelden een werkmailadres, dus "Pincode vergeten" werkt voor hem niet -- dit
