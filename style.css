@@ -169,6 +169,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
   filter: grayscale(1) brightness(1.45) contrast(1.05); mix-blend-mode: luminosity; }
 .pillar-achtergrond::after { content: ""; position: absolute; inset: 0;
   background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,.95) 42%, rgba(255,255,255,.62) 100%); }
+/* Een lichte bronfoto heeft het omgekeerde nodig van een donkere: niet
+   optillen maar juist iets indrukken, anders blaast hij wit weg. */
+.pillar-achtergrond.licht img { filter: grayscale(1) brightness(.92) contrast(1.25); }
+.pillar-achtergrond.licht::after {
+  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,.94) 40%, rgba(255,255,255,.48) 100%); }
+
 /* Het volgnummer is een watermerk op wit; boven een foto wordt het rommel.
    Zelfde rol, minder aanwezig. */
 .pillar-foto .pillar-num { z-index: 0; color: rgba(255,255,255,.55); }
