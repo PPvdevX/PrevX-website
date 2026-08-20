@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<!-- Landingspagina na een klik op een link in de PrevX-nieuwsbrief. De
+     edge-functie 'nieuwsbrief' (PrevX-app) doet het databankwerk en stuurt de
+     bezoeker hierheen met een 302. Reden: Supabase weigert HTML te serveren
+     vanaf functions/v1 -- het overschrijft Content-Type naar text/plain -- en
+     bovendien hoort een link uit een mail te eindigen op prevx.be en niet op
+     een supabase.co-adres.
+     Noindex: transactioneel, hoort niet in de zoekresultaten. Follow: de
+     links hieronder wijzen naar echte sitepagina's. Niet in sitemap.xml. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Je inschrijving is bevestigd — PrevX</title>
+<meta name="description" content="Je inschrijving op de nieuwsbrief van PrevX is bevestigd.">
+<link rel="canonical" href="https://prevx.be/nieuwsbrief-bevestigd">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="Logo-PrevX.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* Geprefixt met .pvxn-, zodat style.css onaangeroerd blijft. Zelfde aanpak
+   als de .pvxp--klassen op piloot.html. */
+.pvxn-blok { max-width: 620px; margin: 90px auto 120px; padding: 0 20px; text-align: center; }
+.pvxn-merk { display: inline-block; width: 56px; height: 56px; border-radius: 14px; background: #3FBF3F; margin-bottom: 26px; position: relative; }
+.pvxn-merk svg { position: absolute; inset: 0; margin: auto; width: 30px; height: 30px; color: #fff; }
+.pvxn-blok h1 { font-size: 27px; margin-bottom: 14px; }
+.pvxn-blok p { color: var(--gray-700, #334155); font-size: 15px; line-height: 1.7; margin-bottom: 14px; }
+.pvxn-klein { color: var(--gray-500, #64748b); font-size: 13px; }
+.pvxn-knoppen { margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo"><img src="Logo-PrevX.png" alt="PrevX"></a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="/">Home</a>
+      <a href="/diensten">Diensten</a>
+      <a href="/platform">Platform</a>
+      <a href="/over-ons">Over PrevX</a>
+      <a href="/faq">FAQ</a>
+      <a href="/contact">Contact</a>
+      <a href="/account" class="btn-portaal">Mijn PrevX</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="pvxn-blok">
+    <span class="pvxn-merk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+    <h1>Je inschrijving is bevestigd</h1>
+    <p>Bedankt. Je krijgt vanaf nu de nieuwsbrief van PrevX: praktische preventie-informatie, wetswijzigingen die er echt toe doen, en wat er nieuw is in het platform.</p>
+    <p class="pvxn-klein">Onderaan elke mail staat een uitschrijflink. Eén klik en je bent er weer af — daar hoef je niemand voor te bellen.</p>
+    <div class="pvxn-knoppen">
+      <a href="/" class="btn btn-cta">Naar de homepage</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  &copy; <span id="jaar"></span> PrevX. Alle rechten voorbehouden. &middot; <a href="/contact">Contact</a> &middot; <a href="/privacyverklaring">Privacyverklaring</a> &middot; <a href="/cookieverklaring">Cookieverklaring</a> &middot; <a href="/algemene-voorwaarden">Algemene voorwaarden</a>
+</footer>
+
+<script src="script.js"></script>
+<script>document.getElementById('jaar').textContent = new Date().getFullYear();</script>
+</body>
+</html>
