@@ -4,8 +4,6 @@ Allow: /
 # Afgeschermde toepassingen: horen niet in zoekresultaten thuis.
 # Dit regelt enkel indexering, niet de toegang -- die loopt via
 # Supabase Auth (portaal) en de klantcode + pincode (app).
-Disallow: /mijn
-Disallow: /mijn.html
 Disallow: /account
 Disallow: /account.html
 Disallow: /app
