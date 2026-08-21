@@ -848,6 +848,63 @@ tr:hover td{background:var(--gray-50);cursor:pointer}
       </div>
     </div>
 
+    <div id="tab-chemie" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Chemische agentia</div>
+        <div class="page-subtitle">De producten die hier staan, en wat erin zit</div>
+      </div>
+      <div class="content-area">
+        <div id="chemieSignalen" class="kpi-rij" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px"></div>
+
+        <div id="chemieNieuwFormulier" class="table-card" style="margin-bottom:20px;max-width:620px;display:none">
+          <div class="table-header"><span class="table-title">Nieuw product</span></div>
+          <div style="padding:16px 20px">
+            <div class="form-group"><label class="form-label">Naam op het etiket</label>
+              <input type="text" class="form-input" id="chNaam" placeholder="bv. Ontvetter X-200"></div>
+            <div class="form-group"><label class="form-label">Leverancier</label>
+              <input type="text" class="form-input" id="chLeverancier"></div>
+            <div class="form-group"><label class="form-label">Waarvoor wordt het gebruikt?</label>
+              <input type="text" class="form-input" id="chToepassing" placeholder="bv. ontvetten voor het lassen"></div>
+            <div class="form-group"><label class="form-label">Waar staat het?</label>
+              <input type="text" class="form-input" id="chLocatie" placeholder="bv. magazijn, chemiekast 2"></div>
+            <div class="form-group"><label class="form-label">Hoeveelheid</label>
+              <input type="text" class="form-input" id="chHoeveelheid" placeholder="bv. 4 bussen van 5 l"></div>
+            <div class="form-group"><label class="form-label">Gevarenaanduidingen (H-zinnen)</label>
+              <input type="text" class="form-input" id="chHZinnen" placeholder="bv. H315, H319, H350">
+              <div style="font-size:12px;color:var(--gray-500);margin-top:5px;line-height:1.5">
+                Staan op het etiket en in rubriek 2 van het veiligheidsinformatieblad. Gescheiden door komma&rsquo;s.
+                Hieruit bepaalt het systeem of het product onder titel 2 van boek VI valt &mdash; het pictogram volstaat daar niet voor.
+              </div>
+            </div>
+            <div class="form-group"><label class="form-label">Datum van het veiligheidsinformatieblad</label>
+              <input type="date" class="form-input" id="chVibDatum">
+              <div style="font-size:12px;color:var(--gray-500);margin-top:5px">Staat in rubriek 16. Niet de dag waarop u het oplaadt.</div>
+            </div>
+            <div class="form-group"><label class="form-label">Opmerking</label>
+              <input type="text" class="form-input" id="chOpmerking"></div>
+            <button class="btn-login" onclick="nieuwChemischProduct()">Toevoegen</button>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header"><span class="table-title">Producten</span>
+            <span style="display:flex;align-items:center;gap:10px">
+              <span class="table-count" id="chemieCount">0</span>
+              <button class="btn-add-sm" id="chemieNieuwKnop" style="display:none" onclick="toonChemieFormulier()">+ Product</button>
+            </span>
+          </div>
+          <table><thead><tr><th>Product</th><th>Leverancier</th><th>Waar</th><th>Gevaren</th><th>VIB</th><th></th></tr></thead>
+          <tbody id="chemieTabel"><tr class="loading-row"><td colspan="6"><div class="spinner-sm"></div>Laden...</td></tr></tbody></table>
+        </div>
+
+        <p style="font-size:13px;color:var(--gray-500);margin-top:14px;max-width:720px">
+          Deze lijst is geen risicoanalyse. Ze houdt bij waarop die analyse steunt: wat er staat, waar,
+          en welk blad erbij hoort. Ontbreekt dat blad, dan kan de wettelijke toets niet gebeuren &mdash;
+          vandaar dat het bovenaan in het rood staat en niet onderaan als opmerking.
+        </p>
+      </div>
+    </div>
+
     <div id="tab-kennisbank" style="display:none">
       <div class="page-header">
         <div class="page-title">Kennisbank</div>
@@ -1429,6 +1486,7 @@ var MENU_ICOON={
   documenten:'<path d="M7 3h7l4 4v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 16.5h6"/>',
   planning:'<rect x="3" y="5" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M8 3v4M16 3v4"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/>',
   kennisbank:'<path d="M4 5.5A2 2 0 0 1 6 4h5v16H6a2 2 0 0 0-2 1.5z"/><path d="M20 5.5A2 2 0 0 0 18 4h-5v16h5a2 2 0 0 1 2 1.5z"/>',
+  chemie:'<path d="M10 3h4M11 3v6.5L5.5 19a1.5 1.5 0 0 0 1.3 2.2h10.4a1.5 1.5 0 0 0 1.3-2.2L13 9.5V3"/><path d="M8 15h8"/>',
   inspecties:'<rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/>',
   voertuigen:'<rect x="2" y="7" width="12" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/>',
   checklist:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12.5l2.5 2.5L16 9.5"/>',
@@ -1478,6 +1536,11 @@ var MENU=[
   // Eigen groep met optIn, niet als item onder Dossier: LMRA is een module die
   // een klant afneemt, geen vast onderdeel van elk dossier. Zonder optIn zou hij
   // bij iedereen verschijnen -- ook bij klanten die er niet voor betalen.
+  // Eigen groep met optIn, zoals LMRA en vuurvergunning: een module die een
+  // klant erbij neemt, niet een vast onderdeel van elk dossier.
+  {groep:'Chemische agentia',icoon:'chemie',module:'chemie',optIn:true,items:[
+    {key:'chemie',naam:'Producten',laad:function(){laadChemie();}}
+  ]},
   {groep:'LMRA',icoon:'lmra',module:'lmra',optIn:true,items:[
     {key:'lmra',naam:"Uitgevoerde LMRA's",laad:function(){laadLmra();}},
     {key:'lmrarisicos',naam:'Risico\'s',laad:function(){laadLmraRisicoKeuze();}}
@@ -1876,6 +1939,8 @@ var KLANT_KAARTEN=[
    sub:'De elf onderdelen van het dossier, klaar om aan de hulpdiensten te geven.'},
   {key:'voertuigen',naam:'Assets',icoon:'assets',
    sub:'Uw machines, voertuigen en installaties.'},
+  {key:'chemie',naam:'Chemische agentia',module:'chemie',icoon:'chemie',
+   sub:'Welke producten er staan, waar, en het veiligheidsinformatieblad erbij.'},
   {key:'kennisbank',naam:'Kennisbank',module:'kennisbank',icoon:'kennisbank',
    sub:'Checklists en toolboxfiches voor uw sector.'},
   {key:'inspecties',naam:'Pre-inspecties',module:'preinspecties',icoon:'inspecties',
@@ -1900,6 +1965,7 @@ var KAART_ICONEN={
   planning:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
   assets:'<path d="M3 17h18M5 17V9l7-4 7 4v8"/><path d="M9 17v-4h6v4"/>',
   kennisbank:'<path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 7h7M9 11h7"/>',
+  chemie:'<path d="M10 3h4M11 3v6.5L5.5 19a1.5 1.5 0 0 0 1.3 2.2h10.4a1.5 1.5 0 0 0 1.3-2.2L13 9.5V3"/><path d="M8 15h8"/>',
   inspecties:'<rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/>',
   vuurvergunning:'<path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/>',
   // Schild met een vlam erin: het dossier gaat over beschermen tegen brand,
@@ -1930,6 +1996,10 @@ function werkKruimelBij(naam){
 function klantKaartZichtbaar(k){
   if(k.formule)return true;
   if(!k.module)return true;
+  // Zelfde regel als menuGroepZichtbaar: een module die je erbij neemt, staat
+  // uit tot een rij zegt van wel. Zonder dit zou de kaart verschijnen bij elke
+  // klant die nog geen rij in bedrijf_modules heeft.
+  if(moduleIsOptIn(k.module))return actieveModules[k.module]===true;
   return actieveModules[k.module]!==false;
 }
 
@@ -6181,7 +6251,7 @@ function nbKiesAfbeelding(){
 // ---------------------------------------------------------------------------
 // Afbeelding uploaden
 // ---------------------------------------------------------------------------
-// Gaat naar de publieke bucket nieuwsbrief-media (migratie 0098). Publiek is
+// Gaat naar de publieke bucket nieuwsbrief-media (migratie 0100). Publiek is
 // hier geen slordigheid: een mailprogramma haalt afbeeldingen anoniem op, soms
 // weken later, dus een ondertekende link met vervaltermijn zou tegen die tijd
 // een kapot kadertje opleveren.
@@ -6206,7 +6276,7 @@ function nbUploadAfbeelding(invoer){
   sb.storage.from('nieuwsbrief-media').upload(pad,bestand,{contentType:bestand.type,upsert:false}).then(function(r){
     if(r.error){
       console.error('Upload mislukt:',r.error);
-      showToast('Upload mislukt: '+r.error.message+' (staat migratie 0098 al uitgevoerd?)');
+      showToast('Upload mislukt: '+r.error.message+' (staat migratie 0100 al uitgevoerd?)');
       return;
     }
     var url=sb.storage.from('nieuwsbrief-media').getPublicUrl(pad).data.publicUrl;
