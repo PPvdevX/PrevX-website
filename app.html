@@ -328,6 +328,35 @@ h1,h2,h3,h4 { font-family: 'Montserrat', sans-serif; }
   </div>
 </div>
 
+<div id="screen-chemie" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name">PrevX</div>
+    </div>
+  </div>
+  <div class="screen-content">
+    <h2 class="screen-title" style="margin-bottom:6px">Producten</h2>
+    <p style="color:var(--gray-500);font-size:13px;margin:0 0 14px">Zoek op de naam die op de verpakking staat.</p>
+    <input type="text" id="chemieZoek" class="klantcode-input" style="letter-spacing:0;text-transform:none;font-size:16px;font-weight:500;text-align:left;margin-bottom:14px" placeholder="bv. ontvetter" autocomplete="off" oninput="zoekChemie()">
+    <div id="chemieLijst"></div>
+    <div class="scherm-acties" id="actiesChemie"></div>
+  </div>
+</div>
+
+<div id="screen-chemie-detail" class="screen">
+  <div class="app-header">
+    <div class="app-header-logo">
+      <img src="Logo-PrevX.png" alt="PrevX" class="app-logo-img" style="height:34px;object-fit:contain;">
+      <div class="logo-name">PrevX</div>
+    </div>
+  </div>
+  <div class="screen-content">
+    <div id="chemieDetail"></div>
+    <button class="pincode-wijzig-link" style="margin-top:22px" onclick="showScreen('chemie')">Terug naar de lijst</button>
+  </div>
+</div>
+
 <div id="screen-module" class="screen">
   <div class="app-header">
     <div class="app-header-logo">
@@ -864,17 +893,19 @@ function doPinLogin() {
 // databank geactiveerd is maar hier nog niet in staat, wordt niet getoond --
 // zo levert het alvast activeren van 'vuurvergunning' geen dode knop op
 // zolang die flow nog niet gebouwd is.
-var GEBOUWDE_MODULES = ['preinspecties', 'vuurvergunning', 'lmra'];
+var GEBOUWDE_MODULES = ['preinspecties', 'vuurvergunning', 'lmra', 'chemie'];
 
 var MODULE_ICONEN = {
   preinspecties: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1.5"/><rect x="9" y="2.5" width="6" height="3" rx="1"/><path d="M9 11h6M9 15h6"/></svg>',
   vuurvergunning: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6.5-4.5-10C13 8 12 9 10.5 9.5 9 7 8 5 8 5c-2 3-3 5.5-3 10a7 7 0 0 0 7 7z"/><path d="M12 22a3 3 0 0 0 3-3c0-1.8-1.3-2.8-2-4.5-1 1.5-2 2-2.4 2.8A3 3 0 0 0 12 22z"/></svg>',
-  lmra: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7v6c0 5 4 8 10 9 6-1 10-4 10-9V7z"/><path d="M12 9v3M12 16h.01"/></svg>'
+  lmra: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7v6c0 5 4 8 10 9 6-1 10-4 10-9V7z"/><path d="M12 9v3M12 16h.01"/></svg>',
+  chemie: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3h4M11 3v6.5L5.5 19a1.5 1.5 0 0 0 1.3 2.2h10.4a1.5 1.5 0 0 0 1.3-2.2L13 9.5V3"/><path d="M8 15h8"/></svg>'
 };
 var MODULE_SUBTITELS = {
   preinspecties: 'Asset controleren vóór gebruik',
   vuurvergunning: 'Vergunning voor brandgevaarlijk werk',
-  lmra: 'Kijk je werkplek na voor je begint'
+  lmra: 'Kijk je werkplek na voor je begint',
+  chemie: 'Wat zit er in dit product?'
 };
 
 var beschikbareModules = [];
@@ -1369,10 +1400,122 @@ function toonPushVraag(pin, klaar) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Chemische agentia -- opzoeken op de vloer
+// ---------------------------------------------------------------------------
+// Waarom deze module in de app staat en niet enkel in het portaal: iemand staat
+// aan de machine met een bus in zijn hand. Wat erin zit en wat hij moet doen bij
+// contact, staat op een blad in een map in het bureau. Deze twee schermen zijn
+// er alleen om die afstand weg te nemen -- beheren gebeurt in het portaal.
+var chemieResultaten = [];
+var chemieZoekTimer = null;
+
+function laadChemie() {
+  showScreen('chemie');
+  tekenActies('actiesChemie');
+  document.getElementById('chemieZoek').value = '';
+  zoekChemie();
+}
+
+function zoekChemie() {
+  // Even wachten met zoeken tot het typen stilvalt: op een gsm met slecht
+  // bereik is elke toetsaanslag anders een aparte oproep.
+  clearTimeout(chemieZoekTimer);
+  chemieZoekTimer = setTimeout(doeChemieZoek, 250);
+}
+
+function doeChemieZoek() {
+  var term = document.getElementById('chemieZoek').value.trim();
+  var lijst = document.getElementById('chemieLijst');
+  lijst.innerHTML = '<div class="loading"><div class="spinner"></div>Zoeken...</div>';
+
+  sb.rpc('rpc_chemie_zoek', { p_gebruiker_id: gebruiker.id, p_zoek: term }).then(function (r) {
+    if (r.error) {
+      lijst.innerHTML = '<p style="color:var(--gray-500)">Zoeken lukte niet. Probeer opnieuw.</p>';
+      return;
+    }
+    chemieResultaten = r.data || [];
+    if (!chemieResultaten.length) {
+      lijst.innerHTML = term
+        ? '<p style="color:var(--gray-500)">Niets gevonden voor "' + term + '".</p>'
+        : '<p style="color:var(--gray-500)">Er staan nog geen producten in de lijst.</p>';
+      return;
+    }
+    lijst.innerHTML = chemieResultaten.map(function (p) {
+      // Twee dingen meteen zichtbaar in de lijst: valt het onder titel 2, en is
+      // er een blad. Wie dat pas op het detail ziet, moet elk product openen.
+      var merk = p.onder_titel2
+        ? '<span class="badge niet_rijklaar" style="margin-left:6px">titel 2</span>' : '';
+      var blad = p.heeft_vib
+        ? '' : '<span class="badge onvolledig" style="margin-left:6px">geen blad</span>';
+      return '<div class="voertuig-kaart" onclick="toonChemieProduct(\'' + p.id + '\')">' +
+        '<div><div class="voertuig-naam">' + p.naam + merk + blad + '</div>' +
+        '<div class="vv-regel">' + [p.leverancier, p.locatie].filter(Boolean).join(' &middot; ') + '</div></div></div>';
+    }).join('');
+  });
+}
+
+function toonChemieProduct(id) {
+  showScreen('chemie-detail');
+  var el = document.getElementById('chemieDetail');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Laden...</div>';
+
+  sb.rpc('rpc_chemie_product', { p_gebruiker_id: gebruiker.id, p_product_id: id }).then(function (r) {
+    if (r.error || !r.data) {
+      el.innerHTML = '<p style="color:var(--gray-500)">Dit product is niet (meer) beschikbaar.</p>';
+      return;
+    }
+    var p = r.data;
+    var h = '<h2 class="screen-title" style="margin-bottom:4px">' + p.naam + '</h2>';
+    if (p.leverancier) h += '<p class="vv-regel" style="margin:0 0 12px">' + p.leverancier + '</p>';
+
+    if (p.onder_titel2) {
+      h += '<div class="escalatie-uitleg" style="margin-bottom:14px">Dit product valt onder titel 2 van boek VI: ' +
+           'kankerverwekkend, mutageen, reprotoxisch of hormoonontregelend. Vervangen gaat voor beschermen &mdash; ' +
+           'gebruik het niet zonder de afspraken die daarvoor gelden.</div>';
+    }
+
+    // Het blad is de reden dat dit scherm bestaat, dus het staat bovenaan en
+    // niet onder de opsomming.
+    h += p.vib_url
+      ? '<a class="btn-login" style="display:block;text-align:center;text-decoration:none;margin-bottom:16px" href="' +
+        p.vib_url + '" target="_blank" rel="noopener">Veiligheidsinformatieblad openen</a>'
+      : '<div class="escalatie-uitleg" style="margin-bottom:16px">Er hangt geen veiligheidsinformatieblad aan dit product. ' +
+        'Meld dat via "Onveilige situatie melden" &mdash; zonder dat blad weet niemand wat te doen bij contact.</div>';
+
+    var gevaren = p.gevaren || [];
+    if (gevaren.length) {
+      h += '<div class="vv-blok"><div class="vv-kop">Gevaren</div>' + gevaren.map(function (g) {
+        return '<div class="punt-rij"><span class="punt-badge ' + (g.titel2 ? 'nok' : 'na') + '">' + g.code + '</span>' +
+          '<div class="punt-tekst">' + (g.tekst || 'Betekenis nog niet ingevuld in de codelijst') + '</div></div>';
+      }).join('') + '</div>';
+    }
+
+    var regels = [
+      ['Waarvoor', p.toepassing],
+      ['Waar', p.locatie],
+      ['Hoeveelheid', p.hoeveelheid],
+      // De app heeft geen datumhulpje; deze ene omzetting is het niet waard er
+      // een te introduceren dat elders niet gebruikt wordt.
+      ['Blad van', p.vib_datum ? p.vib_datum.split('-').reverse().join('/') : null],
+      ['Opmerking', p.opmerking]
+    ].filter(function (r2) { return r2[1]; });
+
+    if (regels.length) {
+      h += '<div class="vv-blok"><div class="vv-kop">Details</div>' + regels.map(function (r2) {
+        return '<div class="vv-regel"><strong>' + r2[0] + ':</strong> ' + r2[1] + '</div>';
+      }).join('') + '</div>';
+    }
+
+    el.innerHTML = h;
+  });
+}
+
 function kiesModule(key) {
   if (key === 'preinspecties') { laadVoertuigen(); return; }
   if (key === 'vuurvergunning') { laadVergunningen(); return; }
   if (key === 'lmra') { laadLmra(); return; }
+  if (key === 'chemie') { laadChemie(); return; }
   showToast('Deze module is nog niet beschikbaar.');
 }
 
