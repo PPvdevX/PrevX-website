@@ -29,6 +29,10 @@
    afbeeldingen uit) eerst de tekst krijgt. */
 .pvxa-rij { display: flex; align-items: center; gap: 48px; max-width: 1000px; margin: 0 auto; }
 .pvxa-tekst { flex: 1 1 480px; min-width: 0; }
+/* .section-sub is elders gecentreerd en smal; binnen deze kolom moet hij de
+   volle breedte nemen, anders valt er rechts van de inleiding een gat terwijl
+   de opsomming eronder wel doorloopt. */
+.pvxa-tekst .section-sub { max-width: none; margin-left: 0; margin-right: 0; text-align: left; }
 .pvxa-beeld { flex: 0 0 260px; display: flex; justify-content: center; }
 .pvxa-beeld img { width: 260px; height: auto; border-radius: 22px; box-shadow: 0 18px 50px rgba(15,23,42,.22); display: block; }
 @media (max-width: 860px) {
