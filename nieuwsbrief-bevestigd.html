@@ -28,6 +28,21 @@
 .pvxn-blok p { color: var(--gray-700, #334155); font-size: 15px; line-height: 1.7; margin-bottom: 14px; }
 .pvxn-klein { color: var(--gray-500, #64748b); font-size: 13px; }
 .pvxn-knoppen { margin-top: 30px; }
+
+/* Deze pagina's zijn kort, en dan blijft de footer halverwege het scherm
+   hangen in plaats van onderaan. style.css lost dat nergens op, simpelweg
+   omdat elke andere pagina van de site lang genoeg is om het probleem nooit
+   te tonen.
+   Bewust hier opgelost en niet in style.css: daar raakt het elke pagina van
+   de site, en dat is een groter risico dan deze vier pagina's waard zijn.
+   100dvh en niet 100vh: op mobiel rekent vh de adresbalk mee, waardoor de
+   footer net onder de vouw valt en er toch gescrold moet worden.
+   De margin-top van .site-footer moet hier weg -- met een main die uitrekt
+   telt die 40px er bovenop en krijg je alsnog een schuifbalk. */
+body { min-height: 100dvh; display: flex; flex-direction: column; }
+body > main { flex: 1 0 auto; }
+body > .site-footer { margin-top: 0; }
+
 </style>
 </head>
 <body>
