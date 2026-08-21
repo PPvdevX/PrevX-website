@@ -6051,7 +6051,13 @@ function renderCampagnesTabel(){
       '<td><span class="badge '+(NB_STATUS_KLASSE[c.status]||'onvolledig')+'">'+c.status+'</span></td>'+
       '<td>'+(c.verzonden_op?formatDatum(c.verzonden_op.slice(0,10)):'-')+'</td>'+
       '<td>'+formatDatum(c.aangemaakt_op.slice(0,10))+'</td>'+
-      '<td><button class="btn-add-sm" onclick="event.stopPropagation();openCampagne(\'' + c.id + '\')">Openen</button></td></tr>';
+      '<td style="white-space:nowrap"><button class="btn-add-sm" onclick="event.stopPropagation();openCampagne(\'' + c.id + '\')">Openen</button>'+
+      // Geen wisknop bij een verzonden campagne. Het verzendlogboek gaat mee en
+      // dat is het bewijs dat er post vertrokken is, en naar wie. Zoiets hoor je
+      // niet per ongeluk weg te klikken vanuit een lijst.
+      (c.status==='verzonden' ? '' :
+        ' <button class="btn-add-sm" style="color:#dc2626" onclick="event.stopPropagation();verwijderCampagne(\'' + c.id + '\')">Verwijderen</button>')+
+      '</td></tr>';
   }).join('');
 }
 
