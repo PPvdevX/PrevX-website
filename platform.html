@@ -17,6 +17,15 @@
 <link rel="icon" href="Logo-PrevX.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+/* Telefoon naast de tekst van blok 01. Geprefixt met .pvxt-, zodat style.css
+   onaangeroerd blijft. Zwevend rechts, zodat de opsomming eronder gewoon
+   doorloopt; op een smal scherm valt hij weg -- daar is de tekst belangrijker
+   dan een tweede beeld naast de achtergrondfoto die er al staat. */
+.pvxt-telefoon { float: right; width: 190px; margin: 0 0 18px 28px; }
+.pvxt-telefoon img { width: 190px; height: auto; border-radius: 18px; box-shadow: 0 14px 40px rgba(15,23,42,.28); display: block; }
+@media (max-width: 760px) { .pvxt-telefoon { display: none; } }
+</style>
 </head>
 <body>
 
@@ -95,6 +104,7 @@
         <h2>Pre-inspecties op de werkvloer</h2>
       </div>
       <div class="pillar-body">
+        <div class="pvxt-telefoon"><img src="images/app-aanmelden.jpg" alt="Het aanmeldscherm van de PrevX app: de bedrijfsnaam en een cijferklavier voor de pincode" loading="lazy" decoding="async" width="190" height="393"></div>
         <p>Controles vóór gebruik, uitgevoerd in de PrevX app op de telefoon van de medewerker zelf. Geen papieren blad dat in een cabine blijft liggen, maar een controle die meteen in het dossier terechtkomt — met foto's als er iets mis is.</p>
         <ul class="pillar-tags">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Aanmelden met een klantcode en een pincode — geen e-mailadres nodig</li>

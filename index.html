@@ -24,7 +24,19 @@
 <style>
 /* Blok over de app op de werkvloer. Geprefixt met .pvxa-, zodat style.css niet
    aangeraakt hoeft te worden -- zelfde aanpak als .pvxp- op piloot.html. */
-.pvxa-punten { list-style: none; max-width: 760px; margin: 0 auto 30px; padding: 0; }
+/* Twee kolommen op een breed scherm, onder elkaar op een telefoon. De
+   afbeelding staat tweede in de opmaak, zodat wie ze niet ziet (schermlezer,
+   afbeeldingen uit) eerst de tekst krijgt. */
+.pvxa-rij { display: flex; align-items: center; gap: 48px; max-width: 1000px; margin: 0 auto; }
+.pvxa-tekst { flex: 1 1 480px; min-width: 0; }
+.pvxa-beeld { flex: 0 0 260px; display: flex; justify-content: center; }
+.pvxa-beeld img { width: 260px; height: auto; border-radius: 22px; box-shadow: 0 18px 50px rgba(15,23,42,.22); display: block; }
+@media (max-width: 860px) {
+  .pvxa-rij { flex-direction: column; gap: 32px; }
+  .pvxa-beeld { flex: 0 0 auto; }
+  .pvxa-beeld img { width: 220px; }
+}
+.pvxa-punten { list-style: none; margin: 0 0 26px; padding: 0; }
 .pvxa-punten li { position: relative; padding-left: 32px; margin-bottom: 16px; color: var(--gray-700, #334155); font-size: 15px; line-height: 1.7; }
 .pvxa-punten li svg { position: absolute; left: 0; top: 5px; width: 20px; height: 20px; color: var(--accent, #40668C); }
 .pvxa-punten strong { color: var(--navy, #003366); }
@@ -117,13 +129,20 @@
 <main>
   <section class="section">
     <h2 class="section-title">En op de vloer staat het op een telefoon</h2>
-    <p class="section-sub">Een controle op papier blijft in de cabine liggen. Met de PrevX app werkt uw medewerker een controle v&oacute;&oacute;r gebruik af, doet hij zijn laatste-minuutrisicoanalyse of vraagt hij een vuurvergunning aan &mdash; en wat hij invult, staat meteen in uw dossier.</p>
+    <div class="pvxa-rij">
+      <div class="pvxa-tekst">
+    <p class="section-sub" style="margin-left:0;margin-right:0;text-align:left">Een controle op papier blijft in de cabine liggen. Met de PrevX app werkt uw medewerker een controle v&oacute;&oacute;r gebruik af, doet hij zijn laatste-minuutrisicoanalyse of vraagt hij een vuurvergunning aan &mdash; en wat hij invult, staat meteen in uw dossier.</p>
     <ul class="pvxa-punten">
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><strong>Aanmelden met een klantcode en een pincode.</strong> Geen e-mailadres, geen wachtwoord. Wie zich eerst moet registreren, vult het formulier na twee weken niet meer in.</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><strong>Werkt op eender welke smartphone.</strong> Te installeren als app, maar dat hoeft niet &mdash; de browser volstaat.</li>
       <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><strong>Een afwijking wordt een actiepunt.</strong> Met een foto erbij, zodat u ziet waarover het gaat. Geen losse melding die ergens blijft hangen.</li>
     </ul>
-    <p style="text-align:center"><a href="/platform" class="btn btn-cta" style="background:var(--navy)">Zo werkt het platform</a></p>
+    <p style="margin:0"><a href="/platform" class="btn btn-cta" style="background:var(--navy)">Zo werkt het platform</a></p>
+      </div>
+      <div class="pvxa-beeld">
+        <img src="images/app-menu.jpg" alt="Het beginscherm van de PrevX app op een telefoon, met de keuze tussen pre-inspectie, vuurvergunning, LMRA en chemische agentia" loading="lazy" decoding="async" width="260" height="538">
+      </div>
+    </div>
   </section>
 </main>
 
