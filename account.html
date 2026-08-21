@@ -6102,8 +6102,25 @@ function openCampagne(id){
        '<input class="form-input" id="nbOnderwerp" value="'+nbEsc(c.onderwerp)+'"'+(uit?' disabled':'')+'></div>';
     h+='<div style="margin-bottom:14px"><label class="form-label">Voorbeeldtekst (het regeltje naast het onderwerp in de inbox)</label>'+
        '<input class="form-input" id="nbVoorbeeld" value="'+nbEsc(c.voorbeeldtekst)+'"'+(uit?' disabled':'')+'></div>';
-    h+='<div style="margin-bottom:14px"><label class="form-label">HTML &mdash; gebruik {{uitschrijflink}} als je de link ook in je tekst wil</label>'+
-       '<textarea class="form-input" id="nbHtml" rows="12" style="font-family:monospace;font-size:12px"'+(uit?' disabled':'')+'>'+nbEsc(c.html)+'</textarea></div>';
+    h+='<div style="margin-bottom:14px"><label class="form-label">Inhoud &mdash; gebruik {{uitschrijflink}} als je de link ook in je tekst wil</label>';
+    if(!uit){
+      // Bouwstenen in plaats van een lege HTML-doos. Elk blokje is al
+      // e-mailveilig opgemaakt: tabellen en inline CSS, want Outlook negeert
+      // stylesheets en padding op divs. Wie zelf HTML wil typen kan dat nog
+      // altijd -- dit veld blijft gewoon tekst.
+      h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">'+
+         '<button class="btn-add-sm" onclick="nbVoegIn(\'titel\')">Titel</button>'+
+         '<button class="btn-add-sm" onclick="nbVoegIn(\'alinea\')">Alinea</button>'+
+         '<button class="btn-add-sm" onclick="nbVoegIn(\'knop\')">Knop</button>'+
+         '<button class="btn-add-sm" onclick="nbVoegIn(\'streep\')">Streep</button>'+
+         '<button class="btn-add-sm" onclick="nbKiesAfbeelding()">Afbeelding&hellip;</button>'+
+         '<button class="btn-add-sm" style="margin-left:auto" onclick="nbToonVoorbeeld()">Voorbeeld</button>'+
+         '</div><input type="file" id="nbBestand" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" onchange="nbUploadAfbeelding(this)">';
+    }
+    h+='<textarea class="form-input" id="nbHtml" rows="12" style="font-family:monospace;font-size:12px"'+(uit?' disabled':'')+'>'+nbEsc(c.html)+'</textarea></div>';
+    h+='<div id="nbVoorbeeld" style="display:none;margin-bottom:18px">'+
+       '<label class="form-label">Voorbeeld &mdash; benadering; de testmail blijft de echte proef</label>'+
+       '<iframe id="nbVoorbeeldFrame" style="width:100%;height:420px;border:1px solid var(--gray-200);border-radius:var(--radius);background:#fff"></iframe></div>';
     h+='<div style="margin-bottom:18px"><label class="form-label">Platte tekst &mdash; hoort erbij, scheelt in de spamscore</label>'+
        '<textarea class="form-input" id="nbTekst" rows="6" style="font-size:13px"'+(uit?' disabled':'')+'>'+nbEsc(c.tekst)+'</textarea></div>';
 
@@ -6120,6 +6137,110 @@ function openCampagne(id){
     }
     document.getElementById('detailBody').innerHTML=h;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Bouwstenen
+// ---------------------------------------------------------------------------
+// Alles hier is opgemaakt zoals e-mail het wil: tabellen, inline CSS, en bij
+// afbeeldingen ook een width-attribuut naast de CSS -- Outlook luistert naar
+// het attribuut en niet altijd naar de stijl.
+var NB_BLOKKEN={
+  titel:'<h2 style="margin:0 0 12px;font-family:sans-serif;font-size:20px;line-height:1.3;color:#003366">Titel</h2>',
+  alinea:'<p style="margin:0 0 14px">Schrijf hier je tekst.</p>',
+  streep:'<hr style="border:0;border-top:1px solid #e2e8f0;margin:22px 0">',
+  knop:'<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0"><tr>'+
+       '<td bgcolor="#003366" style="border-radius:8px">'+
+       '<a href="https://prevx.be" style="display:inline-block;padding:11px 22px;font-family:sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none">Lees meer</a>'+
+       '</td></tr></table>'
+};
+
+// Invoegen op de plek van de cursor, niet onderaan: anders moet je elk blokje
+// daarna zelf naar boven slepen.
+function nbVoegInTekst(fragment){
+  var veld=document.getElementById('nbHtml');
+  if(!veld)return;
+  var start=veld.selectionStart, eind=veld.selectionEnd;
+  var voor=veld.value.slice(0,start), na=veld.value.slice(eind);
+  var tussen=(voor && !/\n$/.test(voor))?'\n':'';
+  veld.value=voor+tussen+fragment+'\n'+na;
+  var nieuwePositie=(voor+tussen+fragment).length;
+  veld.focus();
+  veld.setSelectionRange(nieuwePositie,nieuwePositie);
+}
+
+function nbVoegIn(soort){
+  if(NB_BLOKKEN[soort])nbVoegInTekst(NB_BLOKKEN[soort]);
+}
+
+function nbKiesAfbeelding(){
+  var k=document.getElementById('nbBestand');
+  if(k){k.value='';k.click();}
+}
+
+// ---------------------------------------------------------------------------
+// Afbeelding uploaden
+// ---------------------------------------------------------------------------
+// Gaat naar de publieke bucket nieuwsbrief-media (migratie 0098). Publiek is
+// hier geen slordigheid: een mailprogramma haalt afbeeldingen anoniem op, soms
+// weken later, dus een ondertekende link met vervaltermijn zou tegen die tijd
+// een kapot kadertje opleveren.
+function nbUploadAfbeelding(invoer){
+  var bestand=invoer.files&&invoer.files[0];
+  if(!bestand)return;
+
+  // Twee megabyte is al royaal voor een nieuwsbrief. Grotere afbeeldingen maken
+  // de mail traag en worden door sommige clients niet eens getoond.
+  if(bestand.size>2*1024*1024){
+    showToast('Deze afbeelding is groter dan 2 MB. Verklein ze eerst.');
+    return;
+  }
+
+  // Naam opschonen en uniek maken: spaties en accenten in een URL geven gedoe,
+  // en twee bestanden met dezelfde naam zouden elkaar overschrijven -- ook in
+  // een nieuwsbrief die al verstuurd is.
+  var schoon=bestand.name.toLowerCase().replace(/[^a-z0-9.]+/g,'-').replace(/^-+|-+$/g,'');
+  var pad=Date.now()+'-'+schoon;
+
+  showToast('Afbeelding uploaden...');
+  sb.storage.from('nieuwsbrief-media').upload(pad,bestand,{contentType:bestand.type,upsert:false}).then(function(r){
+    if(r.error){
+      console.error('Upload mislukt:',r.error);
+      showToast('Upload mislukt: '+r.error.message+' (staat migratie 0098 al uitgevoerd?)');
+      return;
+    }
+    var url=sb.storage.from('nieuwsbrief-media').getPublicUrl(pad).data.publicUrl;
+    nbVoegInTekst('<img src="'+url+'" width="536" style="width:100%;max-width:536px;height:auto;display:block;border:0" alt="">');
+    showToast('Afbeelding toegevoegd');
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Voorbeeld
+// ---------------------------------------------------------------------------
+// Let op: dit is een BENADERING. De omkadering hieronder is een kopie van wat
+// de verzendfunctie bouwt, en die twee kunnen uit elkaar lopen. Wat je hier
+// ziet klopt qua breedte en typografie, maar het echte oordeel komt van de
+// testmail -- alleen daar zie je wat Outlook ervan maakt.
+function nbToonVoorbeeld(){
+  var vak=document.getElementById('nbVoorbeeld');
+  var frame=document.getElementById('nbVoorbeeldFrame');
+  var veld=document.getElementById('nbHtml');
+  if(!vak||!frame||!veld)return;
+
+  if(vak.style.display!=='none'){vak.style.display='none';return;}
+
+  var romp=veld.value.split('{{uitschrijflink}}').join('#');
+  frame.srcdoc='<!doctype html><html><body style="margin:0">'+
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f1f5f9">'+
+    '<tr><td align="center" style="padding:24px 12px">'+
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;border-radius:12px">'+
+    '<tr><td style="padding:28px 32px;font-family:sans-serif;font-size:15px;line-height:1.7;color:#334155">'+romp+'</td></tr></table>'+
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;border-top:1px solid #e2e8f0">'+
+    '<tr><td align="center" style="padding:18px 24px;font-family:sans-serif;font-size:12px;line-height:1.6;color:#94a3b8">'+
+    'Je krijgt deze mail omdat je je inschreef op de nieuwsbrief van PrevX.<br><a href="#" style="color:#64748b">Uitschrijven</a></td></tr></table>'+
+    '</td></tr></table></body></html>';
+  vak.style.display='';
 }
 
 function bewaarCampagne(id){
